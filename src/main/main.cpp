@@ -4,6 +4,8 @@
 #include <pancake/Version.hpp>
 #include "dbfilter/DBFilterSettings.hpp"
 #include "dbfilter/DBFilterWorkflow.hpp"
+#include "mapclr/MapCLRSettings.hpp"
+#include "mapclr/MapCLRWorkflow.hpp"
 #include "overlaphifi/OverlapHifiWorkflow.hpp"
 #include "seeddb/SeedDBSettings.hpp"
 #include "seeddb/SeedDBWorkflow.hpp"
@@ -30,6 +32,9 @@ PacBio::CLI_v2::MultiToolInterface CreateMultiInterface()
     // clang-format off
     mi.AddTools(
     {
+        {"map",
+            PacBio::Pancake::MapCLRSettings::CreateCLI(),
+           &PacBio::Pancake::MapCLRWorkflow::Runner},
         {"seqdb",
             PacBio::Pancake::SeqDBSettings::CreateCLI(),
            &PacBio::Pancake::SeqDBWorkflow::Runner},

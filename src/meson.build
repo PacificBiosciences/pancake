@@ -38,6 +38,8 @@ pancake_version_sources = [
 pancake_cpp_sources = files([
     'main/dbfilter/DBFilterSettings.cpp',
     'main/dbfilter/DBFilterWorkflow.cpp',
+    'main/mapclr/MapCLRWorkflow.cpp',
+    'main/mapclr/MapCLRSettings.cpp',
     'main/overlaphifi/OverlapHifiSettings.cpp',
     'main/overlaphifi/OverlapHifiWorkflow.cpp',
     'main/seeddb/SeedDBSettings.cpp',
