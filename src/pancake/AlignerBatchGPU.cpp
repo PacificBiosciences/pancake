@@ -3,6 +3,7 @@
 #include <pacbio/alignment/AlignmentTools.h>
 #include <pacbio/pancake/AlignerBatchGPU.h>
 #include <pacbio/util/Util.h>
+#include <pbcopper/utility/Stopwatch.h>
 #include <array>
 #include <cstdint>
 #include <iostream>
@@ -116,12 +117,19 @@ StatusAddSequencePair AlignerBatchGPU::AddSequencePair_(const char* query, int32
     return StatusAddSequencePair::OK;
 }
 
-void AlignerBatchGPU::AlignAll()
+std::pair<int64_t, int64_t> AlignerBatchGPU::AlignAll()
 {
+    int64_t cpuTime = 0;
+    int64_t gpuTime = 0;
+    PacBio::Utility::Stopwatch timer;
     alnResults_.clear();
+    cpuTime += timer.ElapsedNanoseconds();
+    timer.Reset();
 
     aligner_->align_all();
     aligner_->sync_alignments();
+    gpuTime += timer.ElapsedNanoseconds();
+    timer.Reset();
 
     const std::vector<std::shared_ptr<claraparabricks::genomeworks::cudaaligner::Alignment>>&
         alignments = aligner_->get_alignments();
@@ -149,6 +157,9 @@ void AlignerBatchGPU::AlignAll()
                                        alignments, alnResults_);
     };
     Parallel::Dispatch(faf_, jobsPerThread.size(), Submit);
+
+    cpuTime += timer.ElapsedNanoseconds();
+    return std::make_pair(cpuTime, gpuTime);
 }
 
 void AlignerBatchGPU::WorkerConstructAlignmentResult(
