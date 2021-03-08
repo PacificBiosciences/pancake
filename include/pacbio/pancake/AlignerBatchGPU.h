@@ -1,3 +1,11 @@
+// Copyright (c) 2019, Pacific Biosciences of California, Inc.
+// All rights reserved.
+// See LICENSE.txt.
+//
+// Contributions from NVIDIA are Copyright (c) 2021, NVIDIA Corporation.
+// All rights reserved.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+//
 // Author: Ivan Sovic
 
 #ifndef PANCAKE_ALIGNER_BATCH_GPU_H
@@ -99,14 +107,14 @@ private:
      * Decodes a single alignment state from the Cudaaligner format to PacBio::Data::CigarOperationType.
     */
     static PacBio::Data::CigarOperationType CudaalignStateToPbbamState_(
-        const claraparabricks::genomeworks::cudaaligner::AlignmentState& s);
+        const int8_t s);
 
     /*
      * Helper conversion function to convert the Cudaaligner's alignment into the
      * PacBio::Data::Cigar format. IT also calcualtes the total number of diffs on the fly.
     */
     static PacBio::Data::Cigar CudaalignToCigar_(
-        const std::vector<claraparabricks::genomeworks::cudaaligner::AlignmentState>& alignment,
+        const claraparabricks::genomeworks::cudaaligner::Alignment& alignment,
         Alignment::DiffCounts& retDiffs);
 };
 
