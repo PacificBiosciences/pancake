@@ -230,7 +230,7 @@ PacBio::Data::Cigar AlignerBatchGPU::CudaalignToCigar_(
     retDiffs.Clear();
 
     const std::vector<int8_t>& actions = alignment.get_actions();
-    const std::vector<uint8_t>& runlength = alignment.get_runlengths();
+    const std::vector<int32_t>& runlength = alignment.get_runlengths();
 
     if (actions.empty()) {
         return {};
@@ -239,27 +239,16 @@ PacBio::Data::Cigar AlignerBatchGPU::CudaalignToCigar_(
     std::array<uint32_t, 4> counts{0, 0, 0, 0};
 
     PacBio::Data::Cigar cigar;
-    const int64_t n_actions = actions.size();
-    auto lastState = actions[0];
-    int32_t count = 0;
-    for (int32_t i = 0; i < n_actions; ++i)
+    cigar.reserve(actions.size());
+    auto ait = begin(actions);
+    const auto aend = end(actions);
+    auto rit = begin(runlength);
+    while(ait < aend)
     {
-        const auto curState = actions[i];
-        const auto curRunlength = runlength[i];
-
-        if (curState == lastState) {
-            count += curRunlength;
-        } else {
-            PacBio::Data::CigarOperationType cigarOpType = CudaalignStateToPbbamState_(lastState);
-            cigar.emplace_back(cigarOpType, count);
-            counts[lastState] += count;
-            count = curRunlength;
-            lastState = curState;
-        }
+            PacBio::Data::CigarOperationType cigarOpType = CudaalignStateToPbbamState_(*ait);
+            cigar.emplace_back(cigarOpType, *rit);
+            counts[*ait] += *rit;
     }
-    PacBio::Data::CigarOperationType cigarOpType = CudaalignStateToPbbamState_(lastState);
-    cigar.emplace_back(cigarOpType, count);
-    counts[lastState] += count;
     retDiffs.numEq = counts[claraparabricks::genomeworks::cudaaligner::AlignmentState::match];
     retDiffs.numX = counts[claraparabricks::genomeworks::cudaaligner::AlignmentState::mismatch];
     retDiffs.numI = counts[claraparabricks::genomeworks::cudaaligner::AlignmentState::insertion];
