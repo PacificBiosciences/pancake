@@ -13,9 +13,7 @@
 
 #include <pacbio/pancake/AlignerBatchCPU.h>
 #include <pacbio/pancake/AlignerFactory.h>
-#include <pacbio/pancake/Range.h>
 #include <pbbam/Cigar.h>
-#include <pbcopper/parallel/FireAndForget.h>
 #include <claraparabricks/genomeworks/cudaaligner/aligner.hpp>
 #include <claraparabricks/genomeworks/cudaaligner/alignment.hpp>
 #include <claraparabricks/genomeworks/cudaaligner/cudaaligner.hpp>
@@ -32,10 +30,8 @@ int64_t ComputeMaxGPUMemory(int64_t cudaalignerBatches, double maxGPUMemoryFract
 class AlignerBatchGPU
 {
 public:
-    AlignerBatchGPU(int32_t numThreads, const AlignmentParameters& alnParams, uint32_t maxBandwidth,
+    AlignerBatchGPU(const AlignmentParameters& alnParams, uint32_t maxBandwidth,
                     uint32_t deviceId, int64_t maxGPUMemoryCap);
-    AlignerBatchGPU(Parallel::FireAndForget* faf, const AlignmentParameters& alnParams,
-                    uint32_t maxBandwidth, uint32_t deviceId, int64_t maxGPUMemoryCap);
 
     ~AlignerBatchGPU();
 
@@ -82,42 +78,21 @@ public:
 
     size_t BatchSize() const { return querySpans_.size(); }
 
+    struct AlignerBatchGPUHostBuffers;
 private:
-    Parallel::FireAndForget* faf_;
-    std::unique_ptr<Parallel::FireAndForget> fafFallback_;
-
     AlignmentParameters alnParams_;
-    std::unique_ptr<claraparabricks::genomeworks::cudaaligner::FixedBandAligner> aligner_;
+
+    // Make sure gpuStream is the first CUDA-related data element,
+    // such that it gets destroyed after the other CUDA-related
+    // data elements which depend on it.
     claraparabricks::genomeworks::CudaStream gpuStream_;
+    std::unique_ptr<claraparabricks::genomeworks::cudaaligner::FixedBandAligner> aligner_;
+    std::unique_ptr<AlignerBatchGPUHostBuffers> gpuHostBuffers_;
+
     std::vector<int32_t> querySpans_;
     std::vector<int32_t> targetSpans_;
     std::vector<AlignmentResult> alnResults_;
-
-    StatusAddSequencePair AddSequencePair_(const char* query, int32_t queryLen, const char* target,
-                                           int32_t targetLen);
-
-    void WorkerConstructAlignmentResult(
-        int32_t jobStart, int32_t jobEnd, const std::vector<int32_t>& querySpans,
-        const std::vector<int32_t>& targetSpans, const AlignmentParameters& alnParams,
-        const std::vector<std::shared_ptr<claraparabricks::genomeworks::cudaaligner::Alignment>>&
-            alignments,
-        std::vector<AlignmentResult>& alnResults);
-
-    /*
-     * Decodes a single alignment state from the Cudaaligner format to PacBio::Data::CigarOperationType.
-    */
-    static PacBio::Data::CigarOperationType CudaalignStateToPbbamState_(
-        const int8_t s);
-
-    /*
-     * Helper conversion function to convert the Cudaaligner's alignment into the
-     * PacBio::Data::Cigar format. IT also calcualtes the total number of diffs on the fly.
-    */
-    static PacBio::Data::Cigar CudaalignToCigar_(
-        const claraparabricks::genomeworks::cudaaligner::Alignment& alignment,
-        Alignment::DiffCounts& retDiffs);
 };
-
 }  // namespace Pancake
 }  // namespace PacBio
 
