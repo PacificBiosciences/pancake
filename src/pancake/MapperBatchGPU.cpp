@@ -283,6 +283,7 @@ int32_t MapperBatchGPU::AlignPartsOnGPU_(AlignerBatchGPU& aligner,
         aligner.Clear();
 
         std::vector<size_t> partIds;
+        partIds.reserve(parts.size());
 
         PBLOG_TRACE << "Preparing sequences for GPU alignment.";
         for (; partId < parts.size(); ++partId) {
@@ -324,7 +325,7 @@ int32_t MapperBatchGPU::AlignPartsOnGPU_(AlignerBatchGPU& aligner,
         gpuTime += seedTimings.second;
         timer.Reset();
 
-        const std::vector<AlignmentResult>& partInternalAlns = aligner.GetAlnResults();
+        std::vector<AlignmentResult>& partInternalAlns = aligner.GetAlnResults();
 
         int32_t numNotValid = 0;
         for (size_t i = 0; i < partInternalAlns.size(); ++i) {
