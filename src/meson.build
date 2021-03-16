@@ -1,3 +1,10 @@
+# Copyright (c) 2019, Pacific Biosciences of California, Inc.
+# All rights reserved.
+# See LICENSE.txt.
+#
+# Contributions from NVIDIA are Copyright (c) 2021, NVIDIA Corporation.
+# All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
 
 ################
 # version info #
@@ -97,6 +104,15 @@ if opt_cuda
         'pancake/AlignerBatchGPU.cpp',
         'pancake/MapperBatchGPU.cpp',
     ])
+    pancake_cu_sources = files([
+        'pancake/AlignerBatchGPUGenomeWorksInterface.cu',
+    ])
+    pancake_cpp_sources += pancake_cu_sources
+    pancake_cuda_flags = ['-gencode', 'arch=compute_80,code=sm_80', '-gencode', 'arch=compute_80,code=compute_80']
+    if (get_option('b_ndebug') == 'true') or ((get_option('b_ndebug') == 'if-release') and (get_option('buildtype') == 'release'))
+      pancake_cuda_flags += '-DNDEBUG'
+    endif
+    pancake_cuda_flags += '-Xcompiler=-Wno-pedantic'
 endif
 
 pancake_cpp_sources += pancake_version_sources
@@ -111,15 +127,28 @@ pancake_lib_install = (not meson.is_subproject()) or (get_option('default_librar
 
 pancake_exe_dir = meson.current_source_dir()
 
-pancake_lib = library(
-  'pancake',
-  pancake_cpp_sources,
-  soversion : meson.project_version(),
-  version : meson.project_version(),
-  install : pancake_lib_install,
-  dependencies : pancake_lib_deps,
-  include_directories : pancake_include_directories,
-  cpp_args : pancake_flags)
+if opt_cuda
+    pancake_lib = library(
+      'pancake',
+      pancake_cpp_sources,
+      soversion : meson.project_version(),
+      version : meson.project_version(),
+      install : pancake_lib_install,
+      dependencies : pancake_lib_deps,
+      include_directories : pancake_include_directories,
+      cpp_args : pancake_flags,
+      cuda_args : pancake_cuda_flags)
+else
+    pancake_lib = library(
+      'pancake',
+      pancake_cpp_sources,
+      soversion : meson.project_version(),
+      version : meson.project_version(),
+      install : pancake_lib_install,
+      dependencies : pancake_lib_deps,
+      include_directories : pancake_include_directories,
+      cpp_args : pancake_flags)
+endif
 
 ##############
 # executable #
