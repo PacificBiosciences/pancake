@@ -30,8 +30,8 @@ int64_t ComputeMaxGPUMemory(int64_t cudaalignerBatches, double maxGPUMemoryFract
 class AlignerBatchGPU
 {
 public:
-    AlignerBatchGPU(const AlignmentParameters& alnParams, uint32_t maxBandwidth,
-                    uint32_t deviceId, int64_t maxGPUMemoryCap);
+    AlignerBatchGPU(const AlignmentParameters& alnParams, uint32_t maxBandwidth, uint32_t deviceId,
+                    int64_t maxGPUMemoryCap);
 
     ~AlignerBatchGPU();
 
@@ -79,6 +79,7 @@ public:
     size_t BatchSize() const { return querySpans_.size(); }
 
     struct AlignerBatchGPUHostBuffers;
+
 private:
     AlignmentParameters alnParams_;
 

@@ -9,30 +9,30 @@
 // All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-
 #ifndef PANCAKE_ALIGNER_BATCH_GPU_GENOMEWORKS_INTERFACE_H
 #define PANCAKE_ALIGNER_BATCH_GPU_GENOMEWORKS_INTERFACE_H
 
-#include <pbcopper/data/Cigar.h>
 #include <cuda_runtime_api.h>
-#include <cstdint>
+#include <pbcopper/data/Cigar.h>
 #include <claraparabricks/genomeworks/cudaaligner/aligner.hpp>
+#include <cstdint>
 
-namespace PacBio
-{
+namespace PacBio {
 
-namespace Pancake
-{
+namespace Pancake {
 
-namespace GWInterface
-{
+namespace GWInterface {
 
-void RunConvertToPacBioCigarAndScoreGpuKernel(PacBio::Data::CigarOperation* cigar, int4* diffs, int64_t* scores, const claraparabricks::genomeworks::cudaaligner::DeviceAlignmentsPtrs& aln_ptrs, int32_t match_score, int32_t mismatch_penalty, int32_t gap_open_penalty, int32_t gap_ext_penalty, cudaStream_t stream, int32_t device_id);
+void RunConvertToPacBioCigarAndScoreGpuKernel(
+    PacBio::Data::CigarOperation* cigar, int4* diffs, int64_t* scores,
+    const claraparabricks::genomeworks::cudaaligner::DeviceAlignmentsPtrs& aln_ptrs,
+    int32_t match_score, int32_t mismatch_penalty, int32_t gap_open_penalty,
+    int32_t gap_ext_penalty, cudaStream_t stream, int32_t device_id);
 
-} // namespace GWInterface
+}  // namespace GWInterface
 
-} // namespace Pancake
+}  // namespace Pancake
 
-} // namespace PacBio
+}  // namespace PacBio
 
 #endif  // PANCAKE_ALIGNER_BATCH_GPU_GENOMEWORKS_INTERFACE_H
