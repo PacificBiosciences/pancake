@@ -62,7 +62,7 @@ std::vector<TestData> testData = {
         },
         // Expected results.
         {
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar(""), 0, 0, 0, 0, false, 0, 0, false, PacBio::Pancake::Alignment::DiffCounts(0, 0, 0, 0)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar(""), 0, 0, 0, 0, true, 0, 0, false, PacBio::Pancake::Alignment::DiffCounts(0, 0, 0, 0)},
             PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1I"), 1, 0, 1, 0, true, -4, -4, false, PacBio::Pancake::Alignment::DiffCounts(0, 0, 1, 0)},
             PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1D"), 0, 1, 0, 1, true, -4, -4, false, PacBio::Pancake::Alignment::DiffCounts(0, 0, 0, 1)},
             PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, PacBio::Pancake::Alignment::DiffCounts(0, 1, 0, 0)},
