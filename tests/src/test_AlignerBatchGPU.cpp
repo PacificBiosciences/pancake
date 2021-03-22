@@ -81,7 +81,7 @@ TEST(AlignerBatchGPU, ArrayOfTests_Small)
 
     const int32_t maxMemoryCap = 100 * 1024 * 1024;
     auto aligner =
-        PacBio::Pancake::AlignerBatchGPU(2, alnParams, maxBandwidth, deviceId, maxMemoryCap);
+        PacBio::Pancake::AlignerBatchGPU(alnParams, maxBandwidth, deviceId, maxMemoryCap);
 
     for (const auto& data : testData) {
         // Debug info.
