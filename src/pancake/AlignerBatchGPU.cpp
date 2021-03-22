@@ -78,6 +78,10 @@ void RetrieveResultsAsPacBioCigar(
             std::string(__func__) + ".");
     }
 
+    if (numberOfAlignments == 0) {
+        return;
+    }
+
     gw::device_buffer<PacBio::Data::CigarOperation> pacbio_cigars_device(aln.total_length,
                                                                          allocator, stream);
     gw::device_buffer<int4> diffs_device(numberOfAlignments, allocator, stream);

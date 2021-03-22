@@ -128,6 +128,7 @@ void RunConvertToPacBioCigarAndScoreGpuKernel(PacBio::Data::CigarOperation* ciga
     const int32_t n_alignments = aln_ptrs.n_alignments;
     constexpr int32_t n_threads = 256;
     const int64_t n_blocks      = ceiling_divide<int64_t>(total_length, n_threads);
+    assert(n_alignments > 0);
     assert(n_blocks <= static_cast<int64_t>(std::numeric_limits<uint32_t>::max()));
     GW_CU_CHECK_ERR(cudaMemsetAsync(diffs, 0, n_alignments * sizeof(int4), stream));
     GW_CU_CHECK_ERR(cudaMemsetAsync(scores, 0, n_alignments * sizeof(int64_t), stream));
