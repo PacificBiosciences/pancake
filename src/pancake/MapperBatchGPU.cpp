@@ -82,7 +82,9 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
     bool alignRemainingOnCpu, int32_t gpuStartBandwidth, int32_t gpuMaxBandwidth,
     AlignerBatchGPU& aligner, Parallel::FireAndForget* faf)
 {
+#ifdef PANCAKE_TIMINGS
     PacBio::Utility::Stopwatch timer;
+#endif
     int64_t cpuTime = 0;
     int64_t gpuTime = 0;
 
@@ -101,15 +103,19 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
         WorkerMapper_(batchChunks, jobStart, jobEnd, results);
     };
     Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
+#ifdef PANCAKE_TIMINGS
     timer.Freeze();
     cpuTime += timer.ElapsedNanoseconds();
     PBLOG_INFO << "CPU Mapping            : " << timer.ElapsedTime();
+#endif
 
     // Align the mappings if required.
     if (alignSettings.align) {
         int64_t seedAlnCpuTime = 0;
         int64_t seedAlnGpuTime = 0;
+#ifdef PANCAKE_TIMINGS
         timer.Reset();
+#endif
         // Sanity check.
         if (gpuStartBandwidth <= 0) {
             throw std::runtime_error(
@@ -125,10 +131,12 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
         for (const auto& chunkRevQueries : querySeqsRev) {
             querySeqsRevStore.emplace_back(FastaSequenceCachedStore(chunkRevQueries));
         }
+#ifdef PANCAKE_TIMINGS
         timer.Freeze();
         seedAlnCpuTime += timer.ElapsedNanoseconds();
         PBLOG_INFO << "CPU RevComp            : " << timer.ElapsedTime();
         timer.Reset();
+#endif
 
         PBLOG_TRACE << "Preparing parts for alignment.";
 
@@ -142,10 +150,12 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
                                           alnStitchInfo, longestSequenceForAln);
         PBLOG_TRACE << "partsGlobal.size() = " << partsGlobal.size();
         PBLOG_TRACE << "partsSemiglobal.size() = " << partsSemiglobal.size();
+#ifdef PANCAKE_TIMINGS
         timer.Freeze();
         cpuTime += timer.ElapsedNanoseconds();
         PBLOG_INFO << "CPU Prepare            : " << timer.ElapsedTime();
         timer.Reset();
+#endif
 
         // Global alignment on GPU. Try using different bandwidths,
         // increasing the bandwidth for the failed parts each iteration.
@@ -157,12 +167,16 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
 
         while (true) {
             PBLOG_TRACE << "Trying bandwidth: " << currentBandwidth;
+#ifdef PANCAKE_TIMINGS
             timer.Reset();
+#endif
             aligner.ResetMaxBandwidth(gpuMaxBandwidth);
+#ifdef PANCAKE_TIMINGS
             timer.Freeze();
             cpuTime += timer.ElapsedNanoseconds();
             PBLOG_INFO << "CPU Reset BW           : " << timer.ElapsedTime();
             timer.Reset();
+#endif
             numInternalNotValid = AlignPartsOnGPU_(aligner, partsGlobal, internalAlns,
                                                    seedAlnCpuTime, seedAlnGpuTime);
             if (numInternalNotValid == 0) {
@@ -177,6 +191,7 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
                 currentBandwidth = maxBandwidth;
             }
         }
+#ifdef PANCAKE_TIMINGS
         cpuTime += seedAlnCpuTime;
         gpuTime += seedAlnGpuTime;
         PBLOG_INFO << "CPU Internal Prepare   : "
@@ -184,6 +199,7 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
         PBLOG_INFO << "GPU Internal Alignment : "
                    << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(seedAlnGpuTime);
         timer.Reset();
+#endif
 
         // Fallback to the CPU if there are any unaligned parts left.
         int64_t prepareTime = 0;
@@ -198,11 +214,13 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
                         << internalAlns.size() << "\n";
         }
         PBLOG_TRACE << "internalAlns.size() = " << internalAlns.size();
+#ifdef PANCAKE_TIMINGS
         timer.Freeze();
         cpuTime += timer.ElapsedNanoseconds();
         PBLOG_INFO << "CPU Fallback           : " << timer.ElapsedTime() << ' '
                    << numInternalNotValid;
         timer.Reset();
+#endif
 
         // Flank alignment on CPU.
         std::vector<AlignmentResult> flankAlns;
@@ -214,6 +232,7 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
                             partsSemiglobal, faf, flankAlns, prepareTime, alignTime);
         PBLOG_TRACE << "Total not valid: " << numNotValidFlanks << " / " << flankAlns.size()
                     << "\n";
+#ifdef PANCAKE_TIMINGS
         timer.Freeze();
         cpuTime += timer.ElapsedNanoseconds();
         PBLOG_INFO << "CPU Flanks Prepare     : "
@@ -221,32 +240,41 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
         PBLOG_INFO << "CPU Flanks Alignment   : "
                    << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(alignTime);
         timer.Reset();
+#endif
 
         StitchAlignmentsInParallel(results, batchChunks, querySeqsRevStore, internalAlns, flankAlns,
                                    alnStitchInfo, faf);
+#ifdef PANCAKE_TIMINGS
         timer.Freeze();
         cpuTime += timer.ElapsedNanoseconds();
         PBLOG_INFO << "CPU Stitch             : " << timer.ElapsedTime();
         timer.Reset();
+#endif
 
         SetUnalignedAndMockedMappings(
             results, alignSettings.selfHitPolicy == MapperSelfHitPolicy::PERFECT_ALIGNMENT,
             alignSettings.alnParamsGlobal.matchScore);
+#ifdef PANCAKE_TIMINGS
         timer.Freeze();
         cpuTime += timer.ElapsedNanoseconds();
         PBLOG_INFO << "CPU Mock               : " << timer.ElapsedTime();
         timer.Reset();
+#endif
 
         UpdateSecondaryAndFilter(results, faf, batchChunks);
+#ifdef PANCAKE_TIMINGS
         timer.Freeze();
         cpuTime += timer.ElapsedNanoseconds();
         PBLOG_INFO << "CPU Update             : " << timer.ElapsedTime();
         timer.Reset();
+#endif
     }
+#ifdef PANCAKE_TIMINGS
     PBLOG_INFO << "CPU Time               : "
                << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(cpuTime);
     PBLOG_INFO << "GPU Time               : "
                << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(gpuTime);
+#endif
 
     return results;
 }
@@ -275,14 +303,20 @@ int32_t MapperBatchGPU::AlignPartsOnGPU_(AlignerBatchGPU& aligner,
                                          std::vector<AlignmentResult>& retInternalAlns,
                                          int64_t& cpuTime, int64_t& gpuTime)
 {
+#ifdef PANCAKE_TIMINGS
     PacBio::Utility::Stopwatch timer;
+#endif
     retInternalAlns.resize(parts.size());
+#ifdef PANCAKE_TIMINGS
     cpuTime += timer.ElapsedNanoseconds();
+#endif
 
     int32_t totalNumNotValid = 0;
     size_t partId = 0;
     while (partId < parts.size()) {
+#ifdef PANCAKE_TIMINGS
         timer.Reset();
+#endif
         aligner.Clear();
 
         std::vector<size_t> partIds;
@@ -320,13 +354,17 @@ int32_t MapperBatchGPU::AlignPartsOnGPU_(AlignerBatchGPU& aligner,
                     "AlignerBatchGPU.");
             }
         }
+#ifdef PANCAKE_TIMINGS
         cpuTime += timer.ElapsedNanoseconds();
+#endif
 
         PBLOG_TRACE << "Aligning batch of " << aligner.BatchSize() << " sequence pairs.";
         std::pair<int64_t, int64_t> seedTimings = aligner.AlignAll();
+#ifdef PANCAKE_TIMINGS
         cpuTime += seedTimings.first;
         gpuTime += seedTimings.second;
         timer.Reset();
+#endif
 
         std::vector<AlignmentResult>& partInternalAlns = aligner.GetAlnResults();
 
@@ -340,7 +378,9 @@ int32_t MapperBatchGPU::AlignPartsOnGPU_(AlignerBatchGPU& aligner,
             retInternalAlns[partIds[i]] = std::move(partInternalAlns[i]);
         }
         totalNumNotValid += numNotValid;
+#ifdef PANCAKE_TIMINGS
         cpuTime += timer.ElapsedNanoseconds();
+#endif
     }
     PBLOG_TRACE << "Total not valid: " << totalNumNotValid << " / " << retInternalAlns.size()
                 << "\n";
