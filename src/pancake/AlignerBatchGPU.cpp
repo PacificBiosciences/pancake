@@ -11,8 +11,8 @@
 #include <pacbio/alignment/AlignmentTools.h>
 #include <pacbio/pancake/AlignerBatchGPU.h>
 #include <pacbio/pancake/AlignerBatchGPUGenomeWorksInterface.h>
-#include <pacbio/pancake/AlignerBatchGPUGenomeWorksInterface.h>
 #include <pacbio/util/Util.h>
+#include <pbcopper/utility/Stopwatch.h>
 #include <claraparabricks/genomeworks/utils/device_buffer.hpp>
 #include <claraparabricks/genomeworks/utils/pinned_host_vector.hpp>
 #include <cstdint>
@@ -53,13 +53,17 @@ struct AlignerBatchGPU::AlignerBatchGPUHostBuffers
     }
 };
 
-void RetrieveResultsAsPacBioCigar(
+std::pair<int64_t, int64_t> RetrieveResultsAsPacBioCigar(
     AlignerBatchGPU::AlignerBatchGPUHostBuffers* hostBuffers,
     const std::vector<int32_t>& querySpans, const std::vector<int32_t>& targetSpans,
     const claraparabricks::genomeworks::cudaaligner::FixedBandAligner* aligner,
     std::vector<AlignmentResult>& results, int32_t matchScore, int32_t mismatchScore,
     int32_t gapOpenScore, int32_t gapExtScore)
 {
+    int64_t cpuTime = 0;
+    int64_t gpuTime = 0;
+    PacBio::Utility::Stopwatch timer;
+
     GW_NVTX_RANGE(profiler, "pancake retrieve results");
     namespace gw = claraparabricks::genomeworks;
     if (hostBuffers == nullptr || aligner == nullptr) {
@@ -79,7 +83,9 @@ void RetrieveResultsAsPacBioCigar(
     }
 
     if (numberOfAlignments == 0) {
-        return;
+        cpuTime += timer.ElapsedNanoseconds();
+        timer.Reset();
+        return std::make_pair(cpuTime, gpuTime);
     }
 
     gw::device_buffer<PacBio::Data::CigarOperation> pacbioCigarsDevice(aln.total_length, allocator,
@@ -104,6 +110,8 @@ void RetrieveResultsAsPacBioCigar(
                                        hostBuffers->cigarOpsBuffer.data(), stream);
 
     GW_CU_CHECK_ERR(cudaStreamSynchronize(stream));
+    gpuTime += timer.ElapsedNanoseconds();
+    timer.Reset();
     for (int32_t i = 0; i < numberOfAlignments; ++i) {
         auto& res = results[i];
         const int32_t len = std::abs(hostBuffers->lengths[i]);
@@ -132,6 +140,9 @@ void RetrieveResultsAsPacBioCigar(
         res.diffs.numI = hostBuffers->diffs[i].z;
         res.diffs.numD = hostBuffers->diffs[i].w;
     }
+    cpuTime += timer.ElapsedNanoseconds();
+    timer.Reset();
+    return std::make_pair(cpuTime, gpuTime);
 }
 
 int64_t ComputeMaxGPUMemory(int64_t cudaalignerBatches, double maxGPUMemoryFraction)
@@ -211,14 +222,28 @@ StatusAddSequencePair AlignerBatchGPU::AddSequencePair(const char* query, int32_
     return StatusAddSequencePair::OK;
 }
 
-void AlignerBatchGPU::AlignAll()
+std::pair<int64_t, int64_t> AlignerBatchGPU::AlignAll()
 {
+    int64_t cpuTime = 0;
+    int64_t gpuTime = 0;
+    PacBio::Utility::Stopwatch timer;
     alnResults_.clear();
+    cpuTime += timer.ElapsedNanoseconds();
+    timer.Reset();
+
     aligner_->align_all();
+    gpuTime += timer.ElapsedNanoseconds();
+    timer.Reset();
+
     alnResults_.resize(querySpans_.size());
-    RetrieveResultsAsPacBioCigar(gpuHostBuffers_.get(), querySpans_, targetSpans_, aligner_.get(),
-                                 alnResults_, alnParams_.matchScore, alnParams_.mismatchPenalty,
-                                 alnParams_.gapOpen1, alnParams_.gapExtend1);
+    auto [cpuTimeCigar, gpuTimeCigar] = RetrieveResultsAsPacBioCigar(
+        gpuHostBuffers_.get(), querySpans_, targetSpans_, aligner_.get(), alnResults_,
+        alnParams_.matchScore, alnParams_.mismatchPenalty, alnParams_.gapOpen1,
+        alnParams_.gapExtend1);
+
+    cpuTime += cpuTimeCigar;
+    gpuTime += gpuTimeCigar;
+    return std::make_pair(cpuTime, gpuTime);
 }
 
 }  // namespace Pancake
