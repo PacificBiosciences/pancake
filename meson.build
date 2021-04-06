@@ -37,6 +37,8 @@ pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC']
 
 opt_tests = get_option('tests')
 opt_cuda = get_option('gpu-cuda')
+opt_fpga = get_option('fpga')
+opt_timings = get_option('timings')
 
 ################
 # dependencies #
@@ -73,6 +75,10 @@ pancake_lib_deps = [
   pancake_pbbam_dep,
   pancake_rt_dep,
 ]
+
+if opt_timings
+    add_project_arguments('-DPANCAKE_TIMINGS', language : ['cpp', 'cuda'])
+endif
 
 if opt_cuda
     add_languages('cuda')

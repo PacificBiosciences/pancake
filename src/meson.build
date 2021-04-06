@@ -118,6 +118,13 @@ if opt_cuda
     pancake_cpp_sources += pancake_cu_sources
 endif
 
+if opt_fpga
+    pancake_cpp_sources += files([
+        'pancake/AlignerBatchFPGA.cpp',
+        'pancake/MapperBatchFPGA.cpp',
+    ])
+endif
+
 pancake_cpp_sources += pancake_version_sources
 
 ###########
