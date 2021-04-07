@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -42,6 +43,16 @@ enum class MapperSelfHitPolicy
     SKIP,
     PERFECT_ALIGNMENT,
 };
+
+inline MapperSelfHitPolicy MapperSelfHitPolicyFromString(const std::string_view val)
+{
+    if (val == "SKIP") {
+        return MapperSelfHitPolicy::SKIP;
+    } else if (val == "PERFECT_ALIGNMENT") {
+        return MapperSelfHitPolicy::PERFECT_ALIGNMENT;
+    }
+    return MapperSelfHitPolicy::DEFAULT;
+}
 
 // clang-format off
 class MapperCLRMapSettings
