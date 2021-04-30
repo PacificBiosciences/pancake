@@ -14,4 +14,5 @@ meson \
   --buildtype=debugoptimized \
   -Db_sanitize=address \
   -Dtests="${ENABLED_TESTS:-false}" \
+  -Dgpu-cuda="${ENABLED_GPU_CUDA:-false}" \
   "${BUILD_DIR}" .

@@ -1,6 +1,7 @@
 CURRENT_BUILD_DIR?=build
 CURRENT_DEBUG_BUILD_DIR?=build-debug
 CURRENT_DEBUG_BUILD_DIR_SANITIZE?=build-debug-sanitize
+CURRENT_DEBUG_BUILD_DIR_SANITIZE_GPU?=build-debug-sanitize-gpu
 ENABLED_TESTS?=true
 export ENABLED_TESTS CURRENT_BUILD_DIR
 
@@ -41,12 +42,17 @@ debug: conf-debug build-debug
 
 build-debug2:
 	mkdir -p ${CURRENT_DEBUG_BUILD_DIR_SANITIZE} && ninja -C "${CURRENT_DEBUG_BUILD_DIR_SANITIZE}" -v test
-
 conf-debug2:
 	rm -rf "${CURRENT_DEBUG_BUILD_DIR_SANITIZE}"
 	bash -vex scripts/ci/configure_debug_sanitize_fallback.sh ${CURRENT_DEBUG_BUILD_DIR_SANITIZE}
-
 debug2: conf-debug2 build-debug2
+
+build-debug2-gpu:
+	mkdir -p ${CURRENT_DEBUG_BUILD_DIR_SANITIZE_GPU} && ninja -C "${CURRENT_DEBUG_BUILD_DIR_SANITIZE_GPU}" -v test
+conf-debug2-gpu:
+	rm -rf "${CURRENT_DEBUG_BUILD_DIR_SANITIZE_GPU}"
+	ENABLED_GPU_CUDA=true ENABLED_SSE41=true ENABLED_TESTS=true bash -vex scripts/ci/configure_debug_sanitize_fallback.sh ${CURRENT_DEBUG_BUILD_DIR_SANITIZE_GPU}
+debug2-gpu: conf-debug2-gpu build-debug2-gpu
 
 ##############
 ### Tests. ###

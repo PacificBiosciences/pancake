@@ -57,8 +57,8 @@ AlignmentResult AlignerKSW2::Global(const char* qseq, int64_t qlen, const char* 
     // Memory allocations required for KSW2.
 
     // Convert the subsequence's alphabet from ACTG to [0123].
-    const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet_(qseq, qlen, &BaseToTwobit[0]);
-    const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet_(tseq, tlen, &BaseToTwobit[0]);
+    const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet(qseq, qlen, &BaseToTwobit[0]);
+    const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet(tseq, tlen, &BaseToTwobit[0]);
 
     // Compute the actual bandwidth. If this was a long join, we need to allow more room.
     const int32_t longestSpan = std::max(qlen, tlen);
@@ -94,8 +94,9 @@ AlignmentResult AlignerKSW2::Global(const char* qseq, int64_t qlen, const char* 
         PacBio::Data::Cigar currCigar;
         int32_t qAlnLen = 0;
         int32_t tAlnLen = 0;
-        ConvertMinimap2CigarToPbbam_(ez.cigar, ez.n_cigar, qseqInt, tseqInt, currCigar, qAlnLen,
-                                     tAlnLen, ret.diffs);
+        ConvertMinimap2CigarToPbbam(ez.cigar, ez.n_cigar, qseqInt.data(), qseqInt.size(),
+                                    tseqInt.data(), tseqInt.size(), currCigar, qAlnLen, tAlnLen,
+                                    ret.diffs);
 
         // If full-width bandwidth is used, don't run the check.
         const bool isSuboptimal =
@@ -143,8 +144,8 @@ AlignmentResult AlignerKSW2::Extend(const char* qseq, int64_t qlen, const char* 
     memset(&ez, 0, sizeof(ksw_extz_t));
 
     // Convert the subsequence's alphabet from ACTG to [0123].
-    const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet_(qseq, qlen, &BaseToTwobit[0]);
-    const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet_(tseq, tlen, &BaseToTwobit[0]);
+    const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet(qseq, qlen, &BaseToTwobit[0]);
+    const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet(tseq, tlen, &BaseToTwobit[0]);
 
     AlignPair_(buffer_->km, qlen, &qseqInt[0], tlen, &tseqInt[0], mat_, bw, opt_.endBonus,
                opt_.zdrop, extra_flag | KSW_EZ_EXTZ_ONLY | KSW_EZ_RIGHT, &ez, opt_.gapOpen1,
@@ -155,8 +156,9 @@ AlignmentResult AlignerKSW2::Extend(const char* qseq, int64_t qlen, const char* 
     PacBio::Data::Cigar currCigar;
     int32_t qAlnLen = 0;
     int32_t tAlnLen = 0;
-    ConvertMinimap2CigarToPbbam_(ez.cigar, ez.n_cigar, qseqInt, tseqInt, currCigar, qAlnLen,
-                                 tAlnLen, ret.diffs);
+    ConvertMinimap2CigarToPbbam(ez.cigar, ez.n_cigar, qseqInt.data(), qseqInt.size(),
+                                tseqInt.data(), tseqInt.size(), currCigar, qAlnLen, tAlnLen,
+                                ret.diffs);
 
     ret.cigar = std::move(currCigar);
     ret.valid = true;
@@ -174,8 +176,8 @@ AlignmentResult AlignerKSW2::Extend(const char* qseq, int64_t qlen, const char* 
     return ret;
 }
 
-std::vector<uint8_t> AlignerKSW2::ConvertSeqAlphabet_(const char* seq, size_t seqlen,
-                                                      const int8_t* conv_table)
+std::vector<uint8_t> AlignerKSW2::ConvertSeqAlphabet(const char* seq, size_t seqlen,
+                                                     const int8_t* conv_table)
 {
     std::vector<uint8_t> ret(seqlen);
     for (size_t i = 0; i < seqlen; i++) {
@@ -184,10 +186,10 @@ std::vector<uint8_t> AlignerKSW2::ConvertSeqAlphabet_(const char* seq, size_t se
     return ret;
 }
 
-void AlignerKSW2::ConvertMinimap2CigarToPbbam_(
-    uint32_t* mm2Cigar, int32_t cigarLen, const std::vector<uint8_t>& qseq,
-    const std::vector<uint8_t>& tseq, PacBio::Data::Cigar& retCigar, int32_t& retQueryAlignmentLen,
-    int32_t& retTargetAlignmentLen, Alignment::DiffCounts& retDiffs)
+void AlignerKSW2::ConvertMinimap2CigarToPbbam(
+    const uint32_t* mm2Cigar, int32_t cigarLen, const uint8_t* qseq, int32_t qseqLen,
+    const uint8_t* tseq, int32_t tseqLen, PacBio::Data::Cigar& retCigar,
+    int32_t& retQueryAlignmentLen, int32_t& retTargetAlignmentLen, Alignment::DiffCounts& retDiffs)
 {
     retCigar.clear();
     retDiffs.Clear();
