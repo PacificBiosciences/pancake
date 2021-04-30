@@ -141,6 +141,37 @@ TEST(MapperCLR, CheckMappping_LoadFromFile)
             },
         },
 
+        {
+            "RealHifiReads, no back flank extension.",
+            // Target.
+            PacBio::PancakeTestsConfig::Data_Dir + "/mapper-clr/test-8-no-back-flank-extension-target.fasta",
+            // Query.
+            PacBio::PancakeTestsConfig::Data_Dir + "/mapper-clr/test-8-no-back-flank-extension-query.fasta",
+            // SeedParams - primary.
+            PacBio::Pancake::SeedDB::SeedDBParameters{15, 5, 0, false, true, true},
+            // SeedParams - fallback.
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true},
+            // Expected results.
+            {
+                "000000000 000000000 9228 75.81 0 0 15753 15753 1 2 15953 15953 *"
+            },
+        },
+        {
+            "RealHifiReads, no front flank extension.",
+            // Target.
+            PacBio::PancakeTestsConfig::Data_Dir + "/mapper-clr/test-9-no-front-flank-extension-target.fasta",
+            // Query.
+            PacBio::PancakeTestsConfig::Data_Dir + "/mapper-clr/test-9-no-front-flank-extension-query.fasta",
+            // SeedParams - primary.
+            PacBio::Pancake::SeedDB::SeedDBParameters{15, 5, 0, false, true, true},
+            // SeedParams - fallback.
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true},
+            // Expected results.
+            {
+                "000000000 000000000 6580 78.42 0 0 9230 9230 0 8372 17577 17578 *"
+            },
+        },
+
     };
     // clang-format on
 

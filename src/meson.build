@@ -110,7 +110,9 @@ if opt_cuda
 
     pancake_cpp_sources += files([
         'pancake/AlignerBatchGPU.cpp',
+        'pancake/AlignerBatchGPUGenomeWorksKSW2.cpp',
         'pancake/MapperBatchGPU.cpp',
+        'pancake/MapperBatchGPUGenomeWorksKSW2.cpp',
     ])
     pancake_cu_sources = files([
         'pancake/AlignerBatchGPUGenomeWorksInterface.cu',
