@@ -9,6 +9,7 @@
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/parallel/FireAndForget.h>
 #include <pbcopper/parallel/WorkQueue.h>
+#include <pbcopper/utility/Stopwatch.h>
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -41,22 +42,14 @@ MapperBatchCPU::~MapperBatchCPU()
 std::vector<std::vector<MapperBaseResult>> MapperBatchCPU::MapAndAlign(
     const std::vector<MapperBatchChunk>& batchData)
 {
-    try {
-        return MapAndAlignImpl_(batchData, alignSettings_, faf_);
-    } catch (const std::exception& e) {
-        // Log, but do not fail. Important for clients of this class.
-        // Return a vector of the size of the input, but with empty subvectors.
-        PBLOG_DEBUG << "MapperBatchCPU generated an exception in " << std::string(__FUNCTION__)
-                    << ". Message: " << e.what();
-        std::vector<std::vector<MapperBaseResult>> results(batchData.size());
-        return results;
-    }
+    return MapAndAlignImpl_(batchData, alignSettings_, faf_);
 }
 
 std::vector<std::vector<MapperBaseResult>> MapperBatchCPU::MapAndAlignImpl_(
     const std::vector<MapperBatchChunk>& batchChunks, const MapperCLRAlignSettings& alignSettings,
     Parallel::FireAndForget* faf)
 {
+    PacBio::Utility::Stopwatch timer;
     // Determine how many records should land in each thread, spread roughly evenly.
     const int32_t numRecords = batchChunks.size();
     const int32_t numThreads = faf ? faf->NumThreads() : 1;
@@ -72,7 +65,10 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchCPU::MapAndAlignImpl_(
     };
 
     Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
+    PBLOG_INFO << "CPU Mapping            : " << timer.ElapsedTime();
+    timer.Reset();
 
+    int64_t cpuTime = 0;
     if (alignSettings.align) {
         // Compute the reverse complements for alignment.
         std::vector<std::vector<FastaSequenceId>> querySeqsRev =
@@ -82,6 +78,10 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchCPU::MapAndAlignImpl_(
         for (const auto& chunkRevQueries : querySeqsRev) {
             querySeqsRevStore.emplace_back(FastaSequenceCachedStore(chunkRevQueries));
         }
+        timer.Freeze();
+        cpuTime += timer.ElapsedNanoseconds();
+        PBLOG_INFO << "CPU RevComp            : " << timer.ElapsedTime();
+        timer.Reset();
 
         // Prepare the sequences for alignment.
         std::vector<PairForBatchAlignment> partsGlobal;
@@ -93,30 +93,66 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchCPU::MapAndAlignImpl_(
                                           alnStitchInfo, longestSequenceForAln);
         PBLOG_TRACE << "partsGlobal.size() = " << partsGlobal.size();
         PBLOG_TRACE << "partsSemiglobal.size() = " << partsSemiglobal.size();
+        timer.Freeze();
+        cpuTime += timer.ElapsedNanoseconds();
+        PBLOG_INFO << "CPU Prepare            : " << timer.ElapsedTime();
+        timer.Reset();
 
         // Internal alignment on CPU.
         std::vector<AlignmentResult> internalAlns;
+        int64_t prepareTime = 0;
+        int64_t alignTime = 0;
         AlignPartsOnCpu(alignSettings.alignerTypeGlobal, alignSettings.alnParamsGlobal,
                         alignSettings.alignerTypeExt, alignSettings.alnParamsExt, partsGlobal, faf,
-                        internalAlns);
+                        internalAlns, prepareTime, alignTime);
         PBLOG_TRACE << "internalAlns.size() = " << internalAlns.size();
+        timer.Freeze();
+        cpuTime += timer.ElapsedNanoseconds();
+        PBLOG_INFO << "CPU Internal Prepare   : "
+                   << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(prepareTime);
+        PBLOG_INFO << "CPU Internal Alignment : "
+                   << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(alignTime);
+        timer.Reset();
 
         // Flank alignment on CPU.
         std::vector<AlignmentResult> flankAlns;
+        prepareTime = 0;
+        alignTime = 0;
         AlignPartsOnCpu(alignSettings.alignerTypeGlobal, alignSettings.alnParamsGlobal,
                         alignSettings.alignerTypeExt, alignSettings.alnParamsExt, partsSemiglobal,
-                        faf, flankAlns);
+                        faf, flankAlns, prepareTime, alignTime);
         PBLOG_TRACE << "flankAlns.size() = " << flankAlns.size();
+        timer.Freeze();
+        cpuTime += timer.ElapsedNanoseconds();
+        PBLOG_INFO << "CPU Flanks Prepare     : "
+                   << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(prepareTime);
+        PBLOG_INFO << "CPU Flanks Alignment   : "
+                   << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(alignTime);
+        timer.Reset();
 
         StitchAlignmentsInParallel(results, batchChunks, querySeqsRevStore, internalAlns, flankAlns,
                                    alnStitchInfo, faf);
+        timer.Freeze();
+        cpuTime += timer.ElapsedNanoseconds();
+        PBLOG_INFO << "CPU Stitch             : " << timer.ElapsedTime();
+        timer.Reset();
 
         SetUnalignedAndMockedMappings(
             results, alignSettings.selfHitPolicy == MapperSelfHitPolicy::PERFECT_ALIGNMENT,
             alignSettings.alnParamsGlobal.matchScore);
+        timer.Freeze();
+        cpuTime += timer.ElapsedNanoseconds();
+        PBLOG_INFO << "CPU Mock               : " << timer.ElapsedTime();
+        timer.Reset();
 
         UpdateSecondaryAndFilter(results, faf, batchChunks);
+        timer.Freeze();
+        cpuTime += timer.ElapsedNanoseconds();
+        PBLOG_INFO << "CPU Update             : " << timer.ElapsedTime();
+        timer.Reset();
     }
+    PBLOG_INFO << "CPU Time               : "
+               << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(cpuTime);
 
     return results;
 }
@@ -134,18 +170,9 @@ void MapperBatchCPU::WorkerMapper_(const std::vector<MapperBatchChunk>& batchChu
         settingsCopy.align.align = false;
 
         // Create the mapper.
-
         MapperCLR mapper(settingsCopy);
 
-        try {
-            results[i] = mapper.MapAndAlign(chunk.targetSeqs, chunk.querySeqs);
-        } catch (const std::exception& e) {
-            // Log, but do not fail, so that we do not kill all other alignments in the batch.
-            PBLOG_DEBUG << "MapperBatchCPU caught an exception generated by MapperCLR in "
-                        << std::string(__FUNCTION__) << ". Worker chunk i = " << i
-                        << ". Message: " << e.what();
-            results[i] = std::vector<PacBio::Pancake::MapperBaseResult>(chunk.querySeqs.Size());
-        }
+        results[i] = mapper.MapAndAlign(chunk.targetSeqs, chunk.querySeqs);
     }
 }
 
@@ -198,11 +225,13 @@ int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
                         const AlignmentParameters& alnParamsGlobal,
                         const AlignerType& alignerTypeExt, const AlignmentParameters& alnParamsExt,
                         const std::vector<PairForBatchAlignment>& parts, const int32_t numThreads,
-                        std::vector<AlignmentResult>& retAlns)
+                        std::vector<AlignmentResult>& retAlns, int64_t& prepareTime,
+                        int64_t& alignTime)
 {
     Parallel::FireAndForget faf(numThreads);
-    const int32_t result = AlignPartsOnCpu(alignerTypeGlobal, alnParamsGlobal, alignerTypeExt,
-                                           alnParamsExt, parts, &faf, retAlns);
+    const int32_t result =
+        AlignPartsOnCpu(alignerTypeGlobal, alnParamsGlobal, alignerTypeExt, alnParamsExt, parts,
+                        &faf, retAlns, prepareTime, alignTime);
     faf.Finalize();
     return result;
 }
@@ -210,8 +239,10 @@ int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
                         const AlignmentParameters& alnParamsGlobal,
                         const AlignerType& alignerTypeExt, const AlignmentParameters& alnParamsExt,
                         const std::vector<PairForBatchAlignment>& parts,
-                        Parallel::FireAndForget* faf, std::vector<AlignmentResult>& retAlns)
+                        Parallel::FireAndForget* faf, std::vector<AlignmentResult>& retAlns,
+                        int64_t& prepareTime, int64_t& alignTime)
 {
+    PacBio::Utility::Stopwatch timer;
     retAlns.resize(parts.size());
 
     std::vector<size_t> partIds;
@@ -248,7 +279,12 @@ int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
             }
         }
     }
+    prepareTime += timer.ElapsedNanoseconds();
+    timer.Reset();
+
     aligner.AlignAll();
+    alignTime += timer.ElapsedNanoseconds();
+    timer.Reset();
 
     const std::vector<AlignmentResult>& partInternalAlns = aligner.GetAlnResults();
     int32_t numNotValid = 0;
@@ -259,6 +295,7 @@ int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
         }
         retAlns[partIds[i]] = std::move(partInternalAlns[i]);
     }
+    prepareTime += timer.ElapsedNanoseconds();
     return numNotValid;
 }
 
