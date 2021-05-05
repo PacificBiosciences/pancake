@@ -62,7 +62,7 @@ public:
      * Aligns all the sequence pairs added to the aligner, in parallel.
      * This function modifies the internal state, because the alignment results are stored internally.
     */
-    virtual void AlignAll() = 0;
+    virtual std::pair<int64_t, int64_t> AlignAll() = 0;
 
     /*
      * Const getter for the alignment results. Returns an empty vector if the sequences have not

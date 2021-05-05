@@ -38,7 +38,7 @@ public:
                                                                const char* target,
                                                                int32_t targetLen) override;
 
-    void AlignAll() override;
+    std::pair<int64_t, int64_t> AlignAll() override;
 
     const std::vector<AlignmentResult>& GetAlnResults() const override { return alnResults_; }
 

@@ -50,13 +50,15 @@ int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
                         const AlignmentParameters& alnParamsGlobal,
                         const AlignerType& alignerTypeExt, const AlignmentParameters& alnParamsExt,
                         const std::vector<PairForBatchAlignment>& parts, const int32_t numThreads,
-                        std::vector<AlignmentResult>& retAlns);
+                        std::vector<AlignmentResult>& retAlns, int64_t& prepareTime,
+                        int64_t& alignTime);
 
 int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
                         const AlignmentParameters& alnParamsGlobal,
                         const AlignerType& alignerTypeExt, const AlignmentParameters& alnParamsExt,
                         const std::vector<PairForBatchAlignment>& parts,
-                        Parallel::FireAndForget* faf, std::vector<AlignmentResult>& retAlns);
+                        Parallel::FireAndForget* faf, std::vector<AlignmentResult>& retAlns,
+                        int64_t& prepareTime, int64_t& alignTime);
 
 }  // namespace Pancake
 }  // namespace PacBio
