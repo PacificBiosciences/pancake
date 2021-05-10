@@ -1,5 +1,5 @@
 [wrap-git]
 directory=genomeworks
-url=https://github.com/armintoepfer/gwksw2.git
+url=git@github.com:armintoepfer/gwksw2.git
 revision=ksw2-2021-05-04
 clone-recursive=true
