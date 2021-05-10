@@ -4,6 +4,7 @@
 #include <pacbio/pancake/AlignerBatchGPUGenomeWorksKSW2.h>
 #include <pacbio/pancake/AlignerKSW2.h>
 #include <pacbio/util/Util.h>
+#include <pbcopper/utility/Stopwatch.h>
 #include <cstdint>
 #include <iostream>
 #include <sstream>
@@ -162,12 +163,17 @@ AlignmentResult ConvertKSW2ResultsToPancake(const gw_ksw_extz_t& ez, const uint8
     return ret;
 }
 
-void AlignerBatchGPUGenomeWorksKSW2::AlignAll()
+std::pair<int64_t, int64_t> AlignerBatchGPUGenomeWorksKSW2::AlignAll()
 {
+    int64_t cpuTime = 0;
+    int64_t gpuTime = 0;
+    PacBio::Utility::Stopwatch timer;
     alnResults_.clear();
+    cpuTime += timer.ElapsedNanoseconds();
+    timer.Reset();
 
     if (querySpans_.empty()) {
-        return;
+        return {};
     }
 
     const int32_t scoringMatrixSize = 5;
@@ -184,6 +190,9 @@ void AlignerBatchGPUGenomeWorksKSW2::AlignAll()
         scoringMatrixSize, scoringMatrix, alnParams_.gapOpen1, alnParams_.gapExtend1,
         alnParams_.gapOpen2, alnParams_.gapExtend2, alnParams_.alignBandwidth, -1, 0,
         KSW_EZ_APPROX_MAX, gwResults_, cudaStream_.get());
+
+    gpuTime += timer.ElapsedNanoseconds();
+    timer.Reset();
 
     assert(querySpans_.size() == gwResults_.size());
 
@@ -203,6 +212,8 @@ void AlignerBatchGPUGenomeWorksKSW2::AlignAll()
         alnResults_[i] = ConvertKSW2ResultsToPancake(gwResults_[i], qseqInt, querySpans_[i],
                                                      tseqInt, targetSpans_[i]);
     }
+    cpuTime += timer.ElapsedNanoseconds();
+    return std::make_pair(cpuTime, gpuTime);
 }
 
 }  // namespace Pancake
