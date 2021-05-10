@@ -57,7 +57,8 @@ private:
 
     static int32_t AlignPartsOnGPU_(AlignerBatchGPUGenomeWorksKSW2& aligner,
                                     const std::vector<PairForBatchAlignment>& parts,
-                                    std::vector<AlignmentResult>& retInternalAlns);
+                                    std::vector<AlignmentResult>& retInternalAlns,
+                                    int64_t& seedAlnCpuTime, int64_t& seedAlnGpuTime);
 };
 
 }  // namespace Pancake

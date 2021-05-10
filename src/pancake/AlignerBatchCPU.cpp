@@ -30,8 +30,7 @@ AlignerBatchCPU::AlignerBatchCPU(Parallel::FireAndForget* faf, const AlignerType
     , alnParamsGlobal_(alnParamsGlobal)
     , alnTypeExt_(alnTypeExt)
     , alnParamsExt_(alnParamsExt)
-{
-}
+{}
 
 AlignerBatchCPU::~AlignerBatchCPU()
 {
@@ -77,7 +76,7 @@ StatusAddSequencePair AlignerBatchCPU::AddSequencePair_(const char* query, int32
     return StatusAddSequencePair::OK;
 }
 
-void AlignerBatchCPU::AlignAll()
+std::pair<int64_t, int64_t> AlignerBatchCPU::AlignAll()
 {
     if (queries_.size() != targets_.size()) {
         std::ostringstream oss;
@@ -100,7 +99,7 @@ void AlignerBatchCPU::AlignAll()
 
     // Nothing to do.
     if (numAlns == 0) {
-        return;
+        return {};
     }
 
     // Determine how many records should land in each thread, spread roughly evenly.
@@ -126,6 +125,8 @@ void AlignerBatchCPU::AlignAll()
                 alignersExt[i], alnResults_);
     };
     Parallel::Dispatch(faf_, jobsPerThread.size(), Submit);
+
+    return {};
 }
 
 void AlignerBatchCPU::Worker_(const std::vector<std::string>& queries,
