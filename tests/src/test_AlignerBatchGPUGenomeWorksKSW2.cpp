@@ -75,9 +75,10 @@ TEST(AlignerBatchGPUGenomeWorksKSW2, ArrayOfTests_Small)
     uint32_t deviceId = 0;
     PacBio::Pancake::AlignmentParameters alnParams;
 
+    const int32_t numThreads = 1;
     const int32_t maxMemoryCap = 100 * 1024 * 1024;
-    auto aligner =
-        PacBio::Pancake::AlignerBatchGPUGenomeWorksKSW2(alnParams, deviceId, maxMemoryCap);
+    auto aligner = PacBio::Pancake::AlignerBatchGPUGenomeWorksKSW2(numThreads, alnParams, deviceId,
+                                                                   maxMemoryCap);
 
     for (const auto& data : testData) {
         // Debug info.
@@ -123,9 +124,10 @@ TEST(AlignerBatchGPUGenomeWorksKSW2, ArrayOfTests_Small_ShouldThrow)
     uint32_t deviceId = 0;
     PacBio::Pancake::AlignmentParameters alnParams;
 
+    const int32_t numThreads = 1;
     const int32_t maxMemoryCap = 100 * 1024 * 1024;
-    auto aligner =
-        PacBio::Pancake::AlignerBatchGPUGenomeWorksKSW2(alnParams, deviceId, maxMemoryCap);
+    auto aligner = PacBio::Pancake::AlignerBatchGPUGenomeWorksKSW2(numThreads, alnParams, deviceId,
+                                                                   maxMemoryCap);
 
     for (const auto& data : testData) {
         // Debug info.

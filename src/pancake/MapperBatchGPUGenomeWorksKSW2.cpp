@@ -35,7 +35,7 @@ MapperBatchGPUGenomeWorksKSW2::MapperBatchGPUGenomeWorksKSW2(
 {
     fafFallback_ = std::make_unique<Parallel::FireAndForget>(numThreads);
     faf_ = fafFallback_.get();
-    aligner_ = std::make_unique<AlignerBatchGPUGenomeWorksKSW2>(alignSettings.alnParamsGlobal,
+    aligner_ = std::make_unique<AlignerBatchGPUGenomeWorksKSW2>(faf_, alignSettings.alnParamsGlobal,
                                                                 gpuDeviceId, gpuMemoryBytes);
 }
 
@@ -49,9 +49,10 @@ MapperBatchGPUGenomeWorksKSW2::MapperBatchGPUGenomeWorksKSW2(
     , alignRemainingOnCpu_(alignRemainingOnCpu)
     , faf_{faf}
     , fafFallback_(nullptr)
-    , aligner_{std::make_unique<AlignerBatchGPUGenomeWorksKSW2>(alignSettings.alnParamsGlobal,
+    , aligner_{std::make_unique<AlignerBatchGPUGenomeWorksKSW2>(faf, alignSettings.alnParamsGlobal,
                                                                 gpuDeviceId, gpuMemoryBytes)}
-{}
+{
+}
 
 MapperBatchGPUGenomeWorksKSW2::~MapperBatchGPUGenomeWorksKSW2()
 {
@@ -148,7 +149,7 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUGenomeWorksKSW2::MapAnd
 
         while (true) {
             PBLOG_TRACE << "Trying bandwidth: " << currentBandwidth;
-            std::cerr << "Trying bandwidth: " << currentBandwidth << "\n";
+            // std::cerr << "Trying bandwidth: " << currentBandwidth << "\n";
             timer.Reset();
             aligner.ResetMaxBandwidth(currentBandwidth);
             timer.Freeze();
@@ -157,7 +158,7 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUGenomeWorksKSW2::MapAnd
             timer.Reset();
             numInternalNotValid = AlignPartsOnGPU_(aligner, partsGlobal, internalAlns,
                                                    seedAlnCpuTime, seedAlnGpuTime);
-            std::cerr << "numInternalNotValid = " << numInternalNotValid << "\n";
+            // std::cerr << "numInternalNotValid = " << numInternalNotValid << "\n";
             if (numInternalNotValid == 0) {
                 break;
             }
@@ -178,7 +179,7 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUGenomeWorksKSW2::MapAnd
                    << PacBio::Utility::Stopwatch::PrettyPrintNanoseconds(seedAlnGpuTime);
         timer.Reset();
 
-        std::cerr << "alignRemainingOnCpu = " << alignRemainingOnCpu << "\n";
+        // std::cerr << "alignRemainingOnCpu = " << alignRemainingOnCpu << "\n";
         // Fallback to the CPU if there are any unaligned parts left.
         int64_t prepareTime = 0;
         int64_t alignTime = 0;
@@ -190,8 +191,8 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUGenomeWorksKSW2::MapAnd
                                 partsGlobal, faf, internalAlns, prepareTime, alignTime);
             PBLOG_TRACE << "Total not valid: " << numNotValidInternal << " / "
                         << internalAlns.size() << "\n";
-            std::cerr << "Total not valid: " << numNotValidInternal << " / " << internalAlns.size()
-                      << "\n";
+            // std::cerr << "Total not valid: " << numNotValidInternal << " / " << internalAlns.size()
+            //          << "\n";
         }
         PBLOG_TRACE << "internalAlns.size() = " << internalAlns.size();
 

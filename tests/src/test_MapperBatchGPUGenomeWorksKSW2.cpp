@@ -234,450 +234,450 @@ TEST(MapperBatchGPUGenomeWorksKSW2, BatchMapping_ArrayOfTests)
     }
 }
 
-// TEST(MapperBatchGPUGenomeWorksKSW2, CheckSelfHitPolicyAndSkippingSymmetrical)
-// {
-//     PacBio::Pancake::MapperCLRSettings settingsDefaultPolicy;
-//     {
-//         auto& settings = settingsDefaultPolicy;
-//         settings.map.bestNSecondary = -1;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = false;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//         // settings.align.alignerTypeGlobal = AlignerType::EDLIB;
-//     }
+TEST(MapperBatchGPUGenomeWorksKSW2, CheckSelfHitPolicyAndSkippingSymmetrical)
+{
+    PacBio::Pancake::MapperCLRSettings settingsDefaultPolicy;
+    {
+        auto& settings = settingsDefaultPolicy;
+        settings.map.bestNSecondary = -1;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = false;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+        // settings.align.alignerTypeGlobal = AlignerType::EDLIB;
+    }
 
-//     PacBio::Pancake::MapperCLRSettings settingsSkipSelfHitsInBothMapAndAlign;
-//     {
-//         auto& settings = settingsSkipSelfHitsInBothMapAndAlign;
-//         settings.map.bestNSecondary = -1;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = false;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//     }
+    PacBio::Pancake::MapperCLRSettings settingsSkipSelfHitsInBothMapAndAlign;
+    {
+        auto& settings = settingsSkipSelfHitsInBothMapAndAlign;
+        settings.map.bestNSecondary = -1;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = false;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+    }
 
-//     PacBio::Pancake::MapperCLRSettings settingsPerfectAlignSelfHitsInBothMapAndAlign;
-//     {
-//         auto& settings = settingsPerfectAlignSelfHitsInBothMapAndAlign;
-//         settings.map.bestNSecondary = -1;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = false;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//     }
+    PacBio::Pancake::MapperCLRSettings settingsPerfectAlignSelfHitsInBothMapAndAlign;
+    {
+        auto& settings = settingsPerfectAlignSelfHitsInBothMapAndAlign;
+        settings.map.bestNSecondary = -1;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = false;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+    }
 
-//     PacBio::Pancake::MapperCLRSettings settingsSkipSymmetricOverlaps;
-//     {
-//         auto& settings = settingsSkipSymmetricOverlaps;
-//         settings.map.bestNSecondary = -1;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = true;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//     }
+    PacBio::Pancake::MapperCLRSettings settingsSkipSymmetricOverlaps;
+    {
+        auto& settings = settingsSkipSymmetricOverlaps;
+        settings.map.bestNSecondary = -1;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = true;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+    }
 
-//     PacBio::Pancake::MapperCLRSettings settingsSkipSelfAndSymmetricOverlaps;
-//     {
-//         auto& settings = settingsSkipSelfAndSymmetricOverlaps;
-//         settings.map.bestNSecondary = -1;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = true;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//     }
+    PacBio::Pancake::MapperCLRSettings settingsSkipSelfAndSymmetricOverlaps;
+    {
+        auto& settings = settingsSkipSelfAndSymmetricOverlaps;
+        settings.map.bestNSecondary = -1;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = true;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+    }
 
-//     PacBio::Pancake::MapperCLRSettings settingsSkipSelfInMappingButDefaultInAlignment;
-//     {
-//         auto& settings = settingsSkipSelfInMappingButDefaultInAlignment;
-//         settings.map.bestNSecondary = -1;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = false;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//     }
+    PacBio::Pancake::MapperCLRSettings settingsSkipSelfInMappingButDefaultInAlignment;
+    {
+        auto& settings = settingsSkipSelfInMappingButDefaultInAlignment;
+        settings.map.bestNSecondary = -1;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = false;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+    }
 
-//     PacBio::Pancake::MapperCLRSettings settingsDefaultSelfInMappingButSkipInAlignment;
-//     {
-//         auto& settings = settingsDefaultSelfInMappingButSkipInAlignment;
-//         settings.map.bestNSecondary = 100;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = false;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//     }
+    PacBio::Pancake::MapperCLRSettings settingsDefaultSelfInMappingButSkipInAlignment;
+    {
+        auto& settings = settingsDefaultSelfInMappingButSkipInAlignment;
+        settings.map.bestNSecondary = 100;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = false;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::SKIP;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+    }
 
-//     PacBio::Pancake::MapperCLRSettings settingsMockSelfInMappingButDefaultInAlignment;
-//     {
-//         auto& settings = settingsMockSelfInMappingButDefaultInAlignment;
-//         settings.map.bestNSecondary = -1;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = false;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//     }
+    PacBio::Pancake::MapperCLRSettings settingsMockSelfInMappingButDefaultInAlignment;
+    {
+        auto& settings = settingsMockSelfInMappingButDefaultInAlignment;
+        settings.map.bestNSecondary = -1;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = false;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+    }
 
-//     PacBio::Pancake::MapperCLRSettings settingsDefaultSelfInMappingButMockInAlignment;
-//     {
-//         auto& settings = settingsDefaultSelfInMappingButMockInAlignment;
-//         settings.map.bestNSecondary = -1;
-//         settings.map.secondaryMinScoreFraction = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
-//         settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
-//         settings.map.skipSymmetricOverlaps = false;
-//         settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
-//         settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT;
-//         settings.map.freqPercentile = 0.000;
-//         settings.map.seedParams =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
-//         settings.map.seedParamsFallback =
-//             PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
-//     }
+    PacBio::Pancake::MapperCLRSettings settingsDefaultSelfInMappingButMockInAlignment;
+    {
+        auto& settings = settingsDefaultSelfInMappingButMockInAlignment;
+        settings.map.bestNSecondary = -1;
+        settings.map.secondaryMinScoreFraction = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.0;
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.skipSymmetricOverlaps = false;
+        settings.map.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::DEFAULT;
+        settings.align.selfHitPolicy = PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT;
+        settings.map.freqPercentile = 0.000;
+        settings.map.seedParams =
+            PacBio::Pancake::SeedDB::SeedDBParameters{19, 10, 0, false, false, true};
+        settings.map.seedParamsFallback =
+            PacBio::Pancake::SeedDB::SeedDBParameters{10, 5, 0, false, false, true};
+    }
 
-//     struct TestData
-//     {
-//         const std::string testName;
-//         const std::vector<
-//             std::tuple<std::string, std::string, PacBio::Pancake::MapperCLRMapSettings>>
-//             batchData;
-//         const int32_t sequenceIdOffset = 0;
-//         const PacBio::Pancake::MapperCLRAlignSettings alignSettings;
-//         const std::vector<std::string> expectedOverlapsPaths;
-//     };
+    struct TestData
+    {
+        const std::string testName;
+        const std::vector<
+            std::tuple<std::string, std::string, PacBio::Pancake::MapperCLRMapSettings>>
+            batchData;
+        const int32_t sequenceIdOffset = 0;
+        const PacBio::Pancake::MapperCLRAlignSettings alignSettings;
+        const std::vector<std::string> expectedOverlapsPaths;
+    };
 
-//     // clang-format off
-//     std::vector<TestData> testData = {
-//         {
-//             "Overlap the same set of reads with itself.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsDefaultPolicy.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsDefaultPolicy.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.edlib.m4",
-//             },
-//         },
-//         {
-//             "Overlap the same set of reads with itself. Offset the IDs by 10000.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsDefaultPolicy.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             10000,
-//             // Input alignment settings.
-//             settingsDefaultPolicy.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.edlib.id_offset_10000.m4",
-//             },
-//         },
-//         {
-//             "Skip self hits.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsSkipSelfHitsInBothMapAndAlign.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsSkipSelfHitsInBothMapAndAlign.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_self_hits.edlib.m4",
-//             },
-//         },
-//         {
-//             "Mock perfect overlaps",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsPerfectAlignSelfHitsInBothMapAndAlign.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsPerfectAlignSelfHitsInBothMapAndAlign.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.edlib.m4",
-//             },
-//         },
-//         {
-//             "Skip symmetric overlaps.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsSkipSymmetricOverlaps.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsSkipSymmetricOverlaps.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_symmetric.edlib.m4",
-//             },
-//         },
+    // clang-format off
+    std::vector<TestData> testData = {
+        {
+            "Overlap the same set of reads with itself.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsDefaultPolicy.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsDefaultPolicy.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.ksw2.m4",
+            },
+        },
+        {
+            "Overlap the same set of reads with itself. Offset the IDs by 10000.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsDefaultPolicy.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            10000,
+            // Input alignment settings.
+            settingsDefaultPolicy.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.ksw2.id_offset_10000.m4",
+            },
+        },
+        {
+            "Skip self hits.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsSkipSelfHitsInBothMapAndAlign.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsSkipSelfHitsInBothMapAndAlign.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_self_hits.ksw2.m4",
+            },
+        },
+        {
+            "Mock perfect overlaps",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsPerfectAlignSelfHitsInBothMapAndAlign.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsPerfectAlignSelfHitsInBothMapAndAlign.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.ksw2.m4",
+            },
+        },
+        {
+            "Skip symmetric overlaps.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsSkipSymmetricOverlaps.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsSkipSymmetricOverlaps.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_symmetric.ksw2.m4",
+            },
+        },
 
-//         {
-//             "Skip self and symmetric overlaps.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsSkipSelfAndSymmetricOverlaps.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsSkipSelfAndSymmetricOverlaps.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_self_hits_no_symmetric.edlib.m4",
-//             },
-//         },
+        {
+            "Skip self and symmetric overlaps.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsSkipSelfAndSymmetricOverlaps.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsSkipSelfAndSymmetricOverlaps.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_self_hits_no_symmetric.ksw2.m4",
+            },
+        },
 
-//         {
-//             "Skip self hits in the mapping stage, but use the default policy during alignment. This should skip the self hits completely.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsSkipSelfInMappingButDefaultInAlignment.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsSkipSelfInMappingButDefaultInAlignment.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_self_hits.edlib.m4",
-//             },
-//         },
+        {
+            "Skip self hits in the mapping stage, but use the default policy during alignment. This should skip the self hits completely.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsSkipSelfInMappingButDefaultInAlignment.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsSkipSelfInMappingButDefaultInAlignment.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_self_hits.ksw2.m4",
+            },
+        },
 
-//         // This test case discovered a bug - because alignment stage cleared self-hits, the WrapFlagSecondaryAndSupplementary function
-//         // caused a skew in the IDs of its input overlaps and the internal tmpOverlaps which don't contain nullptr overlaps.
-//         {
-//             "Skip self hits in the alignment stage, but use the default policy during mapping. This should skip the self hits completely.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsDefaultSelfInMappingButSkipInAlignment.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsDefaultSelfInMappingButSkipInAlignment.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_self_hits.edlib.m4",
-//             },
-//         },
-//         {
-//             "Mock perfect overlaps in the mapping stage, but use the default policy during alignment. This should report proper alignments, like everything was default.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsMockSelfInMappingButDefaultInAlignment.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsMockSelfInMappingButDefaultInAlignment.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.edlib.m4",
-//             },
-//         },
+        // This test case discovered a bug - because alignment stage cleared self-hits, the WrapFlagSecondaryAndSupplementary function
+        // caused a skew in the IDs of its input overlaps and the internal tmpOverlaps which don't contain nullptr overlaps.
+        {
+            "Skip self hits in the alignment stage, but use the default policy during mapping. This should skip the self hits completely.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsDefaultSelfInMappingButSkipInAlignment.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsDefaultSelfInMappingButSkipInAlignment.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all_no_self_hits.ksw2.m4",
+            },
+        },
+        {
+            "Mock perfect overlaps in the mapping stage, but use the default policy during alignment. This should report proper alignments, like everything was default.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsMockSelfInMappingButDefaultInAlignment.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsMockSelfInMappingButDefaultInAlignment.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.ksw2.m4",
+            },
+        },
 
-//         {
-//             "Mock perfect overlaps in the alignment stage, but use the default policy during mapping. This should report proper alignments, like everything was default.",
-//             // Input batch data.
-//             {
-//                 {
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
-//                     settingsDefaultSelfInMappingButMockInAlignment.map,
-//                 },
-//             },
-//             // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
-//             0,
-//             // Input alignment settings.
-//             settingsDefaultSelfInMappingButMockInAlignment.align,
-//             // Expected results.
-//             {
-//                 PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.edlib.m4",
-//             },
-//         },
-//     };
-//     // clang-format on
+        {
+            "Mock perfect overlaps in the alignment stage, but use the default policy during mapping. This should report proper alignments, like everything was default.",
+            // Input batch data.
+            {
+                {
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.fasta",
+                    settingsDefaultSelfInMappingButMockInAlignment.map,
+                },
+            },
+            // Sequence ID offset. Zero means that the first query/target after loading has the ID == 0.
+            0,
+            // Input alignment settings.
+            settingsDefaultSelfInMappingButMockInAlignment.align,
+            // Expected results.
+            {
+                PacBio::PancakeTestsConfig::Data_Dir + "/ovl-clr/reads.pile1-5prime.out.all_vs_all.ksw2.m4",
+            },
+        },
+    };
+    // clang-format on
 
-//     for (const auto& data : testData) {
-//         // Debug info.
-//         SCOPED_TRACE(data.testName);
-//         std::cerr << "testName = " << data.testName << "\n";
+    for (const auto& data : testData) {
+        // Debug info.
+        SCOPED_TRACE(data.testName);
+        std::cerr << "testName = " << data.testName << "\n";
 
-//         // Load the batch sequence data. The helper function takes
-//         // a vector of target-query filename pairs.
-//         std::vector<PacBio::Pancake::MapperBatchChunk> batchData;
-//         std::vector<PacBio::BAM::FastaSequence> allSeqs;
-//         PacBio::PancakeTests::HelperLoadBatchData(data.batchData, data.sequenceIdOffset, batchData,
-//                                                   allSeqs);
+        // Load the batch sequence data. The helper function takes
+        // a vector of target-query filename pairs.
+        std::vector<PacBio::Pancake::MapperBatchChunk> batchData;
+        std::vector<PacBio::BAM::FastaSequence> allSeqs;
+        PacBio::PancakeTests::HelperLoadBatchData(data.batchData, data.sequenceIdOffset, batchData,
+                                                  allSeqs);
 
-//         const PacBio::Pancake::MapperCLRAlignSettings& alignSettings = data.alignSettings;
+        const PacBio::Pancake::MapperCLRAlignSettings& alignSettings = data.alignSettings;
 
-//         // Create the mapper.
-//         const uint32_t gpuDeviceId = 0;
-//         const int64_t gpuMaxMemoryCap =
-//             static_cast<int64_t>(100) * static_cast<int64_t>(1024 * 1024);
-//         const int32_t numThreads = 2;
-//         const int32_t startBandwidth = 500;
-//         const int32_t maxBandwidth = 2000;
-//         bool alignRemainingOnCpu = false;
-//         PacBio::Pancake::MapperBatchGPUGenomeWorksKSW2 mapper(
-//             alignSettings, numThreads, startBandwidth, maxBandwidth, gpuDeviceId, gpuMaxMemoryCap,
-//             alignRemainingOnCpu);
+        // Create the mapper.
+        const uint32_t gpuDeviceId = 0;
+        const int64_t gpuMaxMemoryCap =
+            static_cast<int64_t>(100) * static_cast<int64_t>(1024 * 1024);
+        const int32_t numThreads = 2;
+        const int32_t startBandwidth = 500;
+        const int32_t maxBandwidth = 2000;
+        bool alignRemainingOnCpu = false;
+        PacBio::Pancake::MapperBatchGPUGenomeWorksKSW2 mapper(
+            alignSettings, numThreads, startBandwidth, maxBandwidth, gpuDeviceId, gpuMaxMemoryCap,
+            alignRemainingOnCpu);
 
-//         // Run the unit under test.
-//         // std::vector<std::vector<MapperBaseResult>> results = mapper.DummyMapAndAlign(batchData);
-//         std::vector<std::vector<PacBio::Pancake::MapperBaseResult>> results =
-//             mapper.MapAndAlign(batchData);
+        // Run the unit under test.
+        // std::vector<std::vector<MapperBaseResult>> results = mapper.DummyMapAndAlign(batchData);
+        std::vector<std::vector<PacBio::Pancake::MapperBaseResult>> results =
+            mapper.MapAndAlign(batchData);
 
-//         // Format the results for comparison.
-//         std::vector<std::vector<std::string>> resultsStr =
-//             PacBio::PancakeTests::HelperFormatBatchMappingResults(results);
+        // Format the results for comparison.
+        std::vector<std::vector<std::string>> resultsStr =
+            PacBio::PancakeTests::HelperFormatBatchMappingResults(results);
 
-//         // Sort the results for comparison.
-//         for (auto& chunkResults : resultsStr) {
-//             std::sort(chunkResults.begin(), chunkResults.end());
-//         }
+        // Sort the results for comparison.
+        for (auto& chunkResults : resultsStr) {
+            std::sort(chunkResults.begin(), chunkResults.end());
+        }
 
-//         // Prepare expected results, and sort them.
-//         std::vector<std::vector<std::string>> expectedOverlaps;
-//         for (const auto& singleExpectedPath : data.expectedOverlapsPaths) {
-//             std::vector<std::string> temp =
-//                 PacBio::PancakeTests::HelperLoadFile(singleExpectedPath);
-//             std::sort(temp.begin(), temp.end());
-//             expectedOverlaps.emplace_back(std::move(temp));
-//         }
+        // Prepare expected results, and sort them.
+        std::vector<std::vector<std::string>> expectedOverlaps;
+        for (const auto& singleExpectedPath : data.expectedOverlapsPaths) {
+            std::vector<std::string> temp =
+                PacBio::PancakeTests::HelperLoadFile(singleExpectedPath);
+            std::sort(temp.begin(), temp.end());
+            expectedOverlaps.emplace_back(std::move(temp));
+        }
 
-//         // std::cerr << "Expected:\n";
-//         // for (size_t i = 0; i < data.expectedOverlapsPaths.size(); ++i) {
-//         //     const auto& singleExpectedOverlaps = expectedOverlaps[i];
-//         //     std::cerr << "  - Expected path: " << data.expectedOverlapsPaths[i] << "\n";
-//         //     for (const auto& ovlStr : singleExpectedOverlaps) {
-//         //         std::cerr << "    " << ovlStr << "\n";
-//         //     }
-//         //     std::cerr << "  - Results:\n";
-//         //     for (const auto& ovlStr : resultsStr[i]) {
-//         //         std::cerr << "    " << ovlStr << "\n";
-//         //     }
-//         //     if (singleExpectedOverlaps.size() != resultsStr[i].size()) {
-//         //         std::cerr << "  - Sizes differ!\n";
-//         //     } else {
-//         //         for (size_t j = 0; j < resultsStr[i].size(); ++j) {
-//         //             if (resultsStr[i][j] != singleExpectedOverlaps[j]) {
-//         //                 std::cerr << "  - [j = " << j << " / " << resultsStr[i].size()
-//         //                           << "] Different result:\n";
-//         //                 std::cerr << "      Expected: " << singleExpectedOverlaps[j] << "\n";
-//         //                 std::cerr << "      Result:   " << resultsStr[i][j] << "\n";
-//         //             }
-//         //         }
-//         //     }
-//         //     std::cerr << "\n";
-//         // }
+        std::cerr << "Expected:\n";
+        for (size_t i = 0; i < data.expectedOverlapsPaths.size(); ++i) {
+            const auto& singleExpectedOverlaps = expectedOverlaps[i];
+            std::cerr << "  - Expected path: " << data.expectedOverlapsPaths[i] << "\n";
+            for (const auto& ovlStr : singleExpectedOverlaps) {
+                std::cerr << "    " << ovlStr << "\n";
+            }
+            std::cerr << "  - Results:\n";
+            for (const auto& ovlStr : resultsStr[i]) {
+                std::cerr << "    " << ovlStr << "\n";
+            }
+            if (singleExpectedOverlaps.size() != resultsStr[i].size()) {
+                std::cerr << "  - Sizes differ!\n";
+            } else {
+                for (size_t j = 0; j < resultsStr[i].size(); ++j) {
+                    if (resultsStr[i][j] != singleExpectedOverlaps[j]) {
+                        std::cerr << "  - [j = " << j << " / " << resultsStr[i].size()
+                                  << "] Different result:\n";
+                        std::cerr << "      Expected: " << singleExpectedOverlaps[j] << "\n";
+                        std::cerr << "      Result:   " << resultsStr[i][j] << "\n";
+                    }
+                }
+            }
+            std::cerr << "\n";
+        }
 
-//         // Evaluate.
-//         EXPECT_EQ(expectedOverlaps, resultsStr);
-//     }
-// }
+        // Evaluate.
+        EXPECT_EQ(expectedOverlaps, resultsStr);
+    }
+}
