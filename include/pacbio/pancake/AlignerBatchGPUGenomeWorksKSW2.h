@@ -6,6 +6,7 @@
 #include <pacbio/pancake/AlignerBatchBase.h>
 #include <pacbio/pancake/AlignerFactory.h>
 #include <pbbam/Cigar.h>
+#include <pbcopper/parallel/FireAndForget.h>
 #include <claraparabricks/genomeworks/cudaalignerdoublegap/alignerdoublegap.cuh>
 #include <claraparabricks/genomeworks/utils/cudautils.hpp>
 #include <cstdint>
@@ -18,8 +19,12 @@ namespace Pancake {
 class AlignerBatchGPUGenomeWorksKSW2 : public AlignerBatchBase
 {
 public:
-    AlignerBatchGPUGenomeWorksKSW2(const AlignmentParameters& alnParams, uint32_t deviceId,
-                                   int64_t maxGPUMemoryCap);
+    AlignerBatchGPUGenomeWorksKSW2(const int32_t numThreads, const AlignmentParameters& alnParams,
+                                   const uint32_t deviceId, const int64_t maxGPUMemoryCap);
+
+    AlignerBatchGPUGenomeWorksKSW2(Parallel::FireAndForget* faf,
+                                   const AlignmentParameters& alnParams, const uint32_t deviceId,
+                                   const int64_t maxGPUMemoryCap);
 
     ~AlignerBatchGPUGenomeWorksKSW2() override;
 
@@ -79,6 +84,9 @@ public:
     void ResetMaxBandwidth(int32_t maxBandwidth) { alnParams_.alignBandwidth = maxBandwidth; }
 
 private:
+    Parallel::FireAndForget* faf_;
+    std::unique_ptr<Parallel::FireAndForget> fafFallback_;
+
     AlignmentParameters alnParams_;
     claraparabricks::genomeworks::CudaStream cudaStream_;
     claraparabricks::genomeworks::DefaultDeviceAllocator deviceAllocator_;
@@ -91,13 +99,19 @@ private:
     std::vector<uint8_t> concatTargets_;
     std::vector<int64_t> targetStarts_;
     std::vector<gw_ksw_extz_t> gwResults_;
-
     std::vector<int32_t> querySpans_;
     std::vector<int32_t> targetSpans_;
     std::vector<AlignmentResult> alnResults_;
 
     StatusAddSequencePair AddSequencePairForGlobalAlignment_(const char* query, int32_t queryLen,
                                                              const char* target, int32_t targetLen);
+
+    static void PopulateResults_(
+        const std::vector<uint8_t>& concatQueries, const std::vector<int64_t>& queryStarts,
+        const std::vector<int32_t>& querySpans, const std::vector<uint8_t>& concatTargets,
+        const std::vector<int64_t>& targetStarts, const std::vector<int32_t>& targetSpans,
+        const AlignmentParameters& alnParams, const std::vector<gw_ksw_extz_t>& gwResults,
+        std::vector<AlignmentResult>& alnResults, Parallel::FireAndForget* faf);
 };
 }  // namespace Pancake
 }  // namespace PacBio

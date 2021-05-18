@@ -29,7 +29,8 @@ MapperBatchCPU::MapperBatchCPU(const MapperCLRAlignSettings& alignSettings, int3
 MapperBatchCPU::MapperBatchCPU(const MapperCLRAlignSettings& alignSettings,
                                Parallel::FireAndForget* faf)
     : alignSettings_{alignSettings}, faf_{faf}, fafFallback_{nullptr}
-{}
+{
+}
 
 MapperBatchCPU::~MapperBatchCPU()
 {

@@ -27,10 +27,23 @@ static void ksw_gen_simple_mat(int m, int8_t* mat, int8_t a, int8_t b, int8_t sc
         mat[(m - 1) * m + j] = sc_ambi;
 }
 
-AlignerBatchGPUGenomeWorksKSW2::AlignerBatchGPUGenomeWorksKSW2(const AlignmentParameters& alnParams,
-                                                               uint32_t /*deviceId*/,
-                                                               int64_t maxGPUMemoryCap)
-    : alnParams_(alnParams)
+AlignerBatchGPUGenomeWorksKSW2::AlignerBatchGPUGenomeWorksKSW2(const int32_t numThreads,
+                                                               const AlignmentParameters& alnParams,
+                                                               const uint32_t deviceId,
+                                                               const int64_t maxGPUMemoryCap)
+    : AlignerBatchGPUGenomeWorksKSW2(nullptr, alnParams, deviceId, maxGPUMemoryCap)
+{
+    fafFallback_ = std::make_unique<Parallel::FireAndForget>(numThreads);
+    faf_ = fafFallback_.get();
+}
+
+AlignerBatchGPUGenomeWorksKSW2::AlignerBatchGPUGenomeWorksKSW2(Parallel::FireAndForget* faf,
+                                                               const AlignmentParameters& alnParams,
+                                                               const uint32_t /*deviceId*/,
+                                                               const int64_t maxGPUMemoryCap)
+    : faf_{faf}
+    , fafFallback_{nullptr}
+    , alnParams_(alnParams)
     , cudaStream_(claraparabricks::genomeworks::make_cuda_stream())
     , currentlyConsumedMem_(0)
     , maxGPUMemoryCap_(maxGPUMemoryCap)
@@ -40,7 +53,12 @@ AlignerBatchGPUGenomeWorksKSW2::AlignerBatchGPUGenomeWorksKSW2(const AlignmentPa
         cudaStream_.get());
 }
 
-AlignerBatchGPUGenomeWorksKSW2::~AlignerBatchGPUGenomeWorksKSW2() = default;
+AlignerBatchGPUGenomeWorksKSW2::~AlignerBatchGPUGenomeWorksKSW2()
+{
+    if (fafFallback_) {
+        fafFallback_->Finalize();
+    }
+}
 
 void AlignerBatchGPUGenomeWorksKSW2::Clear()
 {
@@ -108,13 +126,13 @@ StatusAddSequencePair AlignerBatchGPUGenomeWorksKSW2::AddSequencePairForGlobalAl
     // Check if it fits.
     // std::cerr << "currentlyConsumedMem_ + requiredSize = " << (currentlyConsumedMem_ + requiredSize) << ", maxGPUMemoryCap_ = " << maxGPUMemoryCap_ << " (numPairs = " << querySpans_.size() << ", currentlyConsumedMem_ = " << currentlyConsumedMem_ << ", requiredSize = " << requiredSize << ")\n";
     if ((currentlyConsumedMem_ + requiredSize) > maxGPUMemoryCap_) {
-        std::cerr << "Filled up."
-                  << " currentlyConsumedMem_ + requiredSize = "
-                  << (currentlyConsumedMem_ + requiredSize)
-                  << ", maxGPUMemoryCap_ = " << maxGPUMemoryCap_
-                  << " (numPairs = " << querySpans_.size()
-                  << ", currentlyConsumedMem_ = " << currentlyConsumedMem_
-                  << ", requiredSize = " << requiredSize << ")\n";
+        //        std::cerr << "Filled up."
+        //                  << " currentlyConsumedMem_ + requiredSize = "
+        //                  << (currentlyConsumedMem_ + requiredSize)
+        //                  << ", maxGPUMemoryCap_ = " << maxGPUMemoryCap_
+        //                  << " (numPairs = " << querySpans_.size()
+        //                  << ", currentlyConsumedMem_ = " << currentlyConsumedMem_
+        //                  << ", requiredSize = " << requiredSize << ")\n";
         // std::cerr << "------------------------------\n";
         return StatusAddSequencePair::EXCEEDED_MAX_ALIGNMENTS;
     }
@@ -196,24 +214,51 @@ std::pair<int64_t, int64_t> AlignerBatchGPUGenomeWorksKSW2::AlignAll()
 
     assert(querySpans_.size() == gwResults_.size());
 
-    alnResults_.resize(querySpans_.size());
+    PopulateResults_(concatQueries_, queryStarts_, querySpans_, concatTargets_, targetStarts_,
+                     targetSpans_, alnParams_, gwResults_, alnResults_, faf_);
 
-    for (size_t i = 0; i < gwResults_.size(); ++i) {
-        // Handle the edge cases which aligner does not handle properly.
-        if (querySpans_[i] == 0 || targetSpans_[i] == 0) {
-            alnResults_[i] = EdgeCaseAlignmentResult(
-                querySpans_[i], targetSpans_[i], alnParams_.matchScore, alnParams_.mismatchPenalty,
-                alnParams_.gapOpen1, alnParams_.gapExtend1);
-            continue;
-        }
-
-        const uint8_t* qseqInt = concatQueries_.data() + queryStarts_[i];
-        const uint8_t* tseqInt = concatTargets_.data() + targetStarts_[i];
-        alnResults_[i] = ConvertKSW2ResultsToPancake(gwResults_[i], qseqInt, querySpans_[i],
-                                                     tseqInt, targetSpans_[i]);
-    }
     cpuTime += timer.ElapsedNanoseconds();
     return std::make_pair(cpuTime, gpuTime);
+}
+
+void AlignerBatchGPUGenomeWorksKSW2::PopulateResults_(
+    const std::vector<uint8_t>& concatQueries, const std::vector<int64_t>& queryStarts,
+    const std::vector<int32_t>& querySpans, const std::vector<uint8_t>& concatTargets,
+    const std::vector<int64_t>& targetStarts, const std::vector<int32_t>& targetSpans,
+    const AlignmentParameters& alnParams, const std::vector<gw_ksw_extz_t>& gwResults,
+    std::vector<AlignmentResult>& alnResults, Parallel::FireAndForget* faf)
+{
+    alnResults.clear();
+    alnResults.resize(gwResults.size());
+
+    // Determine how many records should land in each thread, spread roughly evenly.
+    const int32_t numRecords = gwResults.size();
+    const std::vector<std::pair<int32_t, int32_t>> jobsPerThread =
+        PacBio::Pancake::DistributeJobLoad<int32_t>(faf ? faf->NumThreads() : 1, numRecords);
+
+    // Run the mapping in parallel.
+    const auto Submit = [&concatQueries, &queryStarts, &querySpans, &concatTargets, &targetStarts,
+                         &targetSpans, &alnParams, &alnResults, &gwResults,
+                         &jobsPerThread](int32_t jobId) {
+        const int32_t jobStart = jobsPerThread[jobId].first;
+        const int32_t jobEnd = jobsPerThread[jobId].second;
+
+        for (int32_t i = jobStart; i < jobEnd; ++i) {
+            // Handle the edge cases which the aligner does not handle properly.
+            if (querySpans[i] == 0 || targetSpans[i] == 0) {
+                alnResults[i] = EdgeCaseAlignmentResult(
+                    querySpans[i], targetSpans[i], alnParams.matchScore, alnParams.mismatchPenalty,
+                    alnParams.gapOpen1, alnParams.gapExtend1);
+                continue;
+            }
+
+            const uint8_t* qseqInt = concatQueries.data() + queryStarts[i];
+            const uint8_t* tseqInt = concatTargets.data() + targetStarts[i];
+            alnResults[i] = ConvertKSW2ResultsToPancake(gwResults[i], qseqInt, querySpans[i],
+                                                        tseqInt, targetSpans[i]);
+        }
+    };
+    Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
 }
 
 }  // namespace Pancake
