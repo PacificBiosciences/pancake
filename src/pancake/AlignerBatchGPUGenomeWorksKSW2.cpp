@@ -156,7 +156,7 @@ StatusAddSequencePair AlignerBatchGPUGenomeWorksKSW2::AddSequencePairForGlobalAl
 
 AlignmentResult ConvertKSW2ResultsToPancake(const gw_ksw_extz_t& ez, const uint8_t* qseqInt,
                                             int32_t qseqIntLen, const uint8_t* tseqInt,
-                                            int32_t tseqIntLen)
+                                            int32_t tseqIntLen, int32_t bandwidth)
 {
     AlignmentResult ret;
 
@@ -165,11 +165,9 @@ AlignmentResult ConvertKSW2ResultsToPancake(const gw_ksw_extz_t& ez, const uint8
     int32_t tAlnLen = 0;
     AlignerKSW2::ConvertMinimap2CigarToPbbam(ez.cigar, ez.n_cigar, qseqInt, qseqIntLen, tseqInt,
                                              tseqIntLen, currCigar, qAlnLen, tAlnLen, ret.diffs);
-    ret.valid =
-        !ez.zdropped && (ez.n_cigar != 0) && (qAlnLen == qseqIntLen) && (tAlnLen == tseqIntLen);
-    if (ret.valid) {
-        ret.cigar = std::move(currCigar);
-    }
+    const bool isSuboptimal = CheckAlignmentOutOfBand(currCigar, bandwidth);
+    ret.valid = !isSuboptimal && !ez.zdropped && (ez.n_cigar != 0) && (qAlnLen == qseqIntLen) &&
+                (tAlnLen == tseqIntLen);
     ret.lastQueryPos = qseqIntLen;
     ret.lastTargetPos = tseqIntLen;
     ret.maxQueryPos = ez.max_q;
@@ -177,6 +175,9 @@ AlignmentResult ConvertKSW2ResultsToPancake(const gw_ksw_extz_t& ez, const uint8
     ret.score = ez.score;
     ret.maxScore = ez.max;
     ret.zdropped = ez.zdropped;
+    if (ret.valid) {
+        ret.cigar = std::move(currCigar);
+    }
 
     return ret;
 }
@@ -254,8 +255,9 @@ void AlignerBatchGPUGenomeWorksKSW2::PopulateResults_(
 
             const uint8_t* qseqInt = concatQueries.data() + queryStarts[i];
             const uint8_t* tseqInt = concatTargets.data() + targetStarts[i];
-            alnResults[i] = ConvertKSW2ResultsToPancake(gwResults[i], qseqInt, querySpans[i],
-                                                        tseqInt, targetSpans[i]);
+            alnResults[i] =
+                ConvertKSW2ResultsToPancake(gwResults[i], qseqInt, querySpans[i], tseqInt,
+                                            targetSpans[i], alnParams.alignBandwidth);
         }
     };
     Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
