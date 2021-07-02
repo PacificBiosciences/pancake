@@ -3,6 +3,8 @@
 #include <pacbio/pancake/FastaSequenceCached.h>
 #include <pacbio/pancake/SeedDBWriter.h>
 #include <pacbio/util/Util.h>
+
+#include <cinttypes>
 #include <cmath>
 #include <iostream>
 #include <sstream>
@@ -160,20 +162,21 @@ void SeedDBWriter::WriteIndex()
 
     // Write all the files and their sizes.
     for (const auto& f : fileLines_) {
-        fprintf(fpOutIndex_.get(), "F\t%d\t%s\t%d\t%ld\n", f.fileId, f.filename.c_str(),
+        fprintf(fpOutIndex_.get(), "F\t%d\t%s\t%d\t%" PRIi64 "\n", f.fileId, f.filename.c_str(),
                 f.numSequences, f.numBytes);
     }
 
     // Write the indexes of all sequences.
     for (size_t i = 0; i < seedsLines_.size(); ++i) {
-        fprintf(fpOutIndex_.get(), "S\t%d\t%s\t%d\t%ld\t%ld\t%d\t%d\n", seedsLines_[i].seqId,
-                seedsLines_[i].header.c_str(), seedsLines_[i].fileId, seedsLines_[i].fileOffset,
-                seedsLines_[i].numBytes, seedsLines_[i].numBases, seedsLines_[i].numSeeds);
+        fprintf(fpOutIndex_.get(), "S\t%d\t%s\t%d\t%" PRIi64 "\t%" PRIi64 "\t%d\t%d\n",
+                seedsLines_[i].seqId, seedsLines_[i].header.c_str(), seedsLines_[i].fileId,
+                seedsLines_[i].fileOffset, seedsLines_[i].numBytes, seedsLines_[i].numBases,
+                seedsLines_[i].numSeeds);
     }
 
     // Write the blocks of all sequences.
     for (size_t i = 0; i < blockLines_.size(); ++i) {
-        fprintf(fpOutIndex_.get(), "B\t%d\t%d\t%d\t%ld\n", blockLines_[i].blockId,
+        fprintf(fpOutIndex_.get(), "B\t%d\t%d\t%d\t%" PRIi64 "\n", blockLines_[i].blockId,
                 blockLines_[i].startSeqId, blockLines_[i].endSeqId, blockLines_[i].numBytes);
     }
 }

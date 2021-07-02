@@ -3,6 +3,8 @@
 #include <pacbio/pancake/SeedDBIndexCache.h>
 #include <pacbio/util/Util.h>
 #include <pbcopper/utility/StringUtils.h>
+
+#include <cinttypes>
 #include <limits>
 #include <memory>
 #include <sstream>
@@ -103,7 +105,7 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedParams = ParseSeedDBParams(std::string(line + offset));
                 break;
             case 'F':
-                numReadItems = sscanf(&line[1], "%d %s %d %ld", &(fl.fileId), buff,
+                numReadItems = sscanf(&line[1], "%d %s %d %" SCNd64, &(fl.fileId), buff,
                                       &(fl.numSequences), &(fl.numBytes));
                 if (numReadItems != 4) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
@@ -114,9 +116,9 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedLines.reserve(totalNumSeqs);
                 break;
             case 'S':
-                numReadItems =
-                    sscanf(&line[1], "%d %s %d %ld %ld %d %d", &(sl.seqId), buff, &(sl.fileId),
-                           &(sl.fileOffset), &(sl.numBytes), &(sl.numBases), &(sl.numSeeds));
+                numReadItems = sscanf(&line[1], "%d %s %d %" SCNd64 " %" SCNd64 " %d %d",
+                                      &(sl.seqId), buff, &(sl.fileId), &(sl.fileOffset),
+                                      &(sl.numBytes), &(sl.numBases), &(sl.numSeeds));
                 if (numReadItems != 7) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
@@ -131,8 +133,8 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedLines.emplace_back(sl);
                 break;
             case 'B':
-                numReadItems = sscanf(&line[1], "%d %d %d %ld", &(bl.blockId), &(bl.startSeqId),
-                                      &(bl.endSeqId), &(bl.numBytes));
+                numReadItems = sscanf(&line[1], "%d %d %d %" SCNd64, &(bl.blockId),
+                                      &(bl.startSeqId), &(bl.endSeqId), &(bl.numBytes));
                 if (numReadItems != 4) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
