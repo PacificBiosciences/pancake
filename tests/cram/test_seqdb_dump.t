@@ -3,6 +3,12 @@ Tests dumping of the entire DB to FASTA.
   > ${BIN_DIR}/pancake seqdb-dump ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb out.fasta
   > diff ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta out.fasta
 
+Tests dumping of the entire DB to FASTA. Write sequence IDs instead of names.
+  $ rm -f out.*
+  > ${BIN_DIR}/pancake seqdb-dump ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb out.fasta --write-ids
+  > awk 'BEGIN {n = 0} { if (substr($1,1,1) == ">") { print ">00000000"n; ++n } else { print } }' ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta > expected.fasta
+  > diff expected.fasta out.fasta
+
 Tests dumping of the entire DB to stdout.
   $ rm -f out.*
   > ${BIN_DIR}/pancake seqdb-dump ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb - > out.stdout.fasta
