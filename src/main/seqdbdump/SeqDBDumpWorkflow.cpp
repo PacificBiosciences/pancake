@@ -72,7 +72,7 @@ int SeqDBDumpWorkflow::Runner(const PacBio::CLI_v2::Results& options)
         for (const auto& record : records) {
             if (settings.WriteIds) {
                 sprintf(nameIdBuffer, "%09d", record.Id());
-                WriteSeq(fpOut, nameIdBuffer, sizeof(nameIdBuffer), record.c_str(), record.size());
+                WriteSeq(fpOut, nameIdBuffer, strlen(nameIdBuffer), record.c_str(), record.size());
             } else {
                 WriteSeq(fpOut, record.Name().c_str(), record.Name().size(), record.c_str(),
                          record.size());
