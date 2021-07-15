@@ -288,17 +288,38 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         PBLOG_DEBUG << "Starting function: " << std::string(__FUNCTION__) << "."
                     << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
     }
+
+    const std::vector<std::pair<int64_t, int64_t>> seedHist =
+        PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(&querySeeds[0], querySeeds.size(),
+                                                         index.GetHash(), 0);
+    int64_t totalHits = 0;
+    for (size_t i = 0; i < seedHist.size(); ++i) {
+        std::cerr << "[hist i = " << i << " / " << seedHist.size()
+                  << "] hits = " << seedHist[i].first << ", num_seeds = " << seedHist[i].second
+                  << ", multiplied = " << (seedHist[i].first * seedHist[i].second) << "\n";
+        totalHits += seedHist[i].first * seedHist[i].second;
+    }
+    std::cerr << "Total hits: " << totalHits << "\n";
 #endif
 
     // Collect seed hits.
     std::vector<SeedHit> hits;
-    index.CollectHits(&querySeeds[0], querySeeds.size(), queryLen, hits, freqCutoff);
+    const int64_t occThresholdMax = settings.map.seedOccurrenceMax > 0
+                                        ? settings.map.seedOccurrenceMax
+                                        : std::numeric_limits<int64_t>::max();
+    const int64_t occThreshold =
+        std::min(occThresholdMax, std::max(freqCutoff, settings.map.seedOccurrenceMin));
+
+    index.CollectHits(&querySeeds[0], querySeeds.size(), queryLen, hits, occThreshold);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     {
         const double peakRssGb =
             PacBio::Utility::MemoryConsumption::PeakRss() / 1024.0 / 1024.0 / 1024.0;
-        PBLOG_DEBUG << "Collected hits: " << hits.size() << "."
+        PBLOG_DEBUG << "Collected hits: " << hits.size() << ", occThreshold = " << occThreshold
+                    << ", freqCutoff = " << freqCutoff
+                    << ", seedOccurrenceMin = " << settings.map.seedOccurrenceMin
+                    << ", seedOccurrenceMax = " << settings.map.seedOccurrenceMax << "."
                     << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
     }
 #endif
