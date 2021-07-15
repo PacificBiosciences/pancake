@@ -10,6 +10,7 @@
 #include <array>
 #include <cstdint>
 #include <deque>
+#include <iostream>
 #include <vector>
 
 namespace PacBio {
@@ -82,6 +83,35 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
                         const std::vector<std::string>& targetSeqs, const int32_t kmerSize,
                         const int32_t winSize, const int32_t spacing,
                         const bool useReverseComplement, const bool useHPC);
+
+template <class TargetHashType>
+std::vector<std::pair<int64_t, int64_t>> ComputeSeedHitHistogram(
+    const PacBio::Pancake::SeedDB::SeedRaw* querySeeds, const int64_t querySeedsSize,
+    const TargetHashType& hash, const int64_t freqCutoff)
+{
+    std::unordered_map<int64_t, int64_t> hist;
+    for (int64_t seedId = 0; seedId < querySeedsSize; ++seedId) {
+        const auto& querySeed = querySeeds[seedId];
+        auto decodedQuery = PacBio::Pancake::SeedDB::Seed(querySeed);
+        auto it = hash.find(decodedQuery.key);
+        if (it != hash.end()) {
+            int64_t start = std::get<0>(it->second);
+            int64_t end = std::get<1>(it->second);
+            // Skip very frequent seeds.
+            if (freqCutoff > 0 && (end - start) > freqCutoff) {
+                continue;
+            }
+            hist[end - start] += 1;
+        } else {
+            hist[0] += 1;
+        }
+    }
+
+    std::vector<std::pair<int64_t, int64_t>> histVec(hist.begin(), hist.end());
+    std::sort(histVec.begin(), histVec.end());
+
+    return histVec;
+}
 
 template <class TargetHashType>
 bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedDB::SeedRaw* querySeeds,
