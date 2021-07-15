@@ -49,6 +49,8 @@ public:
     PacBio::Pancake::SeedDB::SeedDBParameters seedParams{19, 10, 0, false, true, true};
     PacBio::Pancake::SeedDB::SeedDBParameters seedParamsFallback{19, 10, 0, false, true, true};
     double freqPercentile = 0.0002;
+    int64_t seedOccurrenceMax = 0;          // Maximum allowed occurrence of a seed to keep for mapping. If <= 0, there is no threshold. threshold = min(seedOccurrenceMax, max(<freqPercentile value>, seedOccurrenceMin)
+    int64_t seedOccurrenceMin = 0;          // Minimum value for the occurrence threshold to keep a seed for mapping. If the frequency percentile is smaller than this, the threshold is pinned to this value. threshold = min(seedOccurrenceMax, max(<freqPercentile value>, seedOccurrenceMin)
 
     // Mapping.
     int32_t chainMaxSkip = 25;
