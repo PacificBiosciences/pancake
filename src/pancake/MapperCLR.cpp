@@ -22,13 +22,18 @@
 #include <sstream>
 #include <tuple>
 
-namespace PacBio {
-namespace Pancake {
-
 // #define PANCAKE_MAP_CLR_DEBUG
 // #define PANCAKE_MAP_CLR_DEBUG_2
 // #define PANCAKE_WRITE_SCATTERPLOT
 // #define PANCAKE_MAP_CLR_DEBUG_ALIGN
+
+#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
+#include <pbcopper/utility/MemoryConsumption.h>
+#include <iomanip>
+#endif
+
+namespace PacBio {
+namespace Pancake {
 
 MapperCLR::MapperCLR(const MapperCLRSettings& settings)
     : settings_{settings}, alignerGlobal_(nullptr), alignerExt_(nullptr)
@@ -117,7 +122,7 @@ void DebugPrintChainedRegion(std::ostream& oss, int32_t regionId, const ChainedR
 }
 
 void DebugWriteChainedRegion(
-#ifdef PANCAKE_MAP_CLR_DEBUG_2
+#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     const std::vector<std::unique_ptr<ChainedRegion>>& allChainedRegions,
     const std::string& descriptor, int32_t queryId, int32_t queryLen
 #else
@@ -126,6 +131,13 @@ void DebugWriteChainedRegion(
 #endif
     )
 {
+#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
+    const double peakRssGb =
+        PacBio::Utility::MemoryConsumption::PeakRss() / 1024.0 / 1024.0 / 1024.0;
+    PBLOG_DEBUG << "After: '" << descriptor << "'. Peak RSS: " << std::fixed << std::setprecision(3)
+                << peakRssGb;
+#endif
+
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
     std::cerr << "(DebugWriteChainedRegion) " << descriptor
               << ": allChainedRegions.size() = " << allChainedRegions.size() << "\n";
@@ -269,9 +281,27 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         return {};
     }
 
+#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
+    {
+        const double peakRssGb =
+            PacBio::Utility::MemoryConsumption::PeakRss() / 1024.0 / 1024.0 / 1024.0;
+        PBLOG_DEBUG << "Starting function: " << std::string(__FUNCTION__) << "."
+                    << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
+    }
+#endif
+
     // Collect seed hits.
     std::vector<SeedHit> hits;
     index.CollectHits(&querySeeds[0], querySeeds.size(), queryLen, hits, freqCutoff);
+
+#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
+    {
+        const double peakRssGb =
+            PacBio::Utility::MemoryConsumption::PeakRss() / 1024.0 / 1024.0 / 1024.0;
+        PBLOG_DEBUG << "Collected hits: " << hits.size() << "."
+                    << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
+    }
+#endif
 
     // Check if this read has at least one seed hit to itself. If so, self-mapping
     // will be added in the end.
@@ -294,6 +324,15 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         std::swap(hits, newHits);
     }
 
+#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
+    {
+        const double peakRssGb =
+            PacBio::Utility::MemoryConsumption::PeakRss() / 1024.0 / 1024.0 / 1024.0;
+        PBLOG_DEBUG << "Sorted hits."
+                    << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
+    }
+#endif
+
     // Sort the seed hits.
     std::sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) {
         return PackSeedHitWithDiagonalToTuple(a) < PackSeedHitWithDiagonalToTuple(b);
@@ -301,6 +340,15 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
 
     // Group seed hits by diagonal.
     auto groups = DiagonalGroup(hits, settings.map.chainBandwidth, true);
+
+#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
+    {
+        const double peakRssGb =
+            PacBio::Utility::MemoryConsumption::PeakRss() / 1024.0 / 1024.0 / 1024.0;
+        PBLOG_DEBUG << "Diagonal groups: " << groups.size() << "."
+                    << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
+    }
+#endif
 
     // Process each diagonal bin to get the chains.
     std::vector<std::unique_ptr<ChainedRegion>> allChainedRegions = ChainAndMakeOverlap_(
