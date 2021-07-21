@@ -9,6 +9,7 @@ pancake_test_cpp_sources = files([
   'src/test_MapperBatchCPU.cpp',
   'src/test_MapperCLR.cpp',
   'src/test_MapperHiFi.cpp',
+  'src/test_MapperUtility.cpp',
   'src/test_Minimizers.cpp',
   'src/test_Overlap.cpp',
   'src/test_Pancake.cpp',
