@@ -10,7 +10,6 @@
 #include <array>
 #include <cstdint>
 #include <deque>
-#include <iostream>
 #include <vector>
 
 namespace PacBio {
@@ -84,10 +83,16 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
                         const int32_t winSize, const int32_t spacing,
                         const bool useReverseComplement, const bool useHPC);
 
+/**
+ * \brief For a given set of query seeds, fetches the count of seed hits and produces
+ *          a histogram of seed hits.
+ * \return Histogram in the vector form, where each element of the vector consists of
+ *          <occurrence_count, num query seeds that have this count>
+*/
 template <class TargetHashType>
 std::vector<std::pair<int64_t, int64_t>> ComputeSeedHitHistogram(
     const PacBio::Pancake::SeedDB::SeedRaw* querySeeds, const int64_t querySeedsSize,
-    const TargetHashType& hash, const int64_t freqCutoff)
+    const TargetHashType& hash)
 {
     std::unordered_map<int64_t, int64_t> hist;
     for (int64_t seedId = 0; seedId < querySeedsSize; ++seedId) {
@@ -97,10 +102,6 @@ std::vector<std::pair<int64_t, int64_t>> ComputeSeedHitHistogram(
         if (it != hash.end()) {
             int64_t start = std::get<0>(it->second);
             int64_t end = std::get<1>(it->second);
-            // Skip very frequent seeds.
-            if (freqCutoff > 0 && (end - start) > freqCutoff) {
-                continue;
-            }
             hist[end - start] += 1;
         } else {
             hist[0] += 1;

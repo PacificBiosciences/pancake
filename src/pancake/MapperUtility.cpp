@@ -57,7 +57,7 @@ int64_t ComputeOccurrenceThreshold(const PacBio::Pancake::SeedIndex& index,
 
         const std::vector<std::pair<int64_t, int64_t>> seedHist =
             PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(&querySeeds[0], querySeeds.size(),
-                                                             index.GetHash(), 0);
+                                                             index.GetHash());
         int64_t totalHits = 0;
         for (size_t i = 0; i < seedHist.size(); ++i) {
             const int64_t currentBinSize = seedHist[i].first * seedHist[i].second;

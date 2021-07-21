@@ -300,7 +300,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
 
         const std::vector<std::pair<int64_t, int64_t>> debugSeedHist =
             PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(&querySeeds[0], querySeeds.size(),
-                                                             index.GetHash(), 0);
+                                                             index.GetHash());
 
         int64_t totalHits = 0;
         for (size_t i = 0; i < debugSeedHist.size(); ++i) {
