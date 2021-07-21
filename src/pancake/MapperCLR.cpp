@@ -321,9 +321,16 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     const bool debugVerboseOccurrenceThreshold = false;
 #endif
 
+    // Compute the seed hit histogram, but only if needed.
+    std::vector<std::pair<int64_t, int64_t>> seedHitHistogram;
+    if (settings.map.seedOccurrenceMaxMemory > 0) {
+        seedHitHistogram = PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(
+            &querySeeds[0], querySeeds.size(), index.GetHash());
+    }
+
     const int64_t occThreshold = ComputeOccurrenceThreshold(
-        index, querySeeds, settings.map.seedOccurrenceMaxMemory, settings.map.seedOccurrenceMax,
-        settings.map.seedOccurrenceMin, freqCutoff, debugVerboseOccurrenceThreshold);
+        seedHitHistogram, settings.map.seedOccurrenceMin, settings.map.seedOccurrenceMax,
+        settings.map.seedOccurrenceMaxMemory, freqCutoff, debugVerboseOccurrenceThreshold);
 
     // Collect seed hits.
     std::vector<SeedHit> hits;

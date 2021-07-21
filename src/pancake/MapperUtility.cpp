@@ -43,10 +43,9 @@ OverlapPtr MakeOverlap(const std::vector<SeedHit>& sortedHits, int32_t queryId, 
     return ret;
 }
 
-int64_t ComputeOccurrenceThreshold(const PacBio::Pancake::SeedIndex& index,
-                                   const std::vector<PacBio::Pancake::Int128t>& querySeeds,
+int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>> seedHitHistogram,
+                                   const int64_t seedOccurrenceMin, const int64_t seedOccurrenceMax,
                                    const int64_t seedOccurrenceMaxMemory,
-                                   const int64_t seedOccurrenceMax, const int64_t seedOccurrenceMin,
                                    const int64_t seedOccurrencePercentileCutoff,
                                    const bool debugVerbose)
 {
@@ -54,20 +53,18 @@ int64_t ComputeOccurrenceThreshold(const PacBio::Pancake::SeedIndex& index,
     if (seedOccurrenceMaxMemory > 0) {
         const int64_t maxHitsToFit = std::ceil(static_cast<double>(seedOccurrenceMaxMemory) /
                                                static_cast<double>(sizeof(SeedHit)));
-
-        const std::vector<std::pair<int64_t, int64_t>> seedHist =
-            PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(&querySeeds[0], querySeeds.size(),
-                                                             index.GetHash());
         int64_t totalHits = 0;
-        for (size_t i = 0; i < seedHist.size(); ++i) {
-            const int64_t currentBinSize = seedHist[i].first * seedHist[i].second;
+        for (size_t i = 0; i < seedHitHistogram.size(); ++i) {
+            const int64_t currentBinSize = seedHitHistogram[i].first * seedHitHistogram[i].second;
             ;
-            // std::cerr << "[i = " << i << " / " << seedHist.size() << "] hits = " << seedHist[i].first << ", numSeeds = " << seedHist[i].second << ", currentBinSize = " << currentBinSize << ", totalHits = " << totalHits << ", maxHitsToFit = " << maxHitsToFit << "\n";
+            // std::cerr << "[i = " << i << " / " << seedHitHistogram.size() << "] hits = " << seedHitHistogram[i].first << ", numSeeds = "
+            // << seedHitHistogram[i].second << ", currentBinSize = " << currentBinSize << ", totalHits = " << totalHits
+            // << ", maxHitsToFit = " << maxHitsToFit << "\n";
             if ((totalHits + currentBinSize) > maxHitsToFit) {
                 break;
             }
             totalHits += currentBinSize;
-            occThresholdMemMax = seedHist[i].first + 1;
+            occThresholdMemMax = seedHitHistogram[i].first + 1;
         }
     }
 
