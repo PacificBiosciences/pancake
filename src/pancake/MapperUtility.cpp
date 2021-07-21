@@ -2,6 +2,7 @@
 
 #include <pacbio/pancake/MapperUtility.h>
 #include <pbcopper/logging/Logging.h>
+#include <iostream>
 #include <sstream>
 
 namespace PacBio {
@@ -46,7 +47,7 @@ OverlapPtr MakeOverlap(const std::vector<SeedHit>& sortedHits, int32_t queryId, 
 int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>> seedHitHistogram,
                                    const int64_t seedOccurrenceMin, const int64_t seedOccurrenceMax,
                                    const int64_t seedOccurrenceMaxMemory,
-                                   const int64_t seedOccurrencePercentileCutoff,
+                                   const int64_t seedOccurrenceUserSpecified,
                                    const bool debugVerbose)
 {
     int64_t occThresholdMemMax = std::numeric_limits<int64_t>::max();
@@ -70,16 +71,21 @@ int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>
 
     const int64_t occThresholdMax =
         seedOccurrenceMax > 0 ? seedOccurrenceMax : std::numeric_limits<int64_t>::max();
+    const int64_t occPercentileCutoff = seedOccurrenceUserSpecified > 0
+                                            ? seedOccurrenceUserSpecified
+                                            : std::numeric_limits<int64_t>::max();
+
     const int64_t occThreshold =
-        std::min(std::min(occThresholdMax, occThresholdMemMax),
-                 std::max(seedOccurrencePercentileCutoff, seedOccurrenceMin));
+        std::max(seedOccurrenceMin,
+                 std::min(std::min(occThresholdMax, occThresholdMemMax), occPercentileCutoff));
 
     if (debugVerbose) {
-        PBLOG_DEBUG << "Seed hit occurrence threshold: occThreshold = " << occThreshold
-                    << " (occPercCutoff = " << seedOccurrencePercentileCutoff
-                    << ", occMin = " << seedOccurrenceMin << ", occMax = " << seedOccurrenceMax
-                    << ", occMemMax = " << occThresholdMemMax
-                    << ", maxMemoryInBytes = " << seedOccurrenceMaxMemory << ")";
+        std::cerr << "Seed hit occurrence threshold: occThreshold = " << occThreshold
+                  << " (occUserSpec = " << seedOccurrenceUserSpecified
+                  << ", occMin = " << seedOccurrenceMin << ", occMax = " << seedOccurrenceMax
+                  << ", occMemMax = " << occThresholdMemMax
+                  << ", maxMemoryInBytes = " << seedOccurrenceMaxMemory << ")"
+                  << "\n";
     }
 
     return occThreshold;
