@@ -86,7 +86,7 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
 /**
  * \brief For a given set of query seeds, fetches the count of seed hits and produces
  *          a histogram of seed hits.
- * \return Histogram in the vector form, where each element of the vector consists of
+ * \return The histogram is in a vector form, where each element of the vector consists of
  *          <occurrence_count, num query seeds that have this count>
 */
 template <class TargetHashType>

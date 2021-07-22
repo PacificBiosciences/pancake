@@ -109,7 +109,6 @@ MapperBaseResult MapperCLR::Align(const FastaSequenceCachedStore& targetSeqs,
 
 void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& allChainedRegions,
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2) || \
-    defined(PANCAKE_MAP_CLR_DEBUG_PRINT_CHAINED_REGIONS) ||               \
     defined(PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE)
                              const std::string& descriptor, int32_t queryId, int32_t queryLen,
 #else
@@ -119,14 +118,29 @@ void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& 
                              const bool debugVerboseChains = false)
 {
 
+// Special debug output, only if macros are defined.
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     const double peakRssGb =
         PacBio::Utility::MemoryConsumption::PeakRss() / 1024.0 / 1024.0 / 1024.0;
     PBLOG_DEBUG << "After: '" << descriptor << "'. Chains: " << allChainedRegions.size()
                 << ". Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
 #endif
+#ifdef PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
+    // Write seed hits.
+    for (size_t i = 0; i < allChainedRegions.size(); ++i) {
+        auto& region = allChainedRegions[i];
+        if (region->priority > 1) {
+            continue;
+        }
+        WriteSeedHits("temp-debug/hits-q" + std::to_string(queryId) + "-" + descriptor + ".csv",
+                      region->chain.hits, 0, region->chain.hits.size(), i,
+                      "query" + std::to_string(queryId), queryLen,
+                      "target" + std::to_string(region->mapping->Bid), region->mapping->Blen,
+                      (i > 0));
+    }
+#endif
 
-    // #ifdef PANCAKE_MAP_CLR_DEBUG_PRINT_CHAINED_REGIONS
+    // General debug which can optionally be printed out.
     if (debugVerboseChains) {
         PBLOG_DEBUG << "Chained regions: " << allChainedRegions.size();
 
@@ -149,21 +163,6 @@ void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& 
                         << ", diagEnd = " << (cr.mapping->Aend - cr.mapping->Bend);
         }
     }
-
-#ifdef PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
-    // Write seed hits.
-    for (size_t i = 0; i < allChainedRegions.size(); ++i) {
-        auto& region = allChainedRegions[i];
-        if (region->priority > 1) {
-            continue;
-        }
-        WriteSeedHits("temp-debug/hits-q" + std::to_string(queryId) + "-" + descriptor + ".csv",
-                      region->chain.hits, 0, region->chain.hits.size(), i,
-                      "query" + std::to_string(queryId), queryLen,
-                      "target" + std::to_string(region->mapping->Bid), region->mapping->Blen,
-                      (i > 0));
-    }
-#endif
 }
 
 std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
@@ -313,9 +312,6 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         }
         std::cerr << "Total hits: " << totalHits << "\n";
     }
-#endif
-
-#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     const bool debugVerboseOccurrenceThreshold = true;
 #else
     const bool debugVerboseOccurrenceThreshold = false;
