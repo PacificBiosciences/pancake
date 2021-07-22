@@ -861,3 +861,115 @@ TEST(MapperCLR, CheckSelfHitPolicyAndSkippingSymmetrical)
     }
     // exit(1);
 }
+
+TEST(MapperCLR, SeedOccurrenceThresholds_LoadFromFile)
+{
+    struct TestData
+    {
+        const std::string testName;
+        const std::string targetFile;
+        const std::string queryFile;
+        const PacBio::Pancake::MapperCLRSettings settings;
+        const std::vector<std::string> expectedOverlaps;
+    };
+
+    // Settings for mapping/alignment.
+    PacBio::Pancake::MapperCLRSettings settingsMaxOcc1000;
+    {
+        auto& settings = settingsMaxOcc1000;
+
+        settings.map.seedParams.KmerSize = 15;
+        settings.map.seedParams.MinimizerWindow = 5;
+        settings.map.seedParams.Spacing = 0;
+        settings.map.seedParams.UseHPCForSeedsOnly = true;
+
+        settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+        settings.map.secondaryAllowedOverlapFractionTarget = 0.5;
+
+        settings.map.seedParamsFallback = settings.map.seedParams;
+        settings.map.seedParamsFallback.KmerSize = 10;
+        settings.map.seedParamsFallback.MinimizerWindow = 5;
+
+        // Filter out the top percentile of most frequent minimizers.
+        settings.map.freqPercentile = 0.000;
+        // Determine the maximum occurrence cutoff automatically from the histogram so that all seed hits for a query can fit into this much memory. If <= 0, it's turned off.
+        settings.map.seedOccurrenceMaxMemory = 100'000'000;
+        // Limit the maximum occurrence of a seed to this. (Upper bound.) If <= 0, it's turned off.
+        settings.map.seedOccurrenceMax = 1000;
+        // Do not filter seeds with occurrences lower than this. (Lower bound.)
+        settings.map.seedOccurrenceMin = 100;
+
+        settings.map.maxGap = 10000;
+        settings.map.maxFlankExtensionDist = settings.map.maxGap;
+        settings.map.minAlignmentSpan = 200;
+
+        settings.align.alnParamsGlobal.zdrop = 400;
+        settings.align.alnParamsGlobal.zdrop2 = 200;
+        settings.align.alnParamsGlobal.alignBandwidth = 500;
+        settings.align.alnParamsGlobal.endBonus = 1000;
+        settings.align.alnParamsGlobal.matchScore = 2;
+        settings.align.alnParamsGlobal.mismatchPenalty = 4;
+        settings.align.alnParamsGlobal.gapOpen1 = 4;
+        settings.align.alnParamsGlobal.gapExtend1 = 2;
+        settings.align.alnParamsGlobal.gapOpen2 = 24;
+        settings.align.alnParamsGlobal.gapExtend2 = 1;
+
+        settings.align.alignerTypeGlobal = PacBio::Pancake::AlignerType::KSW2;
+    }
+
+    // clang-format off
+    std::vector<TestData> testData = {
+        {
+            "Test seed occurrence filtering: maximum occurrence and maximum memory consumption for seed fetching. Without these parameters, mapping would take a very long time and consume a lot of memory. Pair of real low-complexity subreads. CCS.",
+            // Target.
+            PacBio::PancakeTestsConfig::Data_Dir + "/mapper-clr/test-10-low_complexity_read-target-m64004_191221_060015-1441-134152_156483.read_0.fasta",
+            // Query.
+            PacBio::PancakeTestsConfig::Data_Dir + "/mapper-clr/test-10-low_complexity_read-query-m64004_191221_060015-1441-89662_111883.read_1.fasta",
+            // Mapping settings.
+            settingsMaxOcc1000,
+            // Expected results.
+            {
+                "000000000 000000000 17156 78.67 0 0 20128 22221 0 2366 22310 22331 *",
+                "000000000 000000000 -66 55.15 0 21722 21858 22221 0 850 951 22331 *",
+            },
+        },
+    };
+    // clang-format on
+
+    PacBio::Pancake::MapperCLRSettings settings;
+    settings.map.freqPercentile = 0.000;
+
+    for (const auto& data : testData) {
+        // Load the sequences from files, and take only the first one.
+        const std::vector<PacBio::BAM::FastaSequence> allTargetSeqs =
+            PacBio::PancakeTests::HelperLoadFasta(data.targetFile);
+        const std::vector<PacBio::BAM::FastaSequence> allQuerySeqs =
+            PacBio::PancakeTests::HelperLoadFasta(data.queryFile);
+        const std::string& target = allTargetSeqs[0].Bases();
+        const std::string& query = allQuerySeqs[0].Bases();
+
+        SCOPED_TRACE(data.testName);
+
+        std::cerr << "testName = " << data.testName << "\n";
+
+        // settings.map.seedParams = data.seedParamsPrimary;
+        // settings.map.seedParamsFallback = data.seedParamsFallback;
+        PacBio::Pancake::MapperCLR mapper(data.settings);
+
+        std::vector<PacBio::Pancake::MapperBaseResult> result =
+            mapper.MapAndAlign({target}, {query});
+        std::vector<std::string> resultsStr;
+        for (const auto& queryMappings : result) {
+            for (const auto& mapping : queryMappings.mappings) {
+                std::cerr << PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(
+                                 *mapping->mapping, "", "", true, false)
+                          << ", NumSeeds = " << mapping->mapping->NumSeeds << "\n";
+
+                resultsStr.emplace_back(PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(
+                    *mapping->mapping, "", "", true, false));
+            }
+        }
+
+        EXPECT_EQ(data.expectedOverlaps, resultsStr);
+    }
+}
