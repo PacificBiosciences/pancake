@@ -1,4 +1,4 @@
-V:=1.4.13
+V:=1.4.21
 R:=racon-v$V
 B:=$R/build-meson
 #export LDFLAGS?="-static-libstdc++ -static-libgcc"
