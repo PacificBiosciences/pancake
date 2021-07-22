@@ -48,7 +48,17 @@ public:
     // Indexing.
     PacBio::Pancake::SeedDB::SeedDBParameters seedParams{19, 10, 0, false, true, true};
     PacBio::Pancake::SeedDB::SeedDBParameters seedParamsFallback{19, 10, 0, false, true, true};
+
+    // Seed hit occurrence filtering.
+    // There are several parameters in play, which are combined according to the following formula:
+    //      cutoff = max(seedOccurrenceMin, min(seedOccurrenceMax, seedOccurrenceMemMax, percentileCutoff))
+    //  Here, "seedOccurrenceMemMax" is computed from seedOccurrenceMaxMemory and the seed hit histogram, so that
+    //  the most abundant seeds are filtered out in order to maximally fill out the specified memory threshold.
+    //  The "percentileCutoff" is computed from the top freqPercentile most abundant seeds.
     double freqPercentile = 0.0002;
+    int64_t seedOccurrenceMin = 0;          // Minimum value for the occurrence threshold to keep a seed for mapping. If the frequency percentile is smaller than this, the threshold is pinned to this value.
+    int64_t seedOccurrenceMax = 0;          // Maximum allowed occurrence of a seed to keep for mapping. Value <= 0 turns off this threshold.
+    int64_t seedOccurrenceMaxMemory = 0;    // Maximum allowed memory to be consumed by collected seed hits. This is used to dynamically compute the maximum occurrence cutoff based on the seed hit histogram. Seeds are chosen in the sorted order by their occurrence until the memory threshold is reached. Value <= 0 turns off this threshold.
 
     // Mapping.
     int32_t chainMaxSkip = 25;

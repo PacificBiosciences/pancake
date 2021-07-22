@@ -74,6 +74,8 @@ public:
     int32_t GetMaxSeedSpan() const { return maxSeedSpan_; }
     double GetAvgSeedSpan() const { return avgSeedSpan_; }
 
+    const SeedHashType& GetHash() const { return hash_; }
+
 private:
     std::vector<PacBio::Pancake::SeedDB::SeedRaw> seeds_;
     SeedHashType hash_;

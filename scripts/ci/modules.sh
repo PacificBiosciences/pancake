@@ -17,7 +17,7 @@ module load pbbam
 
 module load samtools
 
-module load cuda/11.0.2_450.51.05
+module load cuda/11.2.0_460.27.04
 
 case "${bamboo_planRepository_branchName}" in
   master)
