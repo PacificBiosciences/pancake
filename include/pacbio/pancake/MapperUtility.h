@@ -37,7 +37,7 @@ OverlapPtr MakeOverlap(const std::vector<SeedHit>& sortedHits, int32_t queryId, 
  *                                          (e.g. top 0.002% of most abundant seeds in the index should be skipped.).
  * \return Single value that consolidates the occurrence cutoff. If the cutoff is not applied (e.g. all or some provided values are zero), it returns std::numeric_limits<int64_t>::max().
 */
-int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>> seedHitHistogram,
+int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>>& seedHitHistogram,
                                    const int64_t seedOccurrenceMin, const int64_t seedOccurrenceMax,
                                    const int64_t seedOccurrenceMaxMemory,
                                    const int64_t seedOccurrenceUserSpecified,

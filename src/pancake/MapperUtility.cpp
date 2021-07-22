@@ -44,7 +44,7 @@ OverlapPtr MakeOverlap(const std::vector<SeedHit>& sortedHits, int32_t queryId, 
     return ret;
 }
 
-int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>> seedHitHistogram,
+int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>>& seedHitHistogram,
                                    const int64_t seedOccurrenceMin, const int64_t seedOccurrenceMax,
                                    const int64_t seedOccurrenceMaxMemory,
                                    const int64_t seedOccurrenceUserSpecified,
@@ -57,7 +57,6 @@ int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>
         int64_t totalHits = 0;
         for (size_t i = 0; i < seedHitHistogram.size(); ++i) {
             const int64_t currentBinSize = seedHitHistogram[i].first * seedHitHistogram[i].second;
-            ;
             // std::cerr << "[i = " << i << " / " << seedHitHistogram.size() << "] hits = " << seedHitHistogram[i].first << ", numSeeds = "
             // << seedHitHistogram[i].second << ", currentBinSize = " << currentBinSize << ", totalHits = " << totalHits
             // << ", maxHitsToFit = " << maxHitsToFit << "\n";
