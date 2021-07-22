@@ -50,8 +50,8 @@ public:
     PacBio::Pancake::SeedDB::SeedDBParameters seedParamsFallback{19, 10, 0, false, true, true};
 
     // Seed hit occurrence filtering.
-    // There are sevaral parameters in play, which are combined according to the following formula:
-    //      cutoff = min(min(seedOccurrenceMax, seedOccurrenceMemMax), max(percentileCutoff, seedOccurrenceMin))
+    // There are several parameters in play, which are combined according to the following formula:
+    //      cutoff = max(seedOccurrenceMin, min(seedOccurrenceMax, seedOccurrenceMemMax, percentileCutoff))
     //  Here, "seedOccurrenceMemMax" is computed from seedOccurrenceMaxMemory and the seed hit histogram, so that
     //  the most abundant seeds are filtered out in order to maximally fill out the specified memory threshold.
     //  The "percentileCutoff" is computed from the top freqPercentile most abundant seeds.
