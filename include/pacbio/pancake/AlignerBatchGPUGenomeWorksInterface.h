@@ -26,6 +26,7 @@ namespace GWInterface {
 void RunConvertToPacBioCigarAndScoreGpuKernel(
     PacBio::Data::CigarOperation* cigar, int4* diffs, int64_t* scores,
     const claraparabricks::genomeworks::cudaaligner::DeviceAlignmentsPtrs& aln_ptrs,
+    int64_t cigar_buf_size, int32_t start_at_alignment,
     int32_t match_score, int32_t mismatch_penalty, int32_t gap_open_penalty,
     int32_t gap_ext_penalty, cudaStream_t stream, int32_t device_id);
 
