@@ -48,6 +48,17 @@ private:
     int32_t id_;
 };
 
+/*
+ * Note: the operator== here does not compare the actual sequence content, just the pointers.
+ * Since this is a "view" class, it doesn't care about the actual data, just that it points to the
+ * correct location.
+*/
+inline bool operator==(const FastaSequenceCached& lhs, const FastaSequenceCached& rhs)
+{
+    return lhs.Name() == rhs.Name() && lhs.Bases() == rhs.Bases() && lhs.Size() == rhs.Size() &&
+           lhs.Id() == rhs.Id();
+}
+
 }  // namespace Pancake
 }  // namespace PacBio
 

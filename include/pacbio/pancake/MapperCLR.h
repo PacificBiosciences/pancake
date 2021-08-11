@@ -34,10 +34,32 @@ using IntervalTreeInt32 =
 using IntervalVectorInt32 = IntervalTreeInt32::interval_vector;
 using IntervalInt32 = IntervalTreeInt32::interval;
 
+enum class MapperSelfHitPolicy
+{
+    DEFAULT,
+    SKIP,
+    PERFECT_ALIGNMENT,
+};
+
 // clang-format off
-class MapperCLRSettings
+class MapperCLRMapSettings
 {
 public:
+    // Indexing.
+    PacBio::Pancake::SeedDB::SeedDBParameters seedParams{19, 10, 0, false, true, true};
+    PacBio::Pancake::SeedDB::SeedDBParameters seedParamsFallback{19, 10, 0, false, true, true};
+
+    // Seed hit occurrence filtering.
+    // There are several parameters in play, which are combined according to the following formula:
+    //      cutoff = max(seedOccurrenceMin, min(seedOccurrenceMax, seedOccurrenceMemMax, percentileCutoff))
+    //  Here, "seedOccurrenceMemMax" is computed from seedOccurrenceMaxMemory and the seed hit histogram, so that
+    //  the most abundant seeds are filtered out in order to maximally fill out the specified memory threshold.
+    //  The "percentileCutoff" is computed from the top freqPercentile most abundant seeds.
+    double freqPercentile = 0.0002;
+    int64_t seedOccurrenceMin = 0;          // Minimum value for the occurrence threshold to keep a seed for mapping. If the frequency percentile is smaller than this, the threshold is pinned to this value.
+    int64_t seedOccurrenceMax = 0;          // Maximum allowed occurrence of a seed to keep for mapping. Value <= 0 turns off this threshold.
+    int64_t seedOccurrenceMaxMemory = 0;    // Maximum allowed memory to be consumed by collected seed hits. This is used to dynamically compute the maximum occurrence cutoff based on the seed hit histogram. Seeds are chosen in the sorted order by their occurrence until the memory threshold is reached. Value <= 0 turns off this threshold.
+
     // Mapping.
     int32_t chainMaxSkip = 25;
     int32_t chainMaxPredecessors = 500;
@@ -51,33 +73,44 @@ public:
     double secondaryMinScoreFraction = 0.80;
     bool useLIS = true;
 
-    // Indexing.
-    PacBio::Pancake::SeedDB::SeedDBParameters seedParams{19, 10, 0, false, true, 255, true};
-    PacBio::Pancake::SeedDB::SeedDBParameters seedParamsFallback{19, 10, 0, false, true, 255, true};
-    double freqPercentile = 0.0002;
-
-    // Alignment.
-    bool align = true;
-    int32_t maxFlankExtensionDist = 10000;      // Maximum length of the query/target sequences to consider when aligning flanks.
-    int32_t minAlignmentSpan = 200;             // If two seeds are closer than this, take the next seed. (Unless there are only 2 seeds left.)
-    AlignerType alignerTypeGlobal = AlignerType::KSW2;
-    AlignmentParameters alnParamsGlobal;
-    AlignerType alignerTypeExt = AlignerType::KSW2;
-    AlignmentParameters alnParamsExt;
-
     // Other.
     bool skipSymmetricOverlaps = false;
+    MapperSelfHitPolicy selfHitPolicy = MapperSelfHitPolicy::DEFAULT;
     int32_t minQueryLen = 50;
     int32_t bestNSecondary = 0;
+
+    // Alignment region extraction parameters.
+    int32_t maxFlankExtensionDist = 10000;  // Maximum length of the query/target sequences to consider when aligning flanks.
+    double flankExtensionFactor = 1.3;      // Take this much more of the longer flanking sequence for alignment, to allow for indel errors.
+    int32_t minAlignmentSpan = 200;         // If two seeds are closer than this, take the next seed. (Unless there are only 2 seeds left.)
 
     // bool oneHitPerTarget = false;
     // int32_t maxSeedDistance = 5000;
     // int32_t minMappedLength = 1000;
     // double minIdentity = 75.0;
 };
+
+class MapperCLRAlignSettings
+{
+public:
+    // Alignment.
+    bool align = true;
+    MapperSelfHitPolicy selfHitPolicy = MapperSelfHitPolicy::DEFAULT;
+    AlignerType alignerTypeGlobal = AlignerType::KSW2;
+    AlignmentParameters alnParamsGlobal;
+    AlignerType alignerTypeExt = AlignerType::KSW2;
+    AlignmentParameters alnParamsExt;
+};
+
+class MapperCLRSettings
+{
+public:
+    MapperCLRMapSettings map;
+    MapperCLRAlignSettings align;
+};
 // clang-format on
 
-inline std::ostream& operator<<(std::ostream& out, const MapperCLRSettings& a)
+inline std::ostream& operator<<(std::ostream& out, const MapperCLRMapSettings& a)
 {
     out << "chainMaxSkip = " << a.chainMaxSkip << "\n"
         << "chainMaxPredecessors = " << a.chainMaxPredecessors << "\n"
@@ -94,21 +127,11 @@ inline std::ostream& operator<<(std::ostream& out, const MapperCLRSettings& a)
         << "\n"
         << "secondaryMinScoreFraction = " << a.secondaryMinScoreFraction << "\n"
 
-        << "align = " << a.align << "\n"
-        << "maxFlankExtensionDist = " << a.maxFlankExtensionDist << "\n"
-        << "minAlignmentSpan = " << a.minAlignmentSpan << "\n"
-        << "alignerTypeGlobal = " << AlignerTypeToString(a.alignerTypeGlobal) << "\n"
-        << "alnParamsGlobal:\n"
-        << a.alnParamsGlobal << "alignerTypeExt = " << AlignerTypeToString(a.alignerTypeExt) << "\n"
-        << "alnParamsExt:\n"
-        << a.alnParamsExt
-
         << "seedParams.KmerSize = " << a.seedParams.KmerSize << "\n"
         << "seedParams.MinimizerWindow = " << a.seedParams.MinimizerWindow << "\n"
         << "seedParams.Spacing = " << a.seedParams.Spacing << "\n"
         << "seedParams.UseHPC = " << a.seedParams.UseHPC << "\n"
         << "seedParams.UseHPCForSeedsOnly = " << a.seedParams.UseHPCForSeedsOnly << "\n"
-        << "seedParams.MaxHPCLen = " << a.seedParams.MaxHPCLen << "\n"
         << "seedParams.UseRC = " << a.seedParams.UseRC << "\n"
 
         << "seedParamsFallback.KmerSize = " << a.seedParamsFallback.KmerSize << "\n"
@@ -117,16 +140,54 @@ inline std::ostream& operator<<(std::ostream& out, const MapperCLRSettings& a)
         << "seedParamsFallback.UseHPC = " << a.seedParamsFallback.UseHPC << "\n"
         << "seedParamsFallback.UseHPCForSeedsOnly = " << a.seedParamsFallback.UseHPCForSeedsOnly
         << "\n"
-        << "seedParamsFallback.MaxHPCLen = " << a.seedParamsFallback.MaxHPCLen << "\n"
         << "seedParamsFallback.UseRC = " << a.seedParamsFallback.UseRC << "\n"
 
         << "freqPercentile = " << a.freqPercentile << "\n"
+
+        << "maxFlankExtensionDist = " << a.maxFlankExtensionDist << "\n"
+        << "flankExtensionFactor = " << a.flankExtensionFactor << "\n"
+        << "minAlignmentSpan = " << a.minAlignmentSpan << "\n"
 
         << "skipSymmetricOverlaps = " << a.skipSymmetricOverlaps << "\n"
         << "minQueryLen = " << a.minQueryLen << "\n"
         << "bestNSecondary = " << a.bestNSecondary << "\n";
 
     return out;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const MapperCLRAlignSettings& a)
+{
+    out << "align = " << a.align << "\n"
+        << "alignerTypeGlobal = " << AlignerTypeToString(a.alignerTypeGlobal) << "\n"
+        << "alnParamsGlobal:\n"
+        << a.alnParamsGlobal << "alignerTypeExt = " << AlignerTypeToString(a.alignerTypeExt) << "\n"
+        << "alnParamsExt:\n"
+        << a.alnParamsExt << "\n";
+    return out;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const MapperCLRSettings& a)
+{
+    out << a.map << a.align;
+    return out;
+}
+
+inline std::string MapperSelfHitPolicyToString(MapperSelfHitPolicy mp)
+{
+    switch (mp) {
+        case MapperSelfHitPolicy::DEFAULT:
+            return "DEFAULT";
+            break;
+        case MapperSelfHitPolicy::SKIP:
+            return "SKIP";
+            break;
+        case MapperSelfHitPolicy::PERFECT_ALIGNMENT:
+            return "PERFECT_ALIGNMENT";
+            break;
+        default:
+            return "UNKNOWN";
+    }
+    return "UNKNOWN";
 }
 
 class MapperCLR : public MapperBase
@@ -139,10 +200,8 @@ public:
      * \brief Runs mapping and alignment of one or more query sequences to one or more target sequences.
      * This is the basic interface for the most simple usage.
      * This interface does not require the SeedIndex or minimizers, because it will compute them internally.
-     * The std::string objects are first converted to FastaSequenceCached, and then the
-     * WrapBuildIndexMapAndAlignWithFallback_ function is called.
-     * If there were no alignmentsads produced for a query using the primary seeding parameters,
-     * another call to WrapMapAndAlign_ is performed with the seedParamsFallback options.
+     * The std::string objects are first converted to FastaSequenceCached, and then the MapAndAlign overload
+     * is called on these inputs.
     */
     std::vector<MapperBaseResult> MapAndAlign(const std::vector<std::string>& targetSeqs,
                                               const std::vector<std::string>& querySeqs) override;
@@ -150,13 +209,23 @@ public:
     /*
      * \brief Runs mapping and alignment of one or more query sequences to one or more target sequences.
      * This interface does not require the SeedIndex or minimizers, because it will compute them internally.
-     * The WrapBuildIndexMapAndAlignWithFallback_ function is called for processing.
-     * If there were no alignmentsads produced for a query using the primary seeding parameters,
-     * another call to WrapMapAndAlign_ is performed with the seedParamsFallback options.
+     * This function constructs the FastaSequenceCachedStore from the given FastaSequenceCached objects,
+     * and calls the related overload of MapAndAlign with these inputs.
     */
     std::vector<MapperBaseResult> MapAndAlign(
         const std::vector<FastaSequenceCached>& targetSeqs,
         const std::vector<FastaSequenceCached>& querySeqs) override;
+
+    /*
+     * \brief Runs mapping and alignment of one or more query sequences to one or more target sequences.
+     * This interface does not require the SeedIndex or minimizers, because it will compute them internally.
+     * The WrapBuildIndexMapAndAlignWithFallback_ function is called for processing.
+     * If there were no alignmentsads produced for a query using the primary seeding parameters,
+     * another call to WrapMapAndAlign_ is performed with the seedParamsFallback options.
+     * The FastaSequenceCachedStore objects are used for random access to sequences.
+    */
+    std::vector<MapperBaseResult> MapAndAlign(const FastaSequenceCachedStore& targetSeqs,
+                                              const FastaSequenceCachedStore& querySeqs) override;
 
     /*
      * \brief Runs mapping and alignment of a single query sequence to one or more target sequences.
@@ -166,11 +235,26 @@ public:
      * There is no seed fallback implemented in this function, since the SeedIndex is precomputed
      * and provided from the outside.
     */
-    MapperBaseResult MapAndAlignSingleQuery(const std::vector<FastaSequenceCached>& targetSeqs,
+    MapperBaseResult MapAndAlignSingleQuery(const FastaSequenceCachedStore& targetSeqs,
                                             const PacBio::Pancake::SeedIndex& index,
                                             const FastaSequenceCached& querySeq,
                                             const std::vector<PacBio::Pancake::Int128t>& querySeeds,
                                             const int32_t queryId, int64_t freqCutoff) override;
+
+    /*
+     * \brief Maps the query sequence to the targets, where targets are provided by the SeedIndex.
+    */
+    MapperBaseResult Map(const FastaSequenceCachedStore& targetSeqs,
+                         const PacBio::Pancake::SeedIndex& index,
+                         const std::vector<PacBio::Pancake::Int128t>& querySeeds,
+                         const int32_t queryLen, const int32_t queryId, int64_t freqCutoff) const;
+
+    /*
+     * \brief Aligns a precomputed mapping result.
+    */
+    MapperBaseResult Align(const FastaSequenceCachedStore& targetSeqs,
+                           const FastaSequenceCached& querySeq,
+                           const MapperBaseResult& mappingResult);
 
 private:
     MapperCLRSettings settings_;
@@ -184,7 +268,7 @@ private:
      * of the mapping process).
     */
     static MapperBaseResult WrapMapAndAlign_(
-        const std::vector<FastaSequenceCached>& targetSeqs, const PacBio::Pancake::SeedIndex& index,
+        const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
         const FastaSequenceCached& querySeq,
         const std::vector<PacBio::Pancake::Int128t>& querySeeds, const int32_t queryId,
         int64_t freqCutoff, const MapperCLRSettings& settings, AlignerBasePtr& alignerGlobal,
@@ -200,14 +284,15 @@ private:
      * run (nor will the fallback index be generated).
     */
     static std::vector<MapperBaseResult> WrapBuildIndexMapAndAlignWithFallback_(
-        const std::vector<FastaSequenceCached>& targetSeqs,
-        const std::vector<FastaSequenceCached>& querySeqs, const MapperCLRSettings& settings,
-        AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt);
+        const FastaSequenceCachedStore& targetSeqs, const FastaSequenceCachedStore& querySeqs,
+        const MapperCLRSettings& settings, AlignerBasePtr& alignerGlobal,
+        AlignerBasePtr& alignerExt);
 
     /*
      * \brief Maps the query sequence to the targets, where targets are provided by the SeedIndex.
     */
-    static MapperBaseResult Map_(const PacBio::Pancake::SeedIndex& index,
+    static MapperBaseResult Map_(const FastaSequenceCachedStore& targetSeqs,
+                                 const PacBio::Pancake::SeedIndex& index,
                                  const std::vector<PacBio::Pancake::Int128t>& querySeeds,
                                  const int32_t queryLen, const int32_t queryId,
                                  const MapperCLRSettings& settings, int64_t freqCutoff);
@@ -218,26 +303,26 @@ private:
      * This function cannot be const because the member alignerGlobal_ and alignerExt_ can be
      * modified (they have internal memory which gets reused with alignment).
     */
-    static MapperBaseResult Align_(const std::vector<FastaSequenceCached>& targetSeqs,
+    static MapperBaseResult Align_(const FastaSequenceCachedStore& targetSeqs,
                                    const FastaSequenceCached& querySeq,
                                    const MapperBaseResult& mappingResult,
                                    const MapperCLRSettings& settings, AlignerBasePtr& alignerGlobal,
                                    AlignerBasePtr& alignerExt);
 
     /*
-     * \brief Utility function which constructs an overlap from a given chain of seed hits.
-     * Overlap coordinates are determined based on the bounding box around the seed hits.
+     * \brief Filters symmetric and self seed hits, based on sequence IDs.
+     * Be careful when using this function in case when the query and target DBs are not the same.
     */
-    static OverlapPtr MakeOverlap_(const std::vector<SeedHit>& sortedHits, int32_t queryId,
-                                   int32_t queryLen, const PacBio::Pancake::SeedIndex& index,
-                                   int32_t beginId, int32_t endId, int32_t minTargetPosId,
-                                   int32_t maxTargetPosId);
+    static std::vector<SeedHit> FilterSymmetricAndSelfHits_(const std::vector<SeedHit>& hits,
+                                                            const int32_t queryId,
+                                                            const bool skipSelfHits,
+                                                            const bool skipSymmetricOverlaps);
 
     /*
      * \brief Performs LIS and DP chaining, then constructs the overlaps from those resulting chains.
     */
     static std::vector<std::unique_ptr<ChainedRegion>> ChainAndMakeOverlap_(
-        const PacBio::Pancake::SeedIndex& index, const std::vector<SeedHit>& hits,
+        const FastaSequenceCachedStore& targetSeqs, const std::vector<SeedHit>& hits,
         const std::vector<PacBio::Pancake::Range>& hitGroups, int32_t queryId, int32_t queryLen,
         int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
         int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore, bool useLIS);
@@ -249,7 +334,7 @@ private:
     */
     static std::vector<std::unique_ptr<ChainedRegion>> ReChainSeedHits_(
         const std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
-        const PacBio::Pancake::SeedIndex& index, int32_t queryId, int32_t queryLen,
+        const FastaSequenceCachedStore& targetSeqs, int32_t queryId, int32_t queryLen,
         int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
         int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore);
 
@@ -261,14 +346,36 @@ private:
     static void LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
                                  int32_t maxGap);
 
+    static std::vector<AlignmentRegion> CollectAlignmentRegions_(const ChainedRegion& singleMapping,
+                                                                 int32_t minAlignmentSpan,
+                                                                 int32_t maxFlankExtensionDist,
+                                                                 double flankExtensionFactor);
+
     /*
-     * \brief Wraps the labelling of secondary and supplementary chained regions.
+     * \brif A helper function which creates a mocked self-mapping based on the query and target
+     * IDs and lengths. The result is an unaligned mapping which spans full length of the
+     * query and target.
+     * Throws if the query and target lengths are different.
+     * This function also does not initialize the Atype and Btype labels (it sets them to Unknown).
     */
-    static void WrapFlagSecondaryAndSupplementary_(
-        std::vector<std::unique_ptr<ChainedRegion>>& allChainedRegions,
-        double secondaryAllowedOverlapFractionQuery, double secondaryAllowedOverlapFractionTarget,
-        double secondaryMinScoreFraction);
+    static std::unique_ptr<ChainedRegion> CreateMockedMapping_(const int32_t queryId,
+                                                               const int32_t queryLen,
+                                                               const int32_t targetId,
+                                                               const int32_t targetLen);
 };
+
+/*
+    * \brief Wraps the labelling of secondary and supplementary chained regions.
+*/
+void WrapFlagSecondaryAndSupplementary(
+    std::vector<std::unique_ptr<ChainedRegion>>& allChainedRegions,
+    double secondaryAllowedOverlapFractionQuery, double secondaryAllowedOverlapFractionTarget,
+    double secondaryMinScoreFraction);
+
+int32_t CondenseMappings(std::vector<std::unique_ptr<ChainedRegion>>& mappings,
+                         int32_t bestNSecondary);
+
+OverlapPtr CreateMockedAlignment(const OverlapPtr& ovl, const int32_t matchScore);
 
 }  // namespace Pancake
 }  // namespace PacBio

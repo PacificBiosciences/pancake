@@ -37,17 +37,11 @@ class Seed
 public:
     Seed() : key(0), span(0), seqID(0), seqRev(0), pos(0) {}
 
-    Seed(uint64_t _key, int32_t _seqID, int32_t _pos, bool _isRev)
-        : key(_key), span(0), seqID(_seqID), seqRev(_isRev), pos(_pos)
-    {
-    }
-
     Seed(uint64_t _key, int32_t _span, int32_t _seqID, int32_t _pos, bool _isRev)
         : key(_key), span(_span), seqID(_seqID), seqRev(_isRev), pos(_pos)
     {
-        if (_span >= 256) {
-            throw std::runtime_error(
-                "Seed span is larger than 8-bits. Can't encode that. (In Seed constructor.)");
+        if (_span >= 256 || _span < 0) {
+            span = 0;
         }
     }
     Seed(const PacBio::Pancake::Int128t& codedKeypos)
@@ -59,7 +53,11 @@ public:
     {
     }
 
-    bool IsRev() { return seqRev; }
+    bool IsRev() const { return seqRev; }
+
+    bool Valid() const { return span != 0; }
+
+    void SetInvalid() { span = 0; }
 
     inline PacBio::Pancake::Int128t To128t()
     {
@@ -71,15 +69,14 @@ public:
         return ret;
     }
 
-    static inline PacBio::Pancake::Int128t Encode(uint64_t _key, int32_t _seqID, int32_t _pos,
-                                                  bool _isRev)
-    {
-        return Encode(_key, 0, _seqID, _pos, _isRev);
-    }
-
     static inline PacBio::Pancake::Int128t Encode(uint64_t _key, int32_t _span, int32_t _seqID,
                                                   int32_t _pos, bool _isRev)
     {
+        // If the specified span is not valid, set it to zero. This indicates that the seed
+        // is not valid (zero-length seeds are not allowed).
+        if (_span >= 256 || _span < 0) {
+            _span = 0;
+        }
         PacBio::Pancake::Int128t ret = static_cast<PacBio::Pancake::Int128t>(_key) << 72;
         ret |= (static_cast<PacBio::Pancake::Int128t>(_span) & MINIMIZER_8bit_MASK) << 64;
         ret |= ((static_cast<PacBio::Pancake::Int128t>(_seqID) << 1) & MINIMIZER_32bit_MASK) << 32;
@@ -131,26 +128,19 @@ public:
         return ss.str();
     }
 
-    inline int32_t Compare(const Seed& other) const
-    {
-        if (key == other.key && span == other.span && seqID == other.seqID && pos == other.pos &&
-            seqRev == other.seqRev) {
-            // Exact seed match.
-            return 0;
-        } else if (key != other.key) {
-            // Keys are different, seeds do not match.
-            return 1;
-        }
-        // Key is the same, the rest of the seed is different.
-        return 2;
-    }
-
     uint64_t key : 56;
     uint64_t span : 8;
-    int32_t seqID : 31;
+    uint32_t seqID : 31;
     bool seqRev : 1;
-    int32_t pos;
+    uint32_t pos;
 };
+
+inline std::ostream& operator<<(std::ostream& os, const Seed& b)
+{
+    os << "pos = " << b.pos << ", span = " << b.span << ", seqID = " << b.seqID
+       << ", seqRev = " << b.seqRev << ", key = " << b.key;
+    return os;
+}
 
 }  // namespace SeedDB
 }  // namespace Pancake

@@ -27,10 +27,10 @@ public:
 
     void WriteHeader(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs) override;
 
-    void Write(const OverlapPtr& ovl, const PacBio::Pancake::SeqDBReaderCached& targetSeqs,
+    void Write(const Overlap& ovl, const PacBio::Pancake::SeqDBReaderCached& targetSeqs,
                const PacBio::Pancake::FastaSequenceId& querySeq) override;
 
-    void Write(const OverlapPtr& ovl, const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs,
+    void Write(const Overlap& ovl, const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs,
                const PacBio::Pancake::FastaSequenceCached& querySeq) override;
 
 private:

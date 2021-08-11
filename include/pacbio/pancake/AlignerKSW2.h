@@ -8,14 +8,9 @@
 #include <memory>
 #include <vector>
 
-// It's important to define HAVE_KALLOC before including the following
-// headers from Minimap2, otherwise the custom allocator won't be used.
-#ifndef HAVE_KALLOC
-#define HAVE_KALLOC
-#endif
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
-#include <lib/ksw2/ksw2.h>
+#include <pbcopper/third-party/ksw2/ksw2.h>
 #pragma GCC diagnostic pop
 
 namespace PacBio {
@@ -51,7 +46,8 @@ private:
                                       const std::vector<uint8_t>& qseq,
                                       const std::vector<uint8_t>& tseq,
                                       PacBio::Data::Cigar& retCigar, int32_t& retQueryAlignmentLen,
-                                      int32_t& retTargetAlignmentLen);
+                                      int32_t& retTargetAlignmentLen,
+                                      Alignment::DiffCounts& retDiffs);
 
     static std::vector<uint8_t> ConvertSeqAlphabet_(const char* seq, size_t seqlen,
                                                     const int8_t* conv_table);

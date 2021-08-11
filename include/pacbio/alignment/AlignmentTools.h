@@ -23,7 +23,8 @@ inline bool operator==(const TrimmingInfo& lhs, const TrimmingInfo& rhs)
            lhs.targetFront == rhs.targetFront && lhs.targetBack == rhs.targetBack;
 }
 
-PacBio::BAM::Cigar EdlibAlignmentToCigar(const unsigned char* aln, int32_t alnLen);
+PacBio::BAM::Cigar EdlibAlignmentToCigar(const unsigned char* aln, int32_t alnLen,
+                                         Alignment::DiffCounts& retDiffs);
 
 void EdlibAlignmentDiffCounts(const unsigned char* aln, int32_t alnLen, int32_t& numEq,
                               int32_t& numX, int32_t& numI, int32_t& numD);
@@ -76,6 +77,32 @@ bool TrimCigar(const PacBio::BAM::Cigar& cigar, int32_t windowSize, int32_t minM
 
 int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, int32_t match, int32_t mismatch,
                             int32_t gapOpen, int32_t gapExt);
+
+void MergeCigars(PacBio::Data::Cigar& dest, const PacBio::Data::Cigar& src);
+
+/**
+ * \brief Computes a vector of the length of the input sequence, where each position has an
+ *          8-bit unsigned int indicating whether the base is masked or not.
+ *          Value 0 means there is no masking. Multiple levels of simple repeats can be marked
+ *          in the same element of the vector: HPs have a value of (1 << 0), dinucs a value of (1 << 1),
+ *          trinucs (1 << 2), etc. So if a base is marked as a homopolymer, the corresponding position
+ *          in the return vector would have a value of 1. If the base is both a part of a HP and a dinuc
+ *          repeat, it would have a value of (1 + 2 = 3), and so on.
+ * \param seq C-style string of the sequence. Not null-terminated.
+ * \param seqLen Length of the input sequence.
+ * \param maxWindowSize The maximum level of simple repeats for masking: 0 means no masking, 1 will mask homopolymers,
+ *          2 will mask homopolymers and dinucleotide repeats, 3 will mask HPs + dinucs + trinucs, etc.
+ *          Complexity of computation is O(seqLen * maxWindowSize).
+ * \return Vector with a mask for each sequence base indicating whether the base is masked (value > 0) or not.
+*/
+std::vector<uint8_t> ComputeSimpleRepeatMask(const char* seq, int32_t seqLen,
+                                             int32_t maxWindowSize);
+
+/** \brief Walks through the CIGAR vector and for every position computes the diagonal.
+ *          If (diag > (bandwidth - 1) || diag < -(bandwidth - 1)), function returns true
+ *          to indicate suboptimal alignments.
+*/
+bool CheckAlignmentOutOfBand(const PacBio::Data::Cigar& cigar, const int32_t bandwidth);
 
 }  // namespace Pancake
 }  // namespace PacBio

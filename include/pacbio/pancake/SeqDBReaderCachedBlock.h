@@ -11,6 +11,7 @@
 #define PANCAKE_SEQDB_READER_CACHED_BLOCK_H
 
 #include <pacbio/pancake/FastaSequenceCached.h>
+#include <pacbio/pancake/FastaSequenceCachedStore.h>
 #include <pacbio/pancake/FastaSequenceId.h>
 #include <pacbio/pancake/SeqDBIndexCache.h>
 #include <pacbio/pancake/SeqDBReaderCachedBlock.h>
@@ -32,21 +33,34 @@ public:
     void LoadSequences(const std::vector<int32_t>& seqIds);
     void LoadSequences(const std::vector<std::string>& seqNames);
 
-    const FastaSequenceCached& GetSequence(int32_t seqId) const;
-    const FastaSequenceCached& GetSequence(const std::string& seqName) const;
-    void GetSequence(FastaSequenceCached& record, int32_t seqId);
-    void GetSequence(FastaSequenceCached& record, const std::string& seqName);
-    const std::vector<FastaSequenceCached>& records() const { return records_; }
+    const std::vector<FastaSequenceCached>& records() const { return recordStore_.records(); }
+    const FastaSequenceCachedStore& recordStore() const { return recordStore_; }
+
+    const FastaSequenceCached& GetSequence(int32_t seqId) const
+    {
+        return recordStore_.GetSequence(seqId);
+    }
+
+    void GetSequence(FastaSequenceCached& record, int32_t seqId)
+    {
+        recordStore_.GetSequence(record, seqId);
+    }
+
+    const FastaSequenceCached& GetSequence(const std::string& seqName) const
+    {
+        return recordStore_.GetSequence(seqName);
+    }
+
+    void GetSequence(FastaSequenceCached& record, const std::string& seqName)
+    {
+        recordStore_.GetSequence(record, seqName);
+    }
 
 private:
     std::shared_ptr<PacBio::Pancake::SeqDBIndexCache> seqDBIndexCache_;
     bool useHomopolymerCompression_;
     std::vector<uint8_t> data_;
-    std::vector<FastaSequenceCached> records_;
-
-    // Info to allow random access.
-    std::unordered_map<std::string, int32_t> headerToOrdinalId_;
-    std::unordered_map<int32_t, int32_t> seqIdToOrdinalId_;
+    FastaSequenceCachedStore recordStore_;
 
     void LoadBlockUncompressed_(const std::vector<ContiguousFilePart>& parts);
     void LoadBlockCompressed_(const std::vector<ContiguousFilePart>& parts);

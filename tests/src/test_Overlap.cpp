@@ -12,7 +12,7 @@ std::vector<std::string> WrapRunHeuristicExtendOverlapFlanks(
         // ovl->Type = PacBio::Pancake::DetermineOverlapType(ovl, allowedDist);
         PacBio::Pancake::HeuristicExtendOverlapFlanks(ovl, allowedDist);
         std::string resultStr =
-            PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(ovl, "", "", true, false);
+            PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(*ovl, "", "", true, false);
         results.emplace_back(resultStr);
     }
     return results;
@@ -142,7 +142,7 @@ TEST(RoundTrip, ParsingOverlapType)
     for (const auto& inLine : inOverlaps) {
         auto ovl = PacBio::Pancake::ParseM4OverlapFromString(inLine);
         std::string resultStr =
-            PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(ovl, "", "", true, false);
+            PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(*ovl, "", "", true, false);
         results.emplace_back(resultStr);
     }
 

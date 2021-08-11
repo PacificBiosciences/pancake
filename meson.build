@@ -1,7 +1,7 @@
 project(
   'pancake',
   ['cpp', 'c'],
-  version : '1.1.0',
+  version : '1.3.0',
   default_options : [
     'buildtype=release',
     'warning_level=3',
@@ -35,11 +35,8 @@ endforeach
 
 pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC']
 
-#################
-# Meson options #
-#################
-opt_sse41 = get_option('sse41')
 opt_tests = get_option('tests')
+opt_cuda = get_option('gpu-cuda')
 
 ################
 # dependencies #
@@ -77,6 +74,16 @@ pancake_lib_deps = [
   pancake_rt_dep,
 ]
 
+if opt_cuda
+    add_languages('cuda')
+    nvcc = meson.get_compiler('cuda')
+    add_project_arguments('-DGW_ENABLE_CACHING_ALLOCATOR', language : ['cpp', 'cuda'])
+    pancake_gw_dep = dependency('genomeworks', fallback : ['genomeworks', 'genomeworks_dep'])
+    pancake_lib_deps += [
+        pancake_gw_dep,
+    ]
+endif
+
 ###########
 # headers #
 ###########
@@ -95,7 +102,7 @@ subdir('src')
 
 if not meson.is_subproject()
   # tests
-  if get_option('tests')
+  if opt_tests
     pancake_clang_formatter = find_program('tools/check-formatting')
 
     pancake_cram_script = find_program('cram', required : false)
@@ -111,7 +118,6 @@ endif
 ###################
 # dependency info #
 ###################
-
 if not meson.is_subproject()
   # need to add pbcopper into 'Requires:' field,
   # but Meson currently only allows this if it's a

@@ -4,17 +4,15 @@
 #define PANCAKE_VERSION_H
 
 #include <string>
+#include <tuple>
 
 namespace PacBio {
 namespace Pancake {
 
 std::string PancakeGitSha1();
 std::string PancakeVersion();
-
-inline std::string PancakeFormattedVersion()
-{
-    return PancakeVersion() + " (commit " + PancakeGitSha1() + ")";
-}
+std::string PancakeFormattedVersion();
+std::tuple<int, int, int> PancakeVersionTriple();
 
 }  // namespace Pancake
 }  // namespace PacBio

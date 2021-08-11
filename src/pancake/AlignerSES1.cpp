@@ -58,6 +58,7 @@ AlignmentResult AlignerSES1::Global(const char* qseq, int64_t qlen, const char* 
     ret.lastTargetPos = tlen;
     ret.maxQueryPos = qlen;
     ret.maxTargetPos = tlen;
+    ret.diffs = CigarDiffCounts(ret.cigar);
 
     if (ret.valid == false) {
         ret.cigar.clear();

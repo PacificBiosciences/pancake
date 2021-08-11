@@ -41,8 +41,8 @@ void Worker(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqDBReader,
     for (int32_t i = start; i < end; ++i) {
         const auto& querySeq = querySeqDBReader.records()[i];
         const auto& querySeeds = querySeedDBReader.GetSeedsForSequence(querySeq.Id());
-        results[i] = mapper.Map(targetSeqDBReader, index, querySeq, querySeeds, freqCutoff,
-                                generateFlippedOverlaps);
+        results[i] = mapper.Map(targetSeqDBReader.recordStore(), index, querySeq, querySeeds,
+                                freqCutoff, generateFlippedOverlaps);
     }
 }
 
@@ -111,7 +111,7 @@ int OverlapHifiWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 
     // Build the seed index.
     TicToc ttIndex;
-    PacBio::Pancake::SeedIndex index(targetSeedDBCache, std::move(targetSeeds));
+    PacBio::Pancake::SeedIndex index(std::move(targetSeeds));
     ttIndex.Stop();
     PBLOG_INFO << "Built the seed index in " << ttIndex.GetSecs() << " sec.";
 
@@ -192,30 +192,24 @@ int OverlapHifiWorkflow::Runner(const PacBio::CLI_v2::Results& options)
         // Parallel processing.
         {
             TicToc ttQueryBlockMapping;
-            const int32_t numRecords = static_cast<int32_t>(querySeqDBReader.records().size());
-            // Storage for the results of the batch run.
-            std::vector<OverlapHiFi::MapperResult> results(numRecords);
-            // No empty threads (e.g. reduce the requested number, if small record input)
-            const int32_t actualThreadCount =
-                std::min(static_cast<int32_t>(settings.NumThreads), numRecords);
 
             // Determine how many records should land in each thread, spread roughly evenly.
-            const int32_t minimumRecordsPerThreads = (numRecords / actualThreadCount);
-            const int32_t remainingRecords = (numRecords % actualThreadCount);
-            std::vector<int32_t> recordsPerThread(actualThreadCount, minimumRecordsPerThreads);
-            for (int i = 0; i < remainingRecords; ++i)
-                ++recordsPerThread[i];
+            const int32_t numRecords = static_cast<int32_t>(querySeqDBReader.records().size());
+            const std::vector<std::pair<int32_t, int32_t>> jobsPerThread =
+                PacBio::Pancake::DistributeJobLoad<int32_t>(settings.NumThreads, numRecords);
+
+            // Storage for the results of the batch run.
+            std::vector<OverlapHiFi::MapperResult> results(numRecords);
 
             // Run the mapping in parallel.
             PacBio::Parallel::FireAndForget faf(settings.NumThreads);
-            int32_t submittedCount = 0;
-            for (int32_t i = 0; i < actualThreadCount; ++i) {
+            for (size_t i = 0; i < jobsPerThread.size(); ++i) {
+                const int32_t jobStart = jobsPerThread[i].first;
+                const int32_t jobEnd = jobsPerThread[i].second;
                 faf.ProduceWith(Worker, std::cref(targetSeqDBReader), std::cref(index),
                                 std::cref(querySeqDBReader), std::cref(querySeedDBReader),
                                 std::cref(settings), std::cref(mappers[i]), freqCutoff,
-                                settings.WriteReverseOverlaps, submittedCount,
-                                submittedCount + recordsPerThread[i], std::ref(results));
-                submittedCount += recordsPerThread[i];
+                                settings.WriteReverseOverlaps, jobStart, jobEnd, std::ref(results));
             }
             faf.Finalize();
 
@@ -225,7 +219,7 @@ int OverlapHifiWorkflow::Runner(const PacBio::CLI_v2::Results& options)
                 const auto& querySeq = querySeqDBReader.records()[i];
 
                 for (const auto& ovl : result.overlaps) {
-                    writer->Write(ovl, targetSeqDBReader, querySeq);
+                    writer->Write(*ovl, targetSeqDBReader, querySeq);
                 }
             }
 

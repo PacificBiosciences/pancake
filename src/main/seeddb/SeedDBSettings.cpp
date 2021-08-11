@@ -65,14 +65,6 @@ R"({
     "description" : "Enable homopolymer compression of seeds. Unlike '--use-hpc', here the input sequences are not physically compressed. Instead, the seed coordinates correspond to the original uncompressed sequences, but the kmers skip HP bases with their span."
 })", SeedDBSettings::Defaults::UseHPCForSeedsOnly};
 
-const CLI_v2::Option MaxHPCLen{
-R"({
-    "names" : ["max-hpc-len"],
-    "type" : "int",
-    "default" : 10,
-    "description" : "Maximum length of a homopolymer to compress. Maximum size is 256."
-})", SeedDBSettings::Defaults::MaxHPCLen};
-
 const CLI_v2::Option NoRevCmp{
 R"({
     "names" : ["no-rc"],
@@ -95,7 +87,6 @@ SeedDBSettings::SeedDBSettings(const PacBio::CLI_v2::Results& options)
                      options[OptionNames::Spacing],
                      options[OptionNames::UseHPC],
                      options[OptionNames::UseHPCForSeedsOnly],
-                     options[OptionNames::MaxHPCLen],
                      !options[OptionNames::NoRevCmp]}
 {
 }
@@ -113,7 +104,6 @@ PacBio::CLI_v2::Interface SeedDBSettings::CreateCLI()
         OptionNames::Spacing,
         OptionNames::UseHPC,
         OptionNames::UseHPCForSeedsOnly,
-        OptionNames::MaxHPCLen,
         OptionNames::NoRevCmp,
     });
     i.AddPositionalArguments({

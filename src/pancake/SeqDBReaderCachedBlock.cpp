@@ -80,7 +80,7 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
 
     // Preallocate the space for all the records.
     data_.resize(totalBases);
-    records_.resize(totalRecords);
+    recordStore_.Clear();
 
     // Position of a current record in the data_ vector.
     int64_t seqStart = 0;
@@ -121,10 +121,8 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
             const int64_t firstByte = sl.fileOffset - startByteOffset;
             DecompressSequence(&tempData[firstByte], sl.numBytes, sl.numBases, sl.ranges,
                                &data_[seqStart]);
-            records_[currRecord] = FastaSequenceCached{
-                sl.header, reinterpret_cast<const char*>(&data_[seqStart]), sl.numBases, sl.seqId};
-            headerToOrdinalId_[sl.header] = currRecord;
-            seqIdToOrdinalId_[sl.seqId] = currRecord;
+            recordStore_.AddRecord(FastaSequenceCached{
+                sl.header, reinterpret_cast<const char*>(&data_[seqStart]), sl.numBases, sl.seqId});
             seqStart += sl.numBases;
             ++currRecord;
         }
@@ -150,7 +148,7 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
 
     // Preallocate the space for all the records.
     data_.resize(totalBases);
-    records_.resize(totalRecords);
+    recordStore_.Clear();
 
     int64_t currDataPos = 0;
     int64_t currRecord = 0;
@@ -183,10 +181,8 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
         int64_t seqStart = currDataPos;
         for (const auto& id : part.seqIds) {
             const auto& sl = seqDBIndexCache_->GetSeqLine(id);
-            records_[currRecord] = FastaSequenceCached{
-                sl.header, reinterpret_cast<const char*>(&data_[seqStart]), sl.numBases, sl.seqId};
-            headerToOrdinalId_[sl.header] = currRecord;
-            seqIdToOrdinalId_[sl.seqId] = currRecord;
+            recordStore_.AddRecord(FastaSequenceCached{
+                sl.header, reinterpret_cast<const char*>(&data_[seqStart]), sl.numBases, sl.seqId});
             seqStart += sl.numBases;
             ++currRecord;
         }
@@ -200,64 +196,11 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
     }
 }
 
-const FastaSequenceCached& SeqDBReaderCachedBlock::GetSequence(int32_t seqId) const
-{
-    auto it = seqIdToOrdinalId_.find(seqId);
-    if (it == seqIdToOrdinalId_.end()) {
-        std::ostringstream oss;
-        oss << "(SeqDBReaderCachedBlock) Invalid seqId, not found in the preloaded data. seqId = "
-            << seqId << ", records_.size() = " << records_.size();
-        throw std::runtime_error(oss.str());
-    }
-    int32_t ordinalId = it->second;
-    return records_[ordinalId];
-}
-
-void SeqDBReaderCachedBlock::GetSequence(FastaSequenceCached& record, int32_t seqId)
-{
-    auto it = seqIdToOrdinalId_.find(seqId);
-    if (it == seqIdToOrdinalId_.end()) {
-        std::ostringstream oss;
-        oss << "(SeqDBReaderCachedBlock) Invalid seqId, not found in the preloaded data. seqId = "
-            << seqId << ", records_.size() = " << records_.size();
-        throw std::runtime_error(oss.str());
-    }
-    int32_t ordinalId = it->second;
-    record = records_[ordinalId];
-}
-
-const FastaSequenceCached& SeqDBReaderCachedBlock::GetSequence(const std::string& seqName) const
-{
-    auto it = headerToOrdinalId_.find(seqName);
-    if (it == headerToOrdinalId_.end()) {
-        std::ostringstream oss;
-        oss << "(SeqDBReaderCachedBlock) Invalid seqName, not found in the preloaded data. seqName "
-               "= '"
-            << seqName << ".";
-        throw std::runtime_error(oss.str());
-    }
-    int32_t ordinalId = it->second;
-    return records_[ordinalId];
-}
-
-void SeqDBReaderCachedBlock::GetSequence(FastaSequenceCached& record, const std::string& seqName)
-{
-    auto it = headerToOrdinalId_.find(seqName);
-    if (it == headerToOrdinalId_.end()) {
-        std::ostringstream oss;
-        oss << "(SeqDBReaderCachedBlock) Invalid seqName, not found in the preloaded data. seqName "
-               "= '"
-            << seqName << ".";
-        throw std::runtime_error(oss.str());
-    }
-    int32_t ordinalId = it->second;
-    record = records_[ordinalId];
-}
-
 void SeqDBReaderCachedBlock::CompressHomopolymers_()
 {
     std::vector<int32_t> runLengths;
-    for (auto& record : records_) {
+    for (size_t i = 0; i < recordStore_.records().size(); ++i) {
+        auto& record = recordStore_.records()[i];
         int64_t comprLen = PacBio::Pancake::RunLengthEncoding(const_cast<char*>(record.c_str()),
                                                               record.size(), runLengths);
         record.Size(comprLen);

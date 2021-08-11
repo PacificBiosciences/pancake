@@ -1,10 +1,15 @@
 pancake_test_cpp_sources = files([
+  'src/test_AlignerBatchCPU.cpp',
   'src/test_AlignmentSeeded.cpp',
   'src/test_AlignmentTools.cpp',
   'src/test_DPChain.cpp',
+  'src/test_FastaSequenceCachedStore.cpp',
   'src/test_FileIO.cpp',
   'src/test_LIS.cpp',
+  'src/test_MapperBatchCPU.cpp',
   'src/test_MapperCLR.cpp',
+  'src/test_MapperHiFi.cpp',
+  'src/test_MapperUtility.cpp',
   'src/test_Minimizers.cpp',
   'src/test_Overlap.cpp',
   'src/test_Pancake.cpp',
@@ -27,11 +32,20 @@ pancake_test_cpp_sources = files([
   'src/TestHelperUtils.cpp',
 ])
 
+if opt_cuda
+    pancake_test_cpp_sources += files([
+      'src/test_AlignerBatchGPU.cpp',
+      'src/test_MapperBatchGPU.cpp',
+    ])
+endif
+
 pancake_test_cram_sources = files([
   'cram/test_bugfixes.t',
   'cram/test_hifi_ovl.t',
   'cram/test_hifi_ovl_mapping.t',
   'cram/test_robustness.t',
+  'cram/test_seqdb_dump.t',
+  'cram/test_seqdb_info.t',
   'cram/test_seqdb_filter.t',
   'cram/test_seqdb_writer.t',
   'cram/test_seeddb_writer.t',

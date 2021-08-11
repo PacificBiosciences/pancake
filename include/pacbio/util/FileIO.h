@@ -56,6 +56,9 @@ bool FormatIsSeqDB(const std::string& fn);
 /// \brief Parses the format of a file based on it's extension.
 SequenceFormat ParseFormat(const std::string& filename);
 
+/// \brief Converts the sequence format to a std::string representation.
+std::string SequenceFormatToString(const SequenceFormat fmt);
+
 /// \brief Recursively expands all composite files in the list (FOFN, XML) until
 ///         there are no more composite files left.
 /// \returns Vector of pairs of final non-composite files and their file formats.

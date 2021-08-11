@@ -143,8 +143,8 @@ TEST(AlignmentSeeded, ExtractAlignmentRegions_ArrayOfTests)
                 // qStart, qSpan, tStart, tSpan, queryRev, regionType, regionId
                 {0, 5, 0, 5, false, RegionType::FRONT, 0},
                 {5, 95, 5, 95, false, RegionType::GLOBAL, 1},
-                {100, 800, 100, 800, false, RegionType::GLOBAL, 1},
-                {900, 100, 900, 100, false, RegionType::BACK, 2},
+                {100, 800, 100, 800, false, RegionType::GLOBAL, 2},
+                {900, 100, 900, 100, false, RegionType::BACK, 3},
             },
         },
 
@@ -255,9 +255,8 @@ TEST(AlignmentSeeded, ExtractAlignmentRegions_ArrayOfTests)
         },
 
         TestData{
-            "Three seeds, reverse complement strand. Internally, this function change the view so that in the output query is in the strand"
-            " of the alignment, and target is always in the fwd strand. This is important to make alignment consistent. If the SeedIndex generated "
-            " coordinates which were in strand of the query and always fwd in the target, then this function wouldn't have to do that internally.",
+            "Three seeds, reverse complement strand. Input coordinates are expected to be: (1) target coordinates always forward, "
+            "(2) query coordinates always in the strand of alignment.",
             {   // sortedHits
                 // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
                 SeedHit(0, true, 5, 5, 15, 15, 0),
@@ -271,10 +270,90 @@ TEST(AlignmentSeeded, ExtractAlignmentRegions_ArrayOfTests)
             // expectedRegions
             {
                 // qStart, qSpan, tStart, tSpan, queryRev, regionType, regionId
-                {0, 100, 0, 100, true, RegionType::FRONT, 0},
-                {100, 500, 100, 500, true, RegionType::GLOBAL, 1},
-                {600, 395, 600, 395, true, RegionType::GLOBAL, 2},
-                {995, 5, 995, 5, true, RegionType::BACK, 3},
+                {0, 5, 0, 5, true, RegionType::FRONT, 0},
+                {5, 395, 5, 395, true, RegionType::GLOBAL, 1},
+                {400, 500, 400, 500, true, RegionType::GLOBAL, 2},
+                {900, 100, 900, 100, true, RegionType::BACK, 3},
+            },
+        },
+        TestData{
+            "A mix of forward and reverse seed hits. This should not be possible here.",
+            {   // sortedHits
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                SeedHit(0, false, 5, 5, 15, 15, 0),
+                SeedHit(0, true, 400, 400, 15, 15, 0),
+                SeedHit(0, true, 900, 900, 15, 15, 0),
+            },
+            // queryLen, targetLen, isRev, minAlignmentSpan, maxFlankExtensionDist, flankExtensionFactor
+            1000, 1000, true, 200, 5000, 1.3,
+            // expectedThrow
+            true,
+            // expectedRegions
+            {
+            },
+        },
+        TestData{
+            "A mix of forward and reverse seed hits, but an internal hit is of the opposite strand. This should not be possible here.",
+            {   // sortedHits
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                SeedHit(0, true, 5, 5, 15, 15, 0),
+                SeedHit(0, false, 400, 400, 15, 15, 0),
+                SeedHit(0, true, 900, 900, 15, 15, 0),
+            },
+            // queryLen, targetLen, isRev, minAlignmentSpan, maxFlankExtensionDist, flankExtensionFactor
+            1000, 1000, true, 200, 5000, 1.3,
+            // expectedThrow
+            true,
+            // expectedRegions
+            {
+            },
+        },
+        TestData{
+            "Seed hit strand doesn't match the strand specified via the function parameters.",
+            {   // sortedHits
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                SeedHit(0, true, 5, 5, 15, 15, 0),
+                SeedHit(0, true, 400, 400, 15, 15, 0),
+                SeedHit(0, true, 900, 900, 15, 15, 0),
+            },
+            // queryLen, targetLen, isRev, minAlignmentSpan, maxFlankExtensionDist, flankExtensionFactor
+            1000, 1000, false, 200, 5000, 1.3,
+            // expectedThrow
+            true,
+            // expectedRegions
+            {
+            },
+        },
+        TestData{
+            "Chain of seed hits is not monotonically increasing.",
+            {   // sortedHits
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                SeedHit(0, true, 5, 5, 15, 15, 0),
+                SeedHit(0, true, 900, 900, 15, 15, 0),
+                SeedHit(0, true, 400, 400, 15, 15, 0),
+            },
+            // queryLen, targetLen, isRev, minAlignmentSpan, maxFlankExtensionDist, flankExtensionFactor
+            1000, 1000, true, 200, 5000, 1.3,
+            // expectedThrow
+            true,
+            // expectedRegions
+            {
+            },
+        },
+        TestData{
+            "Seed hit + seed span are out of bounds of the query/target lengths. (995 + 15 > 1000)",
+            {   // sortedHits
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                SeedHit(0, true, 100, 100, 15, 15, 0),
+                SeedHit(0, true, 600, 600, 15, 15, 0),
+                SeedHit(0, true, 995, 995, 15, 15, 0),
+            },
+            // queryLen, targetLen, isRev, minAlignmentSpan, maxFlankExtensionDist, flankExtensionFactor
+            1000, 1000, true, 200, 5000, 1.3,
+            // expectedThrow
+            true,
+            // expectedRegions
+            {
             },
         },
     };
@@ -505,7 +584,7 @@ TEST(AlignmentSeeded, AlignmentSeeded_ArrayOfTests)
             false,
             // expectedOvl
             PacBio::Pancake::Overlap(
-                0, 0, -18.0, 0.90, false, 0, 20, 20, false, 0, 20, 20,
+                0, 0, 28, 0.90, false, 0, 20, 20, false, 0, 20, 20,
                 2, 0, OverlapType::Unknown, OverlapType::Unknown,           // editDist, numSeeds, aType, bType
                 PacBio::Data::Cigar("4=1X6=1X8="),                          // cigar
                 "", "", false, false, false                                 // aVars, bVars, isFlipped, isSupplementary, isSecondary
@@ -530,7 +609,7 @@ TEST(AlignmentSeeded, AlignmentSeeded_ArrayOfTests)
             false,
             // expectedOvl
             PacBio::Pancake::Overlap(
-                0, 0, -18.0, 0.90, false, 0, 20, 20, false, 0, 20, 20,
+                0, 0, 28, 0.90, false, 0, 20, 20, false, 0, 20, 20,
                 2, 0, OverlapType::Unknown, OverlapType::Unknown,           // editDist, numSeeds, aType, bType
                 PacBio::Data::Cigar("4=1X6=1X8="),                          // cigar
                 "", "", false, false, false                                 // aVars, bVars, isFlipped, isSupplementary, isSecondary
@@ -555,7 +634,7 @@ TEST(AlignmentSeeded, AlignmentSeeded_ArrayOfTests)
             false,
             // expectedOvl
             PacBio::Pancake::Overlap(
-                0, 0, -18.0, 0.90, false, 0, 20, 20, true, 0, 20, 20,
+                0, 0, 28, 0.90, false, 0, 20, 20, true, 0, 20, 20,
                 2, 0, OverlapType::Unknown, OverlapType::Unknown,           // editDist, numSeeds, aType, bType
                 PacBio::Data::Cigar("8=1X6=1X4="),                          // cigar
                 "", "", false, false, false                                 // aVars, bVars, isFlipped, isSupplementary, isSecondary
@@ -580,7 +659,7 @@ TEST(AlignmentSeeded, AlignmentSeeded_ArrayOfTests)
             false,
             // expectedOvl
             PacBio::Pancake::Overlap(
-                0, 0, -18.0, 0.90, false, 0, 20, 20, true, 0, 20, 20,
+                0, 0, 28, 0.90, false, 0, 20, 20, true, 0, 20, 20,
                 2, 0, OverlapType::Unknown, OverlapType::Unknown,           // editDist, numSeeds, aType, bType
                 PacBio::Data::Cigar("8=1X6=1X4="),                          // cigar
                 "", "", false, false, false                                 // aVars, bVars, isFlipped, isSupplementary, isSecondary
@@ -622,14 +701,19 @@ TEST(AlignmentSeeded, AlignmentSeeded_ArrayOfTests)
             PacBio::Pancake::ReverseComplement(data.querySeq, 0, data.querySeq.size());
         auto ovl = createOverlap(data.ovl);
 
+        std::vector<AlignmentRegion> regions = ExtractAlignmentRegions(
+            data.sortedHits, data.querySeq.size(), data.targetSeq.size(), data.ovl.Brev,
+            data.minAlignmentSpan, data.maxFlankExtensionDist, data.flankExtensionFactor);
+
+        // std::cerr << "Test name: " << data.testName << "\n";
+        // std::cerr << "Input overlap: "<< OverlapWriterBase::PrintOverlapAsM4(data.ovl, "", "", true, true) << "\n";
+
         if (data.expectedThrow) {
             EXPECT_THROW(
                 {
-                    AlignmentSeeded(ovl, data.sortedHits, data.targetSeq.c_str(),
-                                    data.targetSeq.size(), data.querySeq.c_str(),
-                                    querySeqRev.c_str(), data.querySeq.size(),
-                                    data.minAlignmentSpan, data.maxFlankExtensionDist,
-                                    alignerGlobal, alignerExt);
+                    AlignmentSeeded(ovl, regions, data.targetSeq.c_str(), data.targetSeq.size(),
+                                    data.querySeq.c_str(), querySeqRev.c_str(),
+                                    data.querySeq.size(), alignerGlobal, alignerExt);
                 },
                 std::runtime_error);
 
@@ -637,11 +721,9 @@ TEST(AlignmentSeeded, AlignmentSeeded_ArrayOfTests)
 
             // Run the unit under test.
             OverlapPtr result = AlignmentSeeded(
-                ovl, data.sortedHits, data.targetSeq.c_str(), data.targetSeq.size(),
-                data.querySeq.c_str(), querySeqRev.c_str(), data.querySeq.size(),
-                data.minAlignmentSpan, data.maxFlankExtensionDist, alignerGlobal, alignerExt);
+                ovl, regions, data.targetSeq.c_str(), data.targetSeq.size(), data.querySeq.c_str(),
+                querySeqRev.c_str(), data.querySeq.size(), alignerGlobal, alignerExt);
 
-            // std::cerr << "Test name: " << data.testName << "\n";
             // std::cerr << "Expected overlap:\n"
             //           << OverlapWriterBase::PrintOverlapAsM4(data.expectedOvl, "", "", true, true)
             //           << "\n";

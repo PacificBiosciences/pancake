@@ -1,7 +1,9 @@
 // Authors: Ivan Sovic
 
+#include <pacbio/alignment/AlignmentTools.h>
 #include <pacbio/pancake/AlignerKSW2.h>
 #include <pacbio/pancake/Lookups.h>
+#include <array>
 #include <cstring>
 #include <iostream>
 
@@ -53,8 +55,6 @@ AlignmentResult AlignerKSW2::Global(const char* qseq, int64_t qlen, const char* 
     const int32_t bw = (int)(opt_.alignBandwidth * 1.5 + 1.);
 
     // Memory allocations required for KSW2.
-    ksw_extz_t ez;
-    memset(&ez, 0, sizeof(ksw_extz_t));
 
     // Convert the subsequence's alphabet from ACTG to [0123].
     const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet_(qseq, qlen, &BaseToTwobit[0]);
@@ -69,36 +69,59 @@ AlignmentResult AlignerKSW2::Global(const char* qseq, int64_t qlen, const char* 
     //     (h2.CheckFlagLongJoin() || spanDiff > (bw / 2)) ? longestSpan : bw;
     const int32_t actualBandwidth = (spanDiff > (bw / 2)) ? longestSpan : bw;
 
-    // First pass: with approximate Z-drop
-    AlignPair_(buffer_->km, qlen, &qseqInt[0], tlen, &tseqInt[0], mat_, actualBandwidth, -1, -1,
-               extra_flag | KSW_EZ_APPROX_MAX, &ez, opt_.gapOpen1, opt_.gapExtend1, opt_.gapOpen2,
-               opt_.gapExtend2);
-
-    PacBio::Data::Cigar currCigar;
-    int32_t qAlnLen = 0;
-    int32_t tAlnLen = 0;
-    ConvertMinimap2CigarToPbbam_(ez.cigar, ez.n_cigar, qseqInt, tseqInt, currCigar, qAlnLen,
-                                 tAlnLen);
-
     AlignmentResult ret;
-    ret.cigar = std::move(currCigar);
-    ret.valid =
-        (ez.zdropped || ez.n_cigar == 0 || qAlnLen != qlen || tAlnLen != tlen) ? false : true;
-    ret.lastQueryPos = qlen;
-    ret.lastTargetPos = tlen;
-    ret.maxQueryPos = ez.max_q;
-    ret.maxTargetPos = ez.max_t;
-    ret.score = ez.score;
-    ret.maxScore = ez.max;
-    ret.zdropped = ez.zdropped;
 
-    if (ret.valid == false) {
-        ret.cigar.clear();
+    std::vector<int32_t> bws;
+    if (opt_.dynamicBandwidth) {
+        bws.reserve(5);
+        for (const int32_t curBw : (longestSpan < 500) ? std::vector<int32_t>{50, 100, 250}
+                                                       : std::vector<int32_t>{250, 500}) {
+            if (curBw < actualBandwidth) {
+                bws.emplace_back(curBw);
+            }
+        }
     }
+    bws.emplace_back(actualBandwidth);
+    bws.emplace_back(longestSpan);
+    for (int32_t curBw : bws) {
+        ret = AlignmentResult{};
+        ksw_extz_t ez;
+        memset(&ez, 0, sizeof(ksw_extz_t));
+        AlignPair_(buffer_->km, qlen, &qseqInt[0], tlen, &tseqInt[0], mat_, curBw, -1, -1,
+                   extra_flag | KSW_EZ_APPROX_MAX, &ez, opt_.gapOpen1, opt_.gapExtend1,
+                   opt_.gapOpen2, opt_.gapExtend2);
 
-    // Free KSW2 memory.
-    kfree(buffer_->km, ez.cigar);
+        PacBio::Data::Cigar currCigar;
+        int32_t qAlnLen = 0;
+        int32_t tAlnLen = 0;
+        ConvertMinimap2CigarToPbbam_(ez.cigar, ez.n_cigar, qseqInt, tseqInt, currCigar, qAlnLen,
+                                     tAlnLen, ret.diffs);
 
+        // If full-width bandwidth is used, don't run the check.
+        const bool isSuboptimal =
+            (curBw != longestSpan) ? CheckAlignmentOutOfBand(currCigar, curBw) : false;
+
+        ret.valid = !isSuboptimal && !ez.zdropped && (ez.n_cigar != 0) && (qAlnLen == qlen) &&
+                    (tAlnLen == tlen);
+        if (ret.valid) {
+            ret.cigar = std::move(currCigar);
+        }
+        ret.lastQueryPos = qlen;
+        ret.lastTargetPos = tlen;
+        ret.maxQueryPos = ez.max_q;
+        ret.maxTargetPos = ez.max_t;
+        ret.score = ez.score;
+        ret.maxScore = ez.max;
+        ret.zdropped = ez.zdropped;
+
+        // Free KSW2 memory.
+        kfree(buffer_->km, ez.cigar);
+
+        // Early return if bandwidth lead to an optimal alignment
+        if (ret.valid) {
+            break;
+        }
+    }
     return ret;
 }
 
@@ -127,22 +150,23 @@ AlignmentResult AlignerKSW2::Extend(const char* qseq, int64_t qlen, const char* 
                opt_.zdrop, extra_flag | KSW_EZ_EXTZ_ONLY | KSW_EZ_RIGHT, &ez, opt_.gapOpen1,
                opt_.gapExtend1, opt_.gapOpen2, opt_.gapExtend2);
 
+    AlignmentResult ret;
+
     PacBio::Data::Cigar currCigar;
     int32_t qAlnLen = 0;
     int32_t tAlnLen = 0;
     ConvertMinimap2CigarToPbbam_(ez.cigar, ez.n_cigar, qseqInt, tseqInt, currCigar, qAlnLen,
-                                 tAlnLen);
+                                 tAlnLen, ret.diffs);
 
-    AlignmentResult ret;
     ret.cigar = std::move(currCigar);
-    ret.valid = (ez.n_cigar == 0) ? false : true;
+    ret.valid = true;
     ret.lastQueryPos = (ez.reach_end ? qlen : ez.max_q + 1);
     ret.lastTargetPos = (ez.reach_end ? ez.mqe_t + 1 : ez.max_t + 1);
     ret.maxQueryPos = ez.max_q;
     ret.maxTargetPos = ez.max_t;
-    ret.score = ez.score;
-    ret.maxScore = ez.max;
     ret.zdropped = ez.zdropped;
+    ret.maxScore = ez.max;
+    ret.score = std::max(ret.maxScore, ez.score);
 
     // Free KSW2 memory.
     kfree(buffer_->km, ez.cigar);
@@ -160,16 +184,17 @@ std::vector<uint8_t> AlignerKSW2::ConvertSeqAlphabet_(const char* seq, size_t se
     return ret;
 }
 
-void AlignerKSW2::ConvertMinimap2CigarToPbbam_(uint32_t* mm2Cigar, int32_t cigarLen,
-                                               const std::vector<uint8_t>& qseq,
-                                               const std::vector<uint8_t>& tseq,
-                                               PacBio::Data::Cigar& retCigar,
-                                               int32_t& retQueryAlignmentLen,
-                                               int32_t& retTargetAlignmentLen)
+void AlignerKSW2::ConvertMinimap2CigarToPbbam_(
+    uint32_t* mm2Cigar, int32_t cigarLen, const std::vector<uint8_t>& qseq,
+    const std::vector<uint8_t>& tseq, PacBio::Data::Cigar& retCigar, int32_t& retQueryAlignmentLen,
+    int32_t& retTargetAlignmentLen, Alignment::DiffCounts& retDiffs)
 {
     retCigar.clear();
+    retDiffs.Clear();
     retQueryAlignmentLen = 0;
     retTargetAlignmentLen = 0;
+
+    std::array<int32_t, 9> counts{0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     int32_t qPos = 0;
     int32_t tPos = 0;
@@ -193,6 +218,7 @@ void AlignerKSW2::ConvertMinimap2CigarToPbbam_(uint32_t* mm2Cigar, int32_t cigar
                 } else {
                     if (span > 0) {
                         retCigar.emplace_back(Data::CigarOperation(prevOp, span));
+                        counts[CigarCharToNum[static_cast<int32_t>(prevOp)]] += span;
                         // std::cerr << "  -> Added (mid):  " << span << prevOp << "\n";
                     }
                     span = 1;
@@ -203,24 +229,33 @@ void AlignerKSW2::ConvertMinimap2CigarToPbbam_(uint32_t* mm2Cigar, int32_t cigar
             }
             if (span > 0) {
                 retCigar.emplace_back(Data::CigarOperation(prevOp, span));
+                counts[CigarCharToNum[static_cast<int32_t>(prevOp)]] += span;
                 // std::cerr << "  -> Added (last): " << span << prevOp << "\n";
             }
             qPos += count;
             tPos += count;
         } else if (op == '=' || op == 'X') {
             retCigar.emplace_back(Data::CigarOperation(op, count));
+            counts[CigarCharToNum[static_cast<int32_t>(op)]] += count;
             qPos += count;
             tPos += count;
         } else if (op == 'I' || op == 'S') {
             retCigar.emplace_back(Data::CigarOperation(op, count));
+            counts[CigarCharToNum[static_cast<int32_t>(op)]] += count;
             qPos += count;
         } else if (op == 'D' || op == 'N') {
             retCigar.emplace_back(Data::CigarOperation(op, count));
+            counts[CigarCharToNum[static_cast<int32_t>(op)]] += count;
             tPos += count;
         }
     }
     retQueryAlignmentLen = qPos;
     retTargetAlignmentLen = tPos;
+
+    retDiffs.numEq = counts[CIGAR_OP_EQ];
+    retDiffs.numX = counts[CIGAR_OP_X];
+    retDiffs.numI = counts[CIGAR_OP_I];
+    retDiffs.numD = counts[CIGAR_OP_D];
 }
 
 void AlignerKSW2::AlignPair_(void* km, int qlen, const uint8_t* qseq, int tlen, const uint8_t* tseq,
@@ -228,10 +263,10 @@ void AlignerKSW2::AlignPair_(void* km, int qlen, const uint8_t* qseq, int tlen, 
                              ksw_extz_t* ez, int q, int e, int q2, int e2)
 {
     if (q == q2 && e == e2)
-        ksw_extz2_sse(km, qlen, qseq, tlen, tseq, 5, mat, q, e, w, zdrop, endBonus, flag, ez);
+        ksw_extz2_simde(km, qlen, qseq, tlen, tseq, 5, mat, q, e, w, zdrop, endBonus, flag, ez);
     else
-        ksw_extd2_sse(km, qlen, qseq, tlen, tseq, 5, mat, q, e, q2, e2, w, zdrop, endBonus, flag,
-                      ez);
+        ksw_extd2_simde(km, qlen, qseq, tlen, tseq, 5, mat, q, e, q2, e2, w, zdrop, endBonus, flag,
+                        ez);
 }
 
 void AlignerKSW2::GenerateSimpleMatrix_(int m, int8_t* mat, int8_t a, int8_t b, int8_t scAmbi)

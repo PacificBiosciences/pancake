@@ -87,13 +87,16 @@ public:
     void UnsetFlagLongJoin() { flags &= SEED_HIT_FLAG_IGNORE_BIT_UNSET; }
     bool CheckFlagLongJoin() const { return (flags & SEED_HIT_FLAG_IGNORE_BIT_SET); }
 
-    int32_t targetId : 31;
+    /*
+     * Data.
+    */
+    uint32_t targetId : 31;
     bool targetRev : 1;
-    int32_t targetPos : 32;
-    int32_t queryPos : 32;
-    int32_t targetSpan : 8;
-    int32_t querySpan : 8;
-    int32_t flags : 16;
+    int32_t targetPos;
+    int32_t queryPos;
+    uint8_t targetSpan;
+    uint8_t querySpan;
+    uint16_t flags;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const SeedHit& a)

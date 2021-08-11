@@ -38,24 +38,24 @@ std::vector<PacBio::Pancake::FastaSequenceId> HelperLoadAllFromSeqDB(const std::
 
 PacBio::Pancake::SequenceSeeds HelperComputeSequenceSeeds(
     const PacBio::Pancake::FastaSequenceId& record, int32_t k, int32_t w, int32_t space,
-    bool useHPC, int32_t maxHPCLen, bool useRC)
+    bool useHPC, bool useRC)
 {
     const uint8_t* seqData = reinterpret_cast<const uint8_t*>(record.Bases().data());
     int32_t seqLen = record.Bases().size();
     std::vector<PacBio::Pancake::Int128t> seeds;
     PacBio::Pancake::SeedDB::GenerateMinimizers(seeds, seqData, seqLen, 0, record.Id(), k, w, space,
-                                                useRC, useHPC, maxHPCLen);
+                                                useRC, useHPC);
     PacBio::Pancake::SequenceSeeds seqSeeds(record.Name(), std::move(seeds), record.Id());
     return seqSeeds;
 }
 
 std::vector<PacBio::Pancake::SequenceSeeds> HelperComputeSequenceSeeds(
     const std::vector<PacBio::Pancake::FastaSequenceId>& records, int32_t k, int32_t w,
-    int32_t space, bool useHPC, int32_t maxHPCLen, bool useRC)
+    int32_t space, bool useHPC, bool useRC)
 {
     std::vector<PacBio::Pancake::SequenceSeeds> ret;
     for (const auto& record : records) {
-        ret.emplace_back(HelperComputeSequenceSeeds(record, k, w, space, useHPC, maxHPCLen, useRC));
+        ret.emplace_back(HelperComputeSequenceSeeds(record, k, w, space, useHPC, useRC));
     }
     return ret;
 }
@@ -178,7 +178,7 @@ TEST(SeedDBReader, GetNext1)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);
@@ -225,7 +225,7 @@ TEST(SeedDBReader, GetNext2)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);
@@ -270,7 +270,7 @@ TEST(SeedDBReader, GetSeedsByID1)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);
@@ -318,7 +318,7 @@ TEST(SeedDBReader, GetSeedsByID2)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);
@@ -364,7 +364,7 @@ TEST(SeedDBReader, GetSeedsByName1)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);
@@ -412,7 +412,7 @@ TEST(SeedDBReader, GetSeedsByName2)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);
@@ -501,7 +501,7 @@ TEST(SeedDBReader, GetNextBatch1)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);
@@ -543,7 +543,7 @@ TEST(SeedDBReader, GetNextBatch2)
     std::vector<PacBio::Pancake::SequenceSeeds> computedSeeds = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
     std::vector<std::vector<PacBio::Pancake::SequenceSeeds>> expected = {
         {computedSeeds[0], computedSeeds[1]},
         {computedSeeds[2]},
@@ -595,7 +595,7 @@ TEST(SeedDBReader, GetNextBatch3)
     std::vector<PacBio::Pancake::SequenceSeeds> computedSeeds = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
     std::vector<std::vector<PacBio::Pancake::SequenceSeeds>> expected = {
         {computedSeeds[0], computedSeeds[1]},
         {computedSeeds[2]},
@@ -643,7 +643,7 @@ TEST(SeedDBReader, GetBlock1)
     std::vector<PacBio::Pancake::SequenceSeeds> computedSeeds = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
     std::vector<std::vector<PacBio::Pancake::SequenceSeeds>> expected = {{computedSeeds[4]},
                                                                          {computedSeeds[3]},
                                                                          {computedSeeds[2]},
@@ -695,7 +695,7 @@ TEST(SeedDBReader, GetBlock2)
     std::vector<PacBio::Pancake::SequenceSeeds> computedSeeds = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
     std::vector<std::vector<PacBio::Pancake::SequenceSeeds>> expected = {{computedSeeds[4]},
                                                                          {computedSeeds[3]},
                                                                          {computedSeeds[2]},
@@ -785,7 +785,7 @@ TEST(SeedDBReader, JumpTo1)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);
@@ -835,7 +835,7 @@ TEST(SeedDBReader, JumpTo2)
     std::vector<PacBio::Pancake::SequenceSeeds> expected = HelperComputeSequenceSeeds(
         seqDBRecords, seedDBCache->seedParams.KmerSize, seedDBCache->seedParams.MinimizerWindow,
         seedDBCache->seedParams.Spacing, seedDBCache->seedParams.UseHPC,
-        seedDBCache->seedParams.MaxHPCLen, seedDBCache->seedParams.UseRC);
+        seedDBCache->seedParams.UseRC);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);

@@ -1,3 +1,10 @@
+# Copyright (c) 2019, Pacific Biosciences of California, Inc.
+# All rights reserved.
+# See LICENSE.txt.
+#
+# Contributions from NVIDIA are Copyright (c) 2021, NVIDIA Corporation.
+# All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause-Clear
 
 ################
 # version info #
@@ -28,21 +35,7 @@ pancake_version_sources = [
 # library #
 ###########
 
-ksw2_cpp_simd_sources = files([
-    'lib/ksw2/ksw2_extd2_sse.cpp',
-    'lib/ksw2/ksw2_exts2_sse.cpp',
-    'lib/ksw2/ksw2_extz2_sse.cpp',
-])
-ksw2_cpp_ll_sse_sources = files([
-    'lib/ksw2/ksw2_ll_sse.cpp',
-])
-ksw2_cpp_dispatch_sources = files([
-    'lib/ksw2/ksw2_dispatch.cpp',
-])
-
 pancake_cpp_sources = files([
-    'lib/ksw2/kalloc.cpp',
-
     'alignment/AlignmentTools.cpp',
     'alignment/SesDistanceBanded.cpp',
     'main/dbfilter/DBFilterSettings.cpp',
@@ -53,9 +46,14 @@ pancake_cpp_sources = files([
     'main/seeddb/SeedDBWorkflow.cpp',
     'main/seqdb/SeqDBSettings.cpp',
     'main/seqdb/SeqDBWorkflow.cpp',
+    'main/seqdbdump/SeqDBDumpSettings.cpp',
+    'main/seqdbdump/SeqDBDumpWorkflow.cpp',
+    'main/seqdbinfo/SeqDBInfoSettings.cpp',
+    'main/seqdbinfo/SeqDBInfoWorkflow.cpp',
     'main/seqfetch/SeqFetchSettings.cpp',
     'main/seqfetch/SeqFetchWorkflow.cpp',
     'pancake/AlignerBase.cpp',
+    'pancake/AlignerBatchCPU.cpp',
     'pancake/AlignerKSW2.cpp',
     'pancake/AlignerEdlib.cpp',
     'pancake/AlignerSES1.cpp',
@@ -65,8 +63,11 @@ pancake_cpp_sources = files([
     'pancake/CompressedSequence.cpp',
     'pancake/DPChain.cpp',
     'pancake/FastaSequenceId.cpp',
+    'pancake/MapperBatchCPU.cpp',
+    'pancake/MapperBatchUtility.cpp',
     'pancake/MapperCLR.cpp',
     'pancake/MapperHiFi.cpp',
+    'pancake/MapperUtility.cpp',
     'pancake/Minimizers.cpp',
     'pancake/Overlap.cpp',
     'pancake/OverlapWriterBase.cpp',
@@ -95,80 +96,29 @@ pancake_cpp_sources = files([
     'pancake/Twobit.cpp',
     'util/FileIO.cpp',
     'util/RunLengthEncoding.cpp',
+    'util/SeqLengthStats.cpp',
     'util/TicToc.cpp',
 ])
 
-pancake_cpp_sources += pancake_version_sources
+if opt_cuda
+    cuda = import('unstable-cuda')
+    pancake_cuda_flags = cuda.nvcc_arch_flags(nvcc, 'Auto')
 
-
-##########
-# SIMD   #
-##########
-
-simd_mod = import('unstable_simd')
-
-ksw2_flags = ['-DHAVE_KALLOC']
-
-cpp = meson.get_compiler('cpp')
-foreach cflag: [
-  '-Wc++-compat',
-  '-Wno-unused-parameter',
-  '-Wno-unused-variable',
-  '-Wno-sign-compare',
-  '-Wno-unused-but-set-variable']
-    if cpp.has_argument(cflag)
-      ksw2_flags += cflag
+    if (get_option('b_ndebug') == 'true') or ((get_option('b_ndebug') == 'if-release') and (get_option('buildtype') == 'release'))
+      pancake_cuda_flags += '-DNDEBUG'
     endif
-endforeach
 
-ksw2_simd_flag = []
-ksw2_simd_libs = []
-
-ksw2_simd_libs += simd_mod.check(
-  'll_sse',
-  sse2 : ksw2_cpp_ll_sse_sources,
-  include_directories : ksw2_include_directories,
-  cpp_args : ksw2_flags,
-  compiler : cpp)[0]
-
-if opt_sse41
-  # SSE 4.1
-  ksw2_simd_flag += ['-DKSW_CPU_DISPATCH']
-
-  ksw2_simd_libs += simd_mod.check(
-    'ksw2_sse41',
-    sse41 : ksw2_cpp_simd_sources,
-    include_directories : ksw2_include_directories,
-    cpp_args : [ksw2_flags, ksw2_simd_flag],
-    compiler : cpp)[0]
-
-  ksw2_simd_libs += simd_mod.check(
-    'ksw2_dispatch',
-    sse41 : ksw2_cpp_dispatch_sources,
-    include_directories : ksw2_include_directories,
-    cpp_args : [ksw2_flags, ksw2_simd_flag],
-    compiler : cpp)[0]
-
-  ksw2_simd_flag += ['-DKSW_SSE2_ONLY']
-
+    pancake_cpp_sources += files([
+        'pancake/AlignerBatchGPU.cpp',
+        'pancake/MapperBatchGPU.cpp',
+    ])
+    pancake_cu_sources = files([
+        'pancake/AlignerBatchGPUGenomeWorksInterface.cu',
+    ])
+    pancake_cpp_sources += pancake_cu_sources
 endif
 
-# SSE2
-ksw2_simd_libs += simd_mod.check(
-  'ksw2_sse2',
-  sse2 : ksw2_cpp_simd_sources,
-  include_directories : ksw2_include_directories,
-  cpp_args : [ksw2_flags, ksw2_simd_flag],
-  compiler : cpp)[0]
-
-# this is a crutch to unify all compiled objects into
-# one library, in order to avoid tons of libraries
-# showing up in the pkg-config file
-# https://github.com/mesonbuild/meson/issues/2478#issuecomment-351132872
-ksw2_simd_all_objects = []
-foreach i : ksw2_simd_libs
-  ksw2_simd_all_objects += i.extract_all_objects()
-endforeach
+pancake_cpp_sources += pancake_version_sources
 
 ###########
 # Library #
@@ -180,16 +130,29 @@ pancake_lib_install = (not meson.is_subproject()) or (get_option('default_librar
 
 pancake_exe_dir = meson.current_source_dir()
 
-pancake_lib = library(
-  'pancake',
-  pancake_cpp_sources,
-  soversion : meson.project_version(),
-  version : meson.project_version(),
-  objects : ksw2_simd_all_objects,
-  install : pancake_lib_install,
-  dependencies : pancake_lib_deps,
-  include_directories : pancake_include_directories,
-  cpp_args : pancake_flags + ksw2_flags + ksw2_simd_flag)
+if opt_cuda
+    pancake_lib = library(
+      'pancake',
+      pancake_cpp_sources,
+      soversion : meson.project_version(),
+      version : meson.project_version(),
+      install : pancake_lib_install,
+      dependencies : pancake_lib_deps,
+      include_directories : pancake_include_directories,
+      cpp_args : pancake_flags,
+      cuda_args : pancake_cuda_flags,
+      override_options : ['warning_level=2'])
+else
+    pancake_lib = library(
+      'pancake',
+      pancake_cpp_sources,
+      soversion : meson.project_version(),
+      version : meson.project_version(),
+      install : pancake_lib_install,
+      dependencies : pancake_lib_deps,
+      include_directories : pancake_include_directories,
+      cpp_args : pancake_flags)
+endif
 
 ##############
 # executable #
@@ -204,5 +167,5 @@ if not meson.is_subproject()
     dependencies : pancake_lib_deps,
     include_directories : pancake_include_directories,
     link_with : pancake_lib,
-    cpp_args : pancake_flags + ksw2_flags + ksw2_simd_flag)
+    cpp_args : pancake_flags)
 endif

@@ -39,30 +39,7 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         maxFlankExtensionDist = std::max(qLen, tLen);
     }
 
-    // NOTE: This is only required if the hit coordinates are always
-    // fwd in the query sequence. If they are not, this can be removed.
-    //
-    // Reverse the hit coordinates if required, to make the
-    // alignment simpler. This is required because the original coordinate
-    // system keeps query in fwd and target in strand, whereas here we
-    // use query in strand and target in fwd.
-    std::vector<SeedHit> hits = inSortedHits;
-    if (isRev) {
-        for (size_t i = 0; i < hits.size(); ++i) {
-            auto& hit = hits[i];
-            // std::swap(hit.queryPos, hit.targetPos
-            hit.queryPos = qLen - hit.queryPos;
-            hit.targetPos = tLen - hit.targetPos;
-
-            if (i > 0) {
-                bool isLongCurr = hits[i].CheckFlagLongJoin();
-                bool isLongPrev = hits[i - 1].CheckFlagLongJoin();
-                hits[i - 1].SetFlagLongJoin(isLongCurr);
-                hits[i].SetFlagLongJoin(isLongPrev);
-            }
-        }
-        std::reverse(hits.begin(), hits.end());
-    }
+    const std::vector<SeedHit>& hits = inSortedHits;
 
     std::vector<AlignmentRegion> ret;
     int32_t globalAlnQueryStart = hits.front().queryPos;
@@ -98,6 +75,26 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         ret.emplace_back(std::move(region));
     }
 
+    if (hits.size() > 0) {
+        const auto& h1 = hits.front();
+        // Sanity check that the first hit matches the strand specified via function call.
+        if (h1.targetRev != isRev) {
+            std::ostringstream oss;
+            oss << "[" << __FUNCTION__ << "] Hit strand does not match the strand specified as the "
+                                          "parameter to this function. First hit: "
+                << h1;
+            throw std::runtime_error(oss.str());
+        }
+        // Sanity check that the seed hit itself is valid.
+        if ((h1.queryPos + h1.querySpan) > qLen || (h1.targetPos + h1.targetSpan) > tLen) {
+            std::ostringstream oss;
+            oss << "[" << __FUNCTION__ << "] Seed hit coordinates/span are not valid, they span "
+                                          "out of the bounds of query or target. First hit: "
+                << h1;
+            throw std::runtime_error(oss.str());
+        }
+    }
+
     // Align between seeds.
     const int32_t nHits = hits.size();
     std::vector<Data::Cigar> cigarChunks;
@@ -106,6 +103,40 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         // Shorthands.
         const auto& h1 = hits[startId];
         const auto& h2 = hits[i];
+        const auto& hPrev = hits[i - 1];
+
+        // Sanity check that the strands are valid.
+        if (h2.targetRev != hPrev.targetRev || h2.targetId != hPrev.targetId) {
+            std::ostringstream oss;
+            oss << "[" << __FUNCTION__
+                << "] Hit target ID or strand is not consistent in the chain. Previous hit: "
+                << hPrev << ". Current hit (i = " << i << "): " << h2;
+            throw std::runtime_error(oss.str());
+        }
+        // Sanity check that the seed hit has the same strand as the specified via function arguments.
+        if (h1.targetRev != isRev) {
+            std::ostringstream oss;
+            oss << "[" << __FUNCTION__ << "] Hit strand does not match the strand specified as the "
+                                          "parameter to this function. Current hit (i = "
+                << i << "): " << h2;
+            throw std::runtime_error(oss.str());
+        }
+        // Sanity check that the coordinates are valid.
+        if (h2.targetPos < hPrev.targetPos || h2.queryPos < hPrev.queryPos) {
+            std::ostringstream oss;
+            oss << "[" << __FUNCTION__ << "] The chain of seed hits is not monotonically "
+                                          "increasing in terms of coordinates. Previous hit: "
+                << hPrev << ". Current hit (i = " << i << "): " << h2;
+            throw std::runtime_error(oss.str());
+        }
+        // Sanity check that the seed hit itself is valid.
+        if ((h2.queryPos + h2.querySpan) > qLen || (h2.targetPos + h2.targetSpan) > tLen) {
+            std::ostringstream oss;
+            oss << "[" << __FUNCTION__ << "] Seed hit coordinates/span are not valid, they span "
+                                          "out of the bounds of query or target. Current hit (i = "
+                << i << "): " << h2;
+            throw std::runtime_error(oss.str());
+        }
 
         // Compute the new region.
         AlignmentRegion region;
@@ -117,7 +148,7 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         region.queryRev = isRev;
         region.regionId = numRegions;
 
-        // Sanity check.
+        // Sanity check that the spans are valid.
         if (region.qSpan < 0 || region.tSpan < 0) {
             std::ostringstream oss;
             oss << "Region span not valid, in ExtractAlignmentRegions! qStart = " << region.qStart
@@ -268,6 +299,7 @@ AlignRegionsGenericResult AlignRegionsGeneric(const char* targetSeq, const int32
     }
 
     // Merge the CIGAR chunks.
+    int32_t score = 0;
     for (const auto& alnRegion : alignedRegions) {
         const auto& currCigar = alnRegion.cigar;
         if (currCigar.empty()) {
@@ -279,23 +311,21 @@ AlignRegionsGenericResult AlignRegionsGeneric(const char* targetSeq, const int32
             ret.cigar.back().Length(ret.cigar.back().Length() + currCigar.front().Length());
         }
         ret.cigar.insert(ret.cigar.end(), currCigar.begin() + 1, currCigar.end());
+        score += alnRegion.score;
     }
+    ret.score = score;
 
     return ret;
 }
 
-OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<SeedHit>& sortedHits,
+OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentRegion>& alnRegions,
                            const char* targetSeq, const int32_t targetLen, const char* queryFwd,
-                           const char* queryRev, const int32_t queryLen, int32_t minAlignmentSpan,
-                           int32_t maxFlankExtensionDist, AlignerBasePtr& alignerGlobal,
-                           AlignerBasePtr& alignerExt)
+                           const char* queryRev, const int32_t queryLen,
+                           AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
 {
     // Sanity checks.
     if (ovl->Arev) {
-        throw std::runtime_error("The ovl->Arev should always be false! In Align_.");
-    }
-    if (sortedHits.empty()) {
-        throw std::runtime_error("There are no seed hits provided to Align_ for alignment.");
+        throw std::runtime_error("(AlignmentSeeded) The ovl->Arev should always be false!");
     }
     if (ovl->Alen != queryLen) {
         std::ostringstream oss;
@@ -307,39 +337,19 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<SeedHit>& so
     if (ovl->Blen != targetLen) {
         std::ostringstream oss;
         oss << "(AlignmentSeeded) The target length in the overlap is not the same as the provided "
-               "sequence! ovl->Alen = "
-            << ovl->Blen << ", queryLen = " << targetLen;
+               "sequence! ovl->Blen = "
+            << ovl->Blen << ", targetLen = " << targetLen;
         throw std::runtime_error(oss.str());
     }
-    if (ovl->Astart != sortedHits.front().queryPos || ovl->Aend != sortedHits.back().queryPos ||
-        ovl->Bstart != sortedHits.front().targetPos || ovl->Bend != sortedHits.back().targetPos) {
+    if (alnRegions.empty()) {
         std::ostringstream oss;
-        oss << "(AlignmentSeeded) Provided overlap coordinates do not match the first/last seed "
-               "hit!"
-            << " ovl: " << OverlapWriterBase::PrintOverlapAsM4(ovl, "", "", true, false)
-            << "; sortedHits.front() = " << sortedHits.front()
-            << "; sortedHits.back() = " << sortedHits.back();
+        oss << "(AlignmentSeeded) There needs to be at least one region to align.";
         throw std::runtime_error(oss.str());
     }
-    if (ovl->Brev != sortedHits.front().targetRev || ovl->Brev != sortedHits.back().targetRev) {
-        std::ostringstream oss;
-        oss << "(AlignmentSeeded) Strand of the provided overlap does not match the first/last "
-               "seed hit."
-            << " ovl->Brev = " << (ovl->Brev ? "true" : "false")
-            << ", sortedHits.front().targetRev = "
-            << (sortedHits.front().targetRev ? "true" : "false")
-            << ", sortedHits.back().targetRev = "
-            << (sortedHits.back().targetRev ? "true" : "false");
-        throw std::runtime_error(oss.str());
-    }
-
-    // Prepare the regions for alignment.
-    std::vector<AlignmentRegion> regions = ExtractAlignmentRegions(
-        sortedHits, ovl->Alen, ovl->Blen, ovl->Brev, minAlignmentSpan, maxFlankExtensionDist, 1.3);
 
     // Run the alignment.
     AlignRegionsGenericResult alns = AlignRegionsGeneric(
-        targetSeq, targetLen, queryFwd, queryRev, queryLen, regions, alignerGlobal, alignerExt);
+        targetSeq, targetLen, queryFwd, queryRev, queryLen, alnRegions, alignerGlobal, alignerExt);
 
     // Process the alignment results and make a new overlap.
     int32_t globalAlnQueryStart = 0;
@@ -347,31 +357,31 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<SeedHit>& so
     int32_t globalAlnQueryEnd = 0;
     int32_t globalAlnTargetEnd = 0;
     // Find the leftmost coordinate for global alignment.
-    for (int32_t i = 0; i < static_cast<int32_t>(regions.size()); ++i) {
-        if (regions[i].type != RegionType::GLOBAL) {
+    for (int32_t i = 0; i < static_cast<int32_t>(alnRegions.size()); ++i) {
+        if (alnRegions[i].type != RegionType::GLOBAL) {
             continue;
         }
-        globalAlnQueryStart = regions[i].qStart;
-        globalAlnTargetStart = regions[i].tStart;
+        globalAlnQueryStart = alnRegions[i].qStart;
+        globalAlnTargetStart = alnRegions[i].tStart;
         break;
     }
     // Find the rightmost coordinate for global alignment.
-    for (int32_t i = static_cast<int32_t>(regions.size()) - 1; i >= 0; --i) {
-        if (regions[i].type != RegionType::GLOBAL) {
+    for (int32_t i = static_cast<int32_t>(alnRegions.size()) - 1; i >= 0; --i) {
+        if (alnRegions[i].type != RegionType::GLOBAL) {
             continue;
         }
-        globalAlnQueryEnd = regions[i].qStart + regions[i].qSpan;
-        globalAlnTargetEnd = regions[i].tStart + regions[i].tSpan;
+        globalAlnQueryEnd = alnRegions[i].qStart + alnRegions[i].qSpan;
+        globalAlnTargetEnd = alnRegions[i].tStart + alnRegions[i].tSpan;
         break;
     }
     // Construct the new overlap.
     OverlapPtr ret = createOverlap(ovl);
-    ret->Cigar.clear();
     ret->Astart = globalAlnQueryStart - alns.offsetFrontQuery;
     ret->Aend = globalAlnQueryEnd + alns.offsetBackQuery;
     ret->Bstart = globalAlnTargetStart - alns.offsetFrontTarget;
     ret->Bend = globalAlnTargetEnd + alns.offsetBackTarget;
     ret->Cigar = std::move(alns.cigar);
+    ret->Score = alns.score;
 
     // Reverse the CIGAR and the coordinates if needed.
     if (ovl->Brev) {
@@ -392,7 +402,6 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<SeedHit>& so
     // Set the alignment identity and edit distance.
     Alignment::DiffCounts diffs = CigarDiffCounts(ret->Cigar);
     diffs.Identity(false, false, ret->Identity, ret->EditDistance);
-    ret->Score = -diffs.numEq;
 
     const int32_t qstart = ret->Astart;
     const int32_t tstart = ret->Bstart;
@@ -407,7 +416,7 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<SeedHit>& so
     } catch (std::exception& e) {
         // std::cerr << "[Note: Exception when aligning!] " << e.what() << "\n";
         // std::cerr << "Input overlap: "
-        //           << OverlapWriterBase::PrintOverlapAsM4(ovl, "", "", true, true) << "\n";
+        //           << *ovl << "\n";
         // std::cerr << "ASpan = " << ret->ASpan() << ", BSpan = " << ret->BSpan() << "\n";
         // std::cerr << "Q: " << std::string(querySeqFwd, queryLen) << "\n";
         // std::cerr << "T: " << targetSeqForValidation << "\n";

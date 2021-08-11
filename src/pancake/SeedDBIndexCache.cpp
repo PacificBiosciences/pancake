@@ -3,6 +3,8 @@
 #include <pacbio/pancake/SeedDBIndexCache.h>
 #include <pacbio/util/Util.h>
 #include <pbcopper/utility/StringUtils.h>
+
+#include <cinttypes>
 #include <limits>
 #include <memory>
 #include <sstream>
@@ -45,8 +47,6 @@ PacBio::Pancake::SeedDB::SeedDBParameters ParseSeedDBParams(const std::string& p
             ret.Spacing = std::stoi(values[1]);
         } else if (values[0] == "hpc") {
             ret.UseHPC = std::stoi(values[1]);
-        } else if (values[0] == "hpc_len") {
-            ret.MaxHPCLen = std::stoi(values[1]);
         } else if (values[0] == "rc") {
             ret.UseRC = std::stoi(values[1]);
         }
@@ -105,7 +105,7 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedParams = ParseSeedDBParams(std::string(line + offset));
                 break;
             case 'F':
-                numReadItems = sscanf(&line[1], "%d %s %d %ld", &(fl.fileId), buff,
+                numReadItems = sscanf(&line[1], "%d %s %d %" SCNd64, &(fl.fileId), buff,
                                       &(fl.numSequences), &(fl.numBytes));
                 if (numReadItems != 4) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
@@ -116,9 +116,9 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedLines.reserve(totalNumSeqs);
                 break;
             case 'S':
-                numReadItems =
-                    sscanf(&line[1], "%d %s %d %ld %ld %d %d", &(sl.seqId), buff, &(sl.fileId),
-                           &(sl.fileOffset), &(sl.numBytes), &(sl.numBases), &(sl.numSeeds));
+                numReadItems = sscanf(&line[1], "%d %s %d %" SCNd64 " %" SCNd64 " %d %d",
+                                      &(sl.seqId), buff, &(sl.fileId), &(sl.fileOffset),
+                                      &(sl.numBytes), &(sl.numBases), &(sl.numSeeds));
                 if (numReadItems != 7) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
@@ -133,8 +133,8 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedLines.emplace_back(sl);
                 break;
             case 'B':
-                numReadItems = sscanf(&line[1], "%d %d %d %ld", &(bl.blockId), &(bl.startSeqId),
-                                      &(bl.endSeqId), &(bl.numBytes));
+                numReadItems = sscanf(&line[1], "%d %d %d %" SCNd64, &(bl.blockId),
+                                      &(bl.startSeqId), &(bl.endSeqId), &(bl.numBytes));
                 if (numReadItems != 4) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
@@ -329,7 +329,7 @@ std::ostream& operator<<(std::ostream& os, const PacBio::Pancake::SeedDBIndexCac
     os << "V\t" << r.version << "\n";
     os << "P\tk=" << r.seedParams.KmerSize << ",w=" << r.seedParams.MinimizerWindow
        << ",s=" << r.seedParams.Spacing << ",hpc=" << r.seedParams.UseHPC
-       << ",hpc_len=" << r.seedParams.MaxHPCLen << ",rc=" << r.seedParams.UseRC << "\n";
+       << ",rc=" << r.seedParams.UseRC << "\n";
     for (const auto& fl : r.fileLines) {
         os << "F"
            << "\t" << fl.fileId << "\t" << fl.filename << "\t" << fl.numSequences << "\t"

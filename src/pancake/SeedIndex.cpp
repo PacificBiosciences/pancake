@@ -14,52 +14,36 @@
 namespace PacBio {
 namespace Pancake {
 
-SeedIndex::SeedIndex(std::shared_ptr<PacBio::Pancake::SeedDBIndexCache>& seedDBCache,
-                     std::vector<PacBio::Pancake::SeedDB::SeedRaw>&& seeds)
-    : seeds_(std::move(seeds)), seedParams_(seedDBCache->seedParams)
+SeedIndex::SeedIndex(std::vector<PacBio::Pancake::SeedDB::SeedRaw>&& seeds)
+    : seeds_(std::move(seeds)), minSeedSpan_(0), maxSeedSpan_(0), avgSeedSpan_(0.0)
 {
 #ifdef SEED_INDEX_USING_DENSEHASH
     hash_.set_empty_key(
         SEED_INDEX_EMPTY_HASH_KEY);  // Densehash requires this to be defined on top.
 #endif
 
-    sequenceLengths_.resize(seedDBCache->seedLines.size());
-    for (size_t i = 0; i < seedDBCache->seedLines.size(); ++i) {
-        sequenceLengths_[i] = seedDBCache->seedLines[i].numBases;
-    }
-
-    BuildHash_();
-}
-
-SeedIndex::SeedIndex(const PacBio::Pancake::SeedDB::SeedDBParameters& seedParams,
-                     const std::vector<int32_t>& sequenceLengths,
-                     std::vector<PacBio::Pancake::SeedDB::SeedRaw>&& seeds)
-    : seeds_(std::move(seeds)), seedParams_(seedParams), sequenceLengths_(sequenceLengths)
-{
-#ifdef SEED_INDEX_USING_DENSEHASH
-    hash_.set_empty_key(
-        SEED_INDEX_EMPTY_HASH_KEY);  // Densehash requires this to be defined on top.
-#endif
-
-    BuildHash_();
+    BuildHash_(seeds_, hash_, minSeedSpan_, maxSeedSpan_, avgSeedSpan_);
 }
 
 SeedIndex::~SeedIndex() = default;
 
-void SeedIndex::BuildHash_()
+void SeedIndex::BuildHash_(std::vector<PacBio::Pancake::SeedDB::SeedRaw>& seeds,
+                           SeedHashType& retHash, int32_t& retMinSeedSpan, int32_t& retMaxSeedSpan,
+                           double& retAvgSeedSpan)
 {
+    // Clear the return values.
+    retMinSeedSpan = 0;
+    retMaxSeedSpan = 0;
+    retAvgSeedSpan = 0.0;
+    retHash.clear();
+
     // Stop early.
-    if (seeds_.empty()) {
+    if (seeds.empty()) {
         return;
     }
 
     // Sort by key first.
-    TicToc ttSort;
-    kx::radix_sort(seeds_.begin(), seeds_.end());
-    ttSort.Stop();
-
-    // Clear the storage for the hash.
-    hash_.clear();
+    kx::radix_sort(seeds.begin(), seeds.end());
 
 #ifdef SEED_INDEX_USING_DENSEHASH
     hash_.resize(seeds_.size());
@@ -72,21 +56,28 @@ void SeedIndex::BuildHash_()
     // Fill out the hash table.
     int64_t start = 0;
     int64_t end = 0;
-    uint64_t prevKey = PacBio::Pancake::SeedDB::Seed::DecodeKey(seeds_[0]);
-    for (size_t i = 0; i < seeds_.size(); ++i) {
-        uint64_t key = PacBio::Pancake::SeedDB::Seed::DecodeKey(seeds_[i]);
-        if (key == prevKey) {
-            ++end;
-        } else {
-            hash_[prevKey] = std::make_pair(start, end);
+    uint64_t prevKey = PacBio::Pancake::SeedDB::Seed::DecodeKey(seeds[0]);
+    retMinSeedSpan = seeds.empty() ? 0 : PacBio::Pancake::SeedDB::Seed::DecodeSpan(seeds[0]);
+    retMaxSeedSpan = retMinSeedSpan;
+    retAvgSeedSpan = 0.0;
+    for (size_t i = 0; i < seeds.size(); ++i) {
+        const uint64_t key = PacBio::Pancake::SeedDB::Seed::DecodeKey(seeds[i]);
+        const int32_t span = PacBio::Pancake::SeedDB::Seed::DecodeSpan(seeds[i]);
+        retMinSeedSpan = (span < retMinSeedSpan) ? span : retMinSeedSpan;
+        retMaxSeedSpan = (span > retMaxSeedSpan) ? span : retMaxSeedSpan;
+        retAvgSeedSpan += static_cast<double>(span);
+        if (key != prevKey) {
+            retHash[prevKey] = std::make_pair(start, end);
             start = i;
-            end = i + 1;
+            end = i;
         }
+        ++end;
         prevKey = key;
     }
     if (end > start) {
-        hash_[prevKey] = std::make_pair(start, end);
+        retHash[prevKey] = std::make_pair(start, end);
     }
+    retAvgSeedSpan = seeds.empty() ? 0.0 : (retAvgSeedSpan / static_cast<double>(seeds.size()));
 }
 
 void SeedIndex::ComputeFrequencyStats(double percentileCutoff, int64_t& retFreqMax,
@@ -175,8 +166,7 @@ bool SeedIndex::CollectHits(const PacBio::Pancake::SeedDB::SeedRaw* querySeeds,
                             int64_t freqCutoff) const
 {
     return PacBio::Pancake::SeedDB::CollectSeedHits<SeedHashType>(
-        hits, querySeeds, querySeedsSize, queryLen, hash_, &seeds_[0], seeds_.size(),
-        sequenceLengths_, seedParams_.KmerSize, seedParams_.Spacing, freqCutoff);
+        hits, querySeeds, querySeedsSize, queryLen, hash_, &seeds_[0], seeds_.size(), freqCutoff);
 }
 
 }  // namespace Pancake

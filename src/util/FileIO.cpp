@@ -54,6 +54,24 @@ SequenceFormat ParseFormat(const std::string& filename)
     return SequenceFormat::Unknown;
 }
 
+std::string SequenceFormatToString(const SequenceFormat fmt)
+{
+    if (fmt == SequenceFormat::Fasta) {
+        return "fasta";
+    } else if (fmt == SequenceFormat::Fastq) {
+        return "fastq";
+    } else if (fmt == SequenceFormat::Bam) {
+        return "bam";
+    } else if (fmt == SequenceFormat::Xml) {
+        return "xml";
+    } else if (fmt == SequenceFormat::Fofn) {
+        return "fofn";
+    } else if (fmt == SequenceFormat::SeqDB) {
+        return "seqdb";
+    }
+    return "unknown";
+}
+
 std::vector<std::string> LoadLinesToVector(const std::string& listPath)
 {
     std::vector<std::string> ret;

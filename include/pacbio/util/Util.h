@@ -145,6 +145,31 @@ inline std::string ReverseComplement(const char* seq, int64_t seqLen, int64_t st
     return ret;
 }
 
+template <typename T>
+std::vector<std::pair<T, T>> DistributeJobLoad(int32_t numThreads, T numJobs)
+{
+    if (numThreads == 0) {
+        return {};
+    }
+    if (numJobs == 0) {
+        return {};
+    }
+    const int32_t actualThreadCount = (numThreads < numJobs) ? numThreads : numJobs;
+    const T minimumJobsPerThreads = (numJobs / actualThreadCount);
+    const T remainingJobs = (numJobs % actualThreadCount);
+    std::vector<T> jobsPerThread(actualThreadCount, minimumJobsPerThreads);
+    for (T i = 0; i < remainingJobs; ++i) {
+        ++jobsPerThread[i];
+    }
+    std::vector<std::pair<T, T>> ranges;
+    T totalJobs = 0;
+    for (const auto& span : jobsPerThread) {
+        ranges.emplace_back(std::make_pair(totalJobs, totalJobs + span));
+        totalJobs += span;
+    }
+    return ranges;
+}
+
 }  // namespace Pancake
 }  // namespace PacBio
 

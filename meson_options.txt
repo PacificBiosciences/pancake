@@ -1,2 +1,2 @@
 option('tests', type : 'boolean', value : true,  description : 'Enable dependencies required for testing')
-option('sse41', type : 'boolean', value : true, description : 'Enable SSE4 codepaths')
+option('gpu-cuda', type : 'boolean', value : false,  description : 'Compile the CUDA code.')

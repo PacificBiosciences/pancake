@@ -32,7 +32,10 @@ AlignmentResult AlignerEdlib::Global(const char* qseq, int64_t qlen, const char*
         return {};
     }
 
-    Data::Cigar cigar = EdlibAlignmentToCigar(edlibResult.alignment, edlibResult.alignmentLength);
+    AlignmentResult ret;
+
+    Data::Cigar cigar =
+        EdlibAlignmentToCigar(edlibResult.alignment, edlibResult.alignmentLength, ret.diffs);
     bool valid = true;
 
     try {
@@ -42,7 +45,6 @@ AlignmentResult AlignerEdlib::Global(const char* qseq, int64_t qlen, const char*
         cigar.clear();
     }
 
-    AlignmentResult ret;
     ret.cigar = std::move(cigar);
     ret.score = ScoreCigarAlignment(ret.cigar, opt_.matchScore, opt_.mismatchPenalty, opt_.gapOpen1,
                                     opt_.gapExtend1);

@@ -16,8 +16,8 @@ Another test case for duplicates.
   $ ${BIN_DIR}/pancake seqdb --compression 1 reads ${PROJECT_DIR}/test-data/hifi-ovl/robustness/reads.robustness.duplicate.5.single_pair.dup_with_different_idt.fasta
   > ${BIN_DIR}/pancake seeddb -k 28 -w 80 --space 1 reads.seqdb reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 reads reads 0 0 0 --min-idt 96.0 --skip-sym --write-rev --out-fmt ipa
-  mo_m64001_190914_015449/49284690/ccs fa_m64001_190914_015449/100010148/ccs -15351 97.7276 0 0 15798 24551 1 0 15710 18018 5 5 u * * * *
-  fa_m64001_190914_015449/100010148/ccs mo_m64001_190914_015449/49284690/ccs -15351 97.7276 0 0 15710 18018 1 0 15798 24551 5 5 u * * * *
+  mo_m64001_190914_015449/49284690/ccs fa_m64001_190914_015449/100010148/ccs -15386 97.9491 0 0 15798 24551 1 0 15710 18018 5 5 u * * * *
+  fa_m64001_190914_015449/100010148/ccs mo_m64001_190914_015449/49284690/ccs -15386 97.9491 0 0 15710 18018 1 0 15798 24551 5 5 u * * * *
 
 This dataset used to generate duplicated overlaps, but with slightly different identities, even though the coordinates were the same.
 The output used to look like this:

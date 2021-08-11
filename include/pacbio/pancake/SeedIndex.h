@@ -59,11 +59,7 @@ namespace Pancake {
 class SeedIndex
 {
 public:
-    SeedIndex(std::shared_ptr<PacBio::Pancake::SeedDBIndexCache>& seedDBCache,
-              std::vector<PacBio::Pancake::SeedDB::SeedRaw>&& seeds);
-    SeedIndex(const PacBio::Pancake::SeedDB::SeedDBParameters& seedParams,
-              const std::vector<int32_t>& sequenceLengths,
-              std::vector<PacBio::Pancake::SeedDB::SeedRaw>&& seeds);
+    SeedIndex(std::vector<PacBio::Pancake::SeedDB::SeedRaw>&& seeds);
     ~SeedIndex();
 
     void ComputeFrequencyStats(double percentileCutoff, int64_t& retFreqMax, double& retFreqAvg,
@@ -74,29 +70,22 @@ public:
     bool CollectHits(const PacBio::Pancake::SeedDB::SeedRaw* querySeeds, int64_t querySeedsSize,
                      int32_t queryLen, std::vector<SeedHit>& hits, int64_t freqCutoff) const;
 
-    const std::vector<int32_t> GetSequenceLengths() const { return sequenceLengths_; }
+    int32_t GetMinSeedSpan() const { return minSeedSpan_; }
+    int32_t GetMaxSeedSpan() const { return maxSeedSpan_; }
+    double GetAvgSeedSpan() const { return avgSeedSpan_; }
 
-    const PacBio::Pancake::SeedDB::SeedDBParameters& GetSeedParams() const { return seedParams_; }
-
-    int32_t GetSequenceLength(int32_t seqId) const
-    {
-        // Sanity check for the sequence ID.
-        if (seqId < 0 || seqId >= static_cast<int32_t>(sequenceLengths_.size())) {
-            std::ostringstream oss;
-            oss << "Invalid seqId. seqId = " << seqId
-                << ", sequenceLengths_.size() = " << sequenceLengths_.size();
-            throw std::runtime_error(oss.str());
-        }
-        return sequenceLengths_[seqId];
-    }
+    const SeedHashType& GetHash() const { return hash_; }
 
 private:
     std::vector<PacBio::Pancake::SeedDB::SeedRaw> seeds_;
     SeedHashType hash_;
-    PacBio::Pancake::SeedDB::SeedDBParameters seedParams_;
-    std::vector<int32_t> sequenceLengths_;
+    int32_t minSeedSpan_;
+    int32_t maxSeedSpan_;
+    double avgSeedSpan_;
 
-    void BuildHash_();
+    static void BuildHash_(std::vector<PacBio::Pancake::SeedDB::SeedRaw>& seeds,
+                           SeedHashType& retHash, int32_t& retMinSeedSpan, int32_t& retMaxSeedSpan,
+                           double& retAvgSeedSpan);
 };
 
 }  // namespace Pancake

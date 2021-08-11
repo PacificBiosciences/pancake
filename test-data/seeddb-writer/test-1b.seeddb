@@ -1,5 +1,5 @@
 V	0.1.0
-P	k=20,w=80,s=0,hpc=0,hpc_len=10,rc=1
+P	k=20,w=80,s=0,hpc=0,rc=1
 F	0	test-1b.seeddb.0.seeds	1	2464
 F	1	test-1b.seeddb.1.seeds	1	4752
 F	2	test-1b.seeddb.2.seeds	1	9488

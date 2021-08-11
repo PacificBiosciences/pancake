@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
 #include <pacbio/alignment/AlignmentTools.h>
-
+#include <pacbio/pancake/Lookups.h>
 #include <array>
 #include <cstring>
 #include <sstream>
@@ -13,8 +13,11 @@
 namespace PacBio {
 namespace Pancake {
 
-PacBio::BAM::Cigar EdlibAlignmentToCigar(const unsigned char* aln, int32_t alnLen)
+PacBio::BAM::Cigar EdlibAlignmentToCigar(const unsigned char* aln, int32_t alnLen,
+                                         Alignment::DiffCounts& retDiffs)
 {
+    retDiffs.Clear();
+
     if (alnLen <= 0) {
         return {};
     }
@@ -25,20 +28,29 @@ PacBio::BAM::Cigar EdlibAlignmentToCigar(const unsigned char* aln, int32_t alnLe
         PacBio::BAM::CigarOperationType::DELETION,
         PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH};
 
+    std::array<int32_t, 4> counts{0, 0, 0, 0};
+
     PacBio::BAM::CigarOperationType prevOp = PacBio::BAM::CigarOperationType::UNKNOWN_OP;
+    unsigned char prevOpRaw = 0;
     int32_t count = 0;
     PacBio::BAM::Cigar ret;
     for (int32_t i = 0; i <= alnLen; i++) {
         if (i == alnLen || (opToCigar[aln[i]] != prevOp &&
                             prevOp != PacBio::BAM::CigarOperationType::UNKNOWN_OP)) {
             ret.emplace_back(PacBio::BAM::CigarOperation(prevOp, count));
+            counts[prevOpRaw] += count;
             count = 0;
         }
         if (i < alnLen) {
             prevOp = opToCigar[aln[i]];
+            prevOpRaw = aln[i];
             count += 1;
         }
     }
+    retDiffs.numEq = counts[EDLIB_EDOP_MATCH];
+    retDiffs.numX = counts[EDLIB_EDOP_MISMATCH];
+    retDiffs.numI = counts[EDLIB_EDOP_INSERT];
+    retDiffs.numD = counts[EDLIB_EDOP_DELETE];
     return ret;
 }
 
@@ -1268,6 +1280,94 @@ int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, int32_t match, int3
         }
     }
     return score;
+}
+
+void MergeCigars(PacBio::Data::Cigar& dest, const PacBio::Data::Cigar& src)
+{
+    if (src.empty()) {
+        return;
+    }
+    if (dest.size() > 0 && src.front().Type() == dest.back().Type()) {
+        dest.back() = PacBio::Data::CigarOperation(src.front().Type(),
+                                                   dest.back().Length() + src.front().Length());
+    } else {
+        dest.emplace_back(src.front());
+    }
+    dest.insert(dest.end(), src.begin() + 1, src.end());
+}
+
+std::vector<uint8_t> ComputeSimpleRepeatMask(const char* seq, int32_t seqLen, int32_t maxWindowSize)
+{
+    if (maxWindowSize <= 0) {
+        return std::vector<uint8_t>(seqLen, 0);
+    }
+    if (maxWindowSize > 7) {
+        maxWindowSize = 7;
+        assert(false && "maxWindowSize is > 7");
+    }
+
+    // Bitmasks of different lengths.
+    constexpr std::array<uint64_t, 8> masks = {
+        0,
+        (1 << 2) - 1,
+        (1 << 4) - 1,
+        (1 << 6) - 1,
+        (1 << 8) - 1,
+        (1 << 10) - 1,
+        (1 << 12) - 1,
+        (1 << 14) - 1,
+    };
+
+    // Compute the repeat masks.
+    std::vector<uint8_t> ret(seqLen, 0);
+    uint64_t window = 0;
+    int32_t beginI = 0;
+    for (int32_t i = 0; i < seqLen; ++i) {
+        const int32_t base = seq[i];
+        const uint64_t baseTwobit = BaseToTwobit[base];
+
+        // Check if non-ACTG base occurred.
+        if (baseTwobit > 3) {
+            window = 0;
+            beginI = i + 1;
+            continue;
+        }
+
+        window = (window << 2) | baseTwobit;
+
+        const int32_t distToBegin = i - beginI;
+        const int32_t maxSpan = std::min((distToBegin / 2) + (distToBegin % 2), maxWindowSize);
+
+        for (int32_t span = 1; span <= maxSpan; ++span) {
+            const uint64_t prev = window >> (span * 2) & masks[span];
+            const int8_t isSame = (window & masks[span]) == prev;
+            const int8_t flag = (isSame << (span - 1));
+
+            for (int32_t k = (i - span * 2 + 1); k <= i; ++k) {
+                ret[k] |= flag;
+            }
+        }
+    }
+
+    return ret;
+}
+
+bool CheckAlignmentOutOfBand(const PacBio::Data::Cigar& cigar, const int32_t bandwidth)
+{
+    const int32_t fuzz = 1;
+    const int32_t upperDiag = std::max(0, bandwidth - fuzz);
+    const int32_t lowerDiag = -upperDiag;
+    int32_t qpos = 0;
+    int32_t tpos = 0;
+    for (const PacBio::Data::CigarOperation& op : cigar) {
+        qpos += (PacBio::Data::ConsumesQuery(op.Type()) ? op.Length() : 0);
+        tpos += (PacBio::Data::ConsumesReference(op.Type()) ? op.Length() : 0);
+        const int32_t diag = tpos - qpos;
+        if (diag != 0 && (diag >= upperDiag || diag <= lowerDiag)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 }  // namespace Pancake

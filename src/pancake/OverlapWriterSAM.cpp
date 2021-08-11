@@ -52,14 +52,14 @@ void OverlapWriterSAM::WriteHeader(const PacBio::Pancake::SeqDBReaderCachedBlock
     }
 }
 
-void OverlapWriterSAM::Write(const OverlapPtr& ovl,
+void OverlapWriterSAM::Write(const Overlap& ovl,
                              const PacBio::Pancake::SeqDBReaderCached& targetSeqs,
                              const PacBio::Pancake::FastaSequenceId& querySeq)
 {
     // It's important to know if the overlap was flipped because then the query and target
     // names should be swapped.
-    if (ovl->IsFlipped) {
-        const auto& targetSeq = targetSeqs.GetSequence(ovl->Aid);
+    if (ovl.IsFlipped) {
+        const auto& targetSeq = targetSeqs.GetSequence(ovl.Aid);
         // Don't look for the actual headers unless required. Saves the cost of a search.
         const auto& qName = writeIds_ ? "" : targetSeq.Name();
         const auto& tName = writeIds_ ? "" : querySeq.Name();
@@ -68,20 +68,20 @@ void OverlapWriterSAM::Write(const OverlapPtr& ovl,
     } else {
         // Don't look for the actual headers unless required. Saves the cost of a search.
         const auto& qName = writeIds_ ? "" : querySeq.Name();
-        const auto& tName = writeIds_ ? "" : targetSeqs.GetSequence(ovl->Bid).Name();
+        const auto& tName = writeIds_ ? "" : targetSeqs.GetSequence(ovl.Bid).Name();
         PrintOverlapAsSAM(fpOut_, ovl, querySeq.Bases().c_str(), querySeq.Bases().size(), qName,
                           tName, writeIds_, writeCigar_);
     }
 }
 
-void OverlapWriterSAM::Write(const OverlapPtr& ovl,
+void OverlapWriterSAM::Write(const Overlap& ovl,
                              const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs,
                              const PacBio::Pancake::FastaSequenceCached& querySeq)
 {
     // It's important to know if the overlap was flipped because then the query and target
     // names should be swapped.
-    if (ovl->IsFlipped) {
-        const auto& targetSeq = targetSeqs.GetSequence(ovl->Aid);
+    if (ovl.IsFlipped) {
+        const auto& targetSeq = targetSeqs.GetSequence(ovl.Aid);
         // Don't look for the actual headers unless required. Saves the cost of a search.
         const auto& qName = writeIds_ ? "" : targetSeq.Name();
         const auto& tName = writeIds_ ? "" : querySeq.Name();
@@ -91,7 +91,7 @@ void OverlapWriterSAM::Write(const OverlapPtr& ovl,
     } else {
         // Don't look for the actual headers unless required. Saves the cost of a search.
         const auto& qName = writeIds_ ? "" : querySeq.Name();
-        const auto& tName = writeIds_ ? "" : targetSeqs.GetSequence(ovl->Bid).Name();
+        const auto& tName = writeIds_ ? "" : targetSeqs.GetSequence(ovl.Bid).Name();
         PrintOverlapAsSAM(fpOut_, ovl, querySeq.Bases(), querySeq.Size(), qName, tName, writeIds_,
                           writeCigar_);
     }

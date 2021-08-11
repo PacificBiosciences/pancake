@@ -21,10 +21,10 @@ class OverlapWriterBase
 public:
     virtual ~OverlapWriterBase() {}
 
-    virtual void Write(const OverlapPtr& ovl, const PacBio::Pancake::SeqDBReaderCached& targetSeqs,
+    virtual void Write(const Overlap& ovl, const PacBio::Pancake::SeqDBReaderCached& targetSeqs,
                        const PacBio::Pancake::FastaSequenceId& querySeq) = 0;
 
-    virtual void Write(const OverlapPtr& ovl,
+    virtual void Write(const Overlap& ovl,
                        const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs,
                        const PacBio::Pancake::FastaSequenceCached& querySeq) = 0;
 
@@ -32,19 +32,18 @@ public:
 
     virtual void WriteHeader(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs) = 0;
 
-    static void PrintOverlapAsIPAOvl(FILE* fpOut, const OverlapPtr& ovl, const std::string& Aname,
+    static void PrintOverlapAsIPAOvl(FILE* fpOut, const Overlap& ovl, const std::string& Aname,
                                      const std::string& Bname, bool writeIds, bool writeCigar);
-    static void PrintOverlapAsM4(FILE* fpOut, const OverlapPtr& ovl, const std::string& Aname,
+    static void PrintOverlapAsM4(FILE* fpOut, const Overlap& ovl, const std::string& Aname,
                                  const std::string& Bname, bool writeIds, bool writeCigar);
-    static void PrintOverlapAsPAF(FILE* fpOut, const OverlapPtr& ovl, const std::string& Aname,
+    static void PrintOverlapAsPAF(FILE* fpOut, const Overlap& ovl, const std::string& Aname,
                                   const std::string& Bname, bool writeIds, bool writeCigar);
-    static void PrintOverlapAsSAM(FILE* fpOut, const OverlapPtr& ovl, const char* seq,
-                                  int64_t seqLen, const std::string& Aname,
-                                  const std::string& Bname, bool writeIds, bool writeCigar);
+    static void PrintOverlapAsSAM(FILE* fpOut, const Overlap& ovl, const char* seq, int64_t seqLen,
+                                  const std::string& Aname, const std::string& Bname, bool writeIds,
+                                  bool writeCigar);
     static std::string PrintOverlapAsM4(const Overlap& ovl, const std::string& Aname,
                                         const std::string& Bname, bool writeIds, bool writeCigar);
-    static std::string PrintOverlapAsM4(const OverlapPtr& ovl, const std::string& Aname,
-                                        const std::string& Bname, bool writeIds, bool writeCigar);
+    static std::string PrintOverlapAsM4(const Overlap& ovl, bool writeCigar = false);
 };
 
 constexpr char ConstexprTypeToChar(PacBio::BAM::CigarOperationType type)
@@ -53,6 +52,8 @@ constexpr char ConstexprTypeToChar(PacBio::BAM::CigarOperationType type)
     const int32_t x = static_cast<int>(type);
     return lookup[x];
 }
+
+std::ostream& operator<<(std::ostream& os, const Overlap& b);
 
 }  // namespace Pancake
 }  // namespace PacBio

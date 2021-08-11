@@ -33,14 +33,15 @@ void CalcHitCoverage(const std::vector<SeedHit>& hits, int32_t hitsBegin, int32_
                 << ", hits[i].queryPos = " << hits[i].queryPos
                 << ", hits[i].targetPos = " << hits[i].targetPos << ", i = " << i;
             oss << "\n";
-            for (int32_t j = (hitsBegin + 1); j < hitsEnd; j++) {
+            for (int32_t j = hitsBegin; j < hitsEnd; j++) {
                 oss << "[hit " << j << "] " << hits[j] << "\n";
             }
             throw std::runtime_error(oss.str());
         }
-        coveredBasesQuery += std::min(hits[i].querySpan, (hits[i].queryPos - hits[i - 1].queryPos));
-        coveredBasesTarget +=
-            std::min(hits[i].targetSpan, (hits[i].targetPos - hits[i - 1].targetPos));
+        coveredBasesQuery += std::min(static_cast<int32_t>(hits[i].querySpan),
+                                      (hits[i].queryPos - hits[i - 1].queryPos));
+        coveredBasesTarget += std::min(static_cast<int32_t>(hits[i].targetSpan),
+                                       (hits[i].targetPos - hits[i - 1].targetPos));
     }
 }
 

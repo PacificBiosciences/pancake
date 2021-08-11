@@ -2,6 +2,7 @@
 
 #include <PancakeTestData.h>
 #include <gtest/gtest.h>
+#include <pacbio/pancake/Minimizers.h>
 #include <pacbio/pancake/Seed.h>
 #include <pacbio/pancake/SeedIndex.h>
 #include <pacbio/util/CommonTypes.h>
@@ -17,27 +18,23 @@ TEST(SeedIndex, GetSeeds1)
      * It doesn't span more than 1 file or sequences.
     */
 
-    int32_t seqId = 123;
+    const int32_t seqId = 123;
+    const int32_t span = 15;
     std::vector<PacBio::Pancake::Int128t> inSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 5, false),
     };
     uint64_t inKey = 0;
-
-    // Dummy SeedDB cache.
-    // No cache information is needed for this test.
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> dummySeedDBCache(
-        new PacBio::Pancake::SeedDBIndexCache);
 
     // Expected results.
     std::vector<PacBio::Pancake::Int128t> expected = inSeeds;
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(dummySeedDBCache, std::move(inSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(inSeeds));
     std::vector<PacBio::Pancake::Int128t> results;
     int64_t n = si.GetSeeds(inKey, results);
 
@@ -52,39 +49,111 @@ TEST(SeedIndex, GetSeeds2)
      * It doesn't span more than 1 file or sequences.
     */
 
-    int32_t seqId = 123;
+    const int32_t seqId = 123;
+    const int32_t span = 28;
     std::vector<PacBio::Pancake::Int128t> inSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, seqId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 5, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 6, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 7, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 8, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, seqId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 6, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 8, false),
     };
     uint64_t inKey = 5;
 
-    // Dummy SeedDB cache.
-    // No cache information is needed for this test.
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> dummySeedDBCache(
-        new PacBio::Pancake::SeedDBIndexCache);
-
     // Expected results.
     std::vector<PacBio::Pancake::Int128t> expected = {
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 7, false),
     };
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(dummySeedDBCache, std::move(inSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(inSeeds));
     std::vector<PacBio::Pancake::Int128t> results;
     int64_t n = si.GetSeeds(inKey, results);
 
     EXPECT_EQ(expected, results);
     EXPECT_EQ(static_cast<int64_t>(expected.size()), n);
+}
+
+TEST(SeedIndex, ComputeSeedSpanStats_EmptyInput)
+{
+    std::vector<PacBio::Pancake::Int128t> inSeeds = {};
+
+    // Expected results.
+    const int32_t expectedMinSeedSpan = 0;
+    const int32_t expectedMaxSeedSpan = 0;
+    const double expectedAvgSeedSpan = 0.0;
+
+    // Run the unit under test.
+    PacBio::Pancake::SeedIndex si(std::move(inSeeds));
+
+    // Evaluate.
+    EXPECT_EQ(expectedMinSeedSpan, si.GetMinSeedSpan());
+    EXPECT_EQ(expectedMaxSeedSpan, si.GetMaxSeedSpan());
+    EXPECT_EQ(expectedAvgSeedSpan, si.GetAvgSeedSpan());
+}
+
+TEST(SeedIndex, ComputeSeedSpanStats_SameSpan)
+{
+    const int32_t seqId = 123;
+    const int32_t span = 15;
+    std::vector<PacBio::Pancake::Int128t> inSeeds = {
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 5, false),
+    };
+
+    // Expected results.
+    const int32_t expectedMinSeedSpan = span;
+    const int32_t expectedMaxSeedSpan = span;
+    const double expectedAvgSeedSpan = span;
+
+    // Run the unit under test.
+    PacBio::Pancake::SeedIndex si(std::move(inSeeds));
+
+    // Evaluate.
+    EXPECT_EQ(expectedMinSeedSpan, si.GetMinSeedSpan());
+    EXPECT_EQ(expectedMaxSeedSpan, si.GetMaxSeedSpan());
+    EXPECT_EQ(expectedAvgSeedSpan, si.GetAvgSeedSpan());
+}
+
+TEST(SeedIndex, ComputeSeedSpanStats_MixOfDifferentSpans)
+{
+    const int32_t seqId = 123;
+    const int32_t span1 = 15;
+    const int32_t span2 = 19;
+    const int32_t span3 = 28;
+    std::vector<PacBio::Pancake::Int128t> inSeeds = {
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span1, seqId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span1, seqId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span3, seqId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span2, seqId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span3, seqId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span1, seqId, 5, false),
+    };
+
+    // Expected results.
+    const int32_t expectedMinSeedSpan = span1;
+    const int32_t expectedMaxSeedSpan = span3;
+    const double expectedAvgSeedSpan =
+        static_cast<double>(span1 + span1 + span3 + span2 + span3 + span1) /
+        static_cast<double>(inSeeds.size());
+
+    // Run the unit under test.
+    PacBio::Pancake::SeedIndex si(std::move(inSeeds));
+
+    // Evaluate.
+    EXPECT_EQ(expectedMinSeedSpan, si.GetMinSeedSpan());
+    EXPECT_EQ(expectedMaxSeedSpan, si.GetMaxSeedSpan());
+    EXPECT_EQ(expectedAvgSeedSpan, si.GetAvgSeedSpan());
 }
 
 TEST(SeedIndex, GetSeeds3NonexistentKey)
@@ -94,30 +163,26 @@ TEST(SeedIndex, GetSeeds3NonexistentKey)
      * It doesn't span more than 1 file or sequences.
     */
 
-    int32_t seqId = 123;
+    const int32_t seqId = 123;
+    const int32_t span = 19;
     std::vector<PacBio::Pancake::Int128t> inSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, seqId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 5, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 6, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 7, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 8, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, seqId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 6, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 8, false),
     };
     uint64_t inKey = 1024;
-
-    // Dummy SeedDB cache.
-    // No cache information is needed for this test.
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> dummySeedDBCache(
-        new PacBio::Pancake::SeedDBIndexCache);
 
     // Expected results.
     std::vector<PacBio::Pancake::Int128t> expected = {};
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(dummySeedDBCache, std::move(inSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(inSeeds));
     std::vector<PacBio::Pancake::Int128t> results;
     int64_t n = si.GetSeeds(inKey, results);
 
@@ -141,38 +206,26 @@ TEST(SeedIndex, CollectHitsEmptyQueryNonemptyTarget)
      * There should be no hits.
     */
     const int32_t targetId = 0;
+    const int32_t span = 17;
     std::vector<PacBio::Pancake::SeedDB::SeedRaw> targetSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, targetId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, targetId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, targetId, 5, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 6, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 7, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 8, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, targetId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 6, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 8, false),
     };
     const std::vector<PacBio::Pancake::SeedDB::SeedRaw> querySeeds = {};
     const int32_t queryLen = 38;
-
-    // Load the SeedDB cache.
-    // Needed here because of the target sequence lengths.
-    const std::string targetSeedDBString =
-        R"(V	0.1.0
-P	k=30,w=80,hpc=0,hpc_len=10,rc=1
-F	0	dummy.seeddb.0.seeds	1	96
-S	0	targetSeq0	0	0	96	38	6
-B	0	0	1	96
-)";
-    std::istringstream is(targetSeedDBString);
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> targetSeedDBCache =
-        PacBio::Pancake::LoadSeedDBIndexCache(is, "filename.seeddb");
 
     // Expected results.
     const std::vector<PacBio::Pancake::SeedHit> expected = {};
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(targetSeedDBCache, std::move(targetSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(targetSeeds));
     std::vector<PacBio::Pancake::SeedHit> results;
     si.CollectHits(querySeeds, queryLen, results, 100);
 
@@ -197,37 +250,25 @@ TEST(SeedIndex, CollectHitsNonemptyQueryEmptyTarget)
     */
     std::vector<PacBio::Pancake::SeedDB::SeedRaw> targetSeeds = {};
     const int32_t queryId = 0;
+    const int32_t span = 15;
     const std::vector<PacBio::Pancake::SeedDB::SeedRaw> querySeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, queryId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, queryId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, queryId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, queryId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, queryId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, queryId, 5, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, queryId, 6, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, queryId, 7, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, queryId, 8, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, queryId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, queryId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, queryId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, queryId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, queryId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, queryId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, queryId, 6, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, queryId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, queryId, 8, false),
     };
     const int32_t queryLen = 38;
-
-    // Load the SeedDB cache.
-    // Needed here because of the target sequence lengths.
-    const std::string targetSeedDBString =
-        R"(V	0.1.0
-P	k=30,w=80,hpc=0,hpc_len=10,rc=1
-F	0	dummy.seeddb.0.seeds	1	96
-S	0	targetSeq0	0	0	96	38	6
-B	0	0	1	96
-)";
-    std::istringstream is(targetSeedDBString);
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> targetSeedDBCache =
-        PacBio::Pancake::LoadSeedDBIndexCache(is, "filename.seeddb");
 
     // Expected results.
     const std::vector<PacBio::Pancake::SeedHit> expected = {};
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(targetSeedDBCache, std::move(targetSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(targetSeeds));
     std::vector<PacBio::Pancake::SeedHit> results;
     si.CollectHits(querySeeds, queryLen, results, 100);
 
@@ -250,39 +291,27 @@ TEST(SeedIndex, CollectHitsNonemptyQueryNonemptyTargetNoHits)
      * Query seed set contains seeds which should not match anything in the target set.
      * There should be no hits.
     */
+    const int32_t span = 15;
     const int32_t targetId = 0;
     std::vector<PacBio::Pancake::SeedDB::SeedRaw> targetSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, targetId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, targetId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, targetId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, targetId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 5, false),
     };
     const int32_t queryId = 0;
     const std::vector<PacBio::Pancake::SeedDB::SeedRaw> querySeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(123, queryId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, queryId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, queryId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, queryId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, queryId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, queryId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, queryId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, queryId, 7, false),
     };
     const int32_t queryLen = 38;
-
-    // Load the SeedDB cache.
-    // Needed here because of the target sequence lengths.
-    const std::string targetSeedDBString =
-        R"(V	0.1.0
-P	k=30,w=80,hpc=0,hpc_len=10,rc=1
-F	0	dummy.seeddb.0.seeds	1	96
-S	0	targetSeq0	0	0	96	38	6
-B	0	0	1	96
-)";
-    std::istringstream is(targetSeedDBString);
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> targetSeedDBCache =
-        PacBio::Pancake::LoadSeedDBIndexCache(is, "filename.seeddb");
 
     // Expected results.
     const std::vector<PacBio::Pancake::SeedHit> expected = {};
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(targetSeedDBCache, std::move(targetSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(targetSeeds));
     std::vector<PacBio::Pancake::SeedHit> results;
     si.CollectHits(querySeeds, queryLen, results, 100);
 
@@ -301,72 +330,60 @@ TEST(SeedIndex, CollectHitsPerfectMatch)
      * It uses the same set of seeds for the input to CollectHits.
      * For every input seed, we should get all other positions in the target.
     */
+    const int32_t span = 15;
     const int32_t targetId = 0;
     std::vector<PacBio::Pancake::SeedDB::SeedRaw> targetSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, targetId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, targetId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, targetId, 5, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 6, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 7, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 8, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, targetId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 6, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 8, false),
     };
     const std::vector<PacBio::Pancake::SeedDB::SeedRaw> querySeeds = targetSeeds;
     const int32_t queryLen = 38;
 
-    // Load the SeedDB cache.
-    // Needed here because of the target sequence lengths.
-    const std::string targetSeedDBString =
-        R"(V	0.1.0
-P	k=30,w=80,hpc=0,hpc_len=10,rc=1
-F	0	dummy.seeddb.0.seeds	1	96
-S	0	targetSeq0	0	0	96	38	6
-B	0	0	1	96
-)";
-    std::istringstream is(targetSeedDBString);
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> targetSeedDBCache =
-        PacBio::Pancake::LoadSeedDBIndexCache(is, "filename.seeddb");
-
     // Expected results.
     const std::vector<PacBio::Pancake::SeedHit> expected = {
         // 0
-        {targetId, false, 0, 0, 0, 0, 0},
-        {targetId, false, 5, 0, 0, 0, 0},
+        {targetId, false, 0, 0, span, span, 0},
+        {targetId, false, 5, 0, span, span, 0},
         // 123
-        {targetId, false, 1, 1, 0, 0, 0},
-        {targetId, false, 6, 1, 0, 0, 0},
-        {targetId, false, 8, 1, 0, 0, 0},
+        {targetId, false, 1, 1, span, span, 0},
+        {targetId, false, 6, 1, span, span, 0},
+        {targetId, false, 8, 1, span, span, 0},
         /// 5
-        {targetId, false, 2, 2, 0, 0, 0},
-        {targetId, false, 4, 2, 0, 0, 0},
-        {targetId, false, 7, 2, 0, 0, 0},
+        {targetId, false, 2, 2, span, span, 0},
+        {targetId, false, 4, 2, span, span, 0},
+        {targetId, false, 7, 2, span, span, 0},
         /// 7
-        {targetId, false, 3, 3, 0, 0, 0},
+        {targetId, false, 3, 3, span, span, 0},
         // 5
-        {targetId, false, 2, 4, 0, 0, 0},
-        {targetId, false, 4, 4, 0, 0, 0},
-        {targetId, false, 7, 4, 0, 0, 0},
+        {targetId, false, 2, 4, span, span, 0},
+        {targetId, false, 4, 4, span, span, 0},
+        {targetId, false, 7, 4, span, span, 0},
         // 0
-        {targetId, false, 0, 5, 0, 0, 0},
-        {targetId, false, 5, 5, 0, 0, 0},
+        {targetId, false, 0, 5, span, span, 0},
+        {targetId, false, 5, 5, span, span, 0},
         // 123
-        {targetId, false, 1, 6, 0, 0, 0},
-        {targetId, false, 6, 6, 0, 0, 0},
-        {targetId, false, 8, 6, 0, 0, 0},
+        {targetId, false, 1, 6, span, span, 0},
+        {targetId, false, 6, 6, span, span, 0},
+        {targetId, false, 8, 6, span, span, 0},
         // 5
-        {targetId, false, 2, 7, 0, 0, 0},
-        {targetId, false, 4, 7, 0, 0, 0},
-        {targetId, false, 7, 7, 0, 0, 0},
+        {targetId, false, 2, 7, span, span, 0},
+        {targetId, false, 4, 7, span, span, 0},
+        {targetId, false, 7, 7, span, span, 0},
         // 123
-        {targetId, false, 1, 8, 0, 0, 0},
-        {targetId, false, 6, 8, 0, 0, 0},
-        {targetId, false, 8, 8, 0, 0, 0},
+        {targetId, false, 1, 8, span, span, 0},
+        {targetId, false, 6, 8, span, span, 0},
+        {targetId, false, 8, 8, span, span, 0},
     };
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(targetSeedDBCache, std::move(targetSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(targetSeeds));
     std::vector<PacBio::Pancake::SeedHit> results;
     si.CollectHits(querySeeds, queryLen, results, 100);
 
@@ -383,49 +400,37 @@ TEST(SeedIndex, CollectHitsFrequencyThreshold)
      * Same as before, but test frequency cutoff.
      * Do not fetch hith with frequency > 2.
     */
+    const int32_t span = 15;
     const int32_t targetId = 0;
     std::vector<PacBio::Pancake::SeedDB::SeedRaw> targetSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, targetId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, targetId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, targetId, 5, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 6, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, targetId, 7, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, targetId, 8, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, targetId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 6, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 8, false),
     };
     const std::vector<PacBio::Pancake::SeedDB::SeedRaw> querySeeds = targetSeeds;
     const int32_t queryLen = 38;
     int32_t freqCutoff = 2;
 
-    // Load the SeedDB cache.
-    // Needed here because of the target sequence lengths.
-    const std::string targetSeedDBString =
-        R"(V	0.1.0
-P	k=30,w=80,hpc=0,hpc_len=10,rc=1
-F	0	dummy.seeddb.0.seeds	1	96
-S	0	targetSeq0	0	0	96	38	6
-B	0	0	1	96
-)";
-    std::istringstream is(targetSeedDBString);
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> targetSeedDBCache =
-        PacBio::Pancake::LoadSeedDBIndexCache(is, "filename.seeddb");
-
     // Expected results.
     const std::vector<PacBio::Pancake::SeedHit> expected = {
         // 0
-        {targetId, false, 0, 0, 0, 0, 0},
-        {targetId, false, 5, 0, 0, 0, 0},
+        {targetId, false, 0, 0, span, span, 0},
+        {targetId, false, 5, 0, span, span, 0},
         /// 7
-        {targetId, false, 3, 3, 0, 0, 0},
+        {targetId, false, 3, 3, span, span, 0},
         // 0
-        {targetId, false, 0, 5, 0, 0, 0},
-        {targetId, false, 5, 5, 0, 0, 0},
+        {targetId, false, 0, 5, span, span, 0},
+        {targetId, false, 5, 5, span, span, 0},
     };
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(targetSeedDBCache, std::move(targetSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(targetSeeds));
     std::vector<PacBio::Pancake::SeedHit> results;
     si.CollectHits(querySeeds, queryLen, results, freqCutoff);
 
@@ -470,19 +475,6 @@ TEST(SeedIndex, CollectHitsReverseStrand)
     const int32_t queryLen = 38;
     int32_t freqCutoff = 0;
 
-    // Load the SeedDB cache.
-    // Needed here because of the target sequence lengths.
-    const std::string targetSeedDBString =
-        R"(V	0.1.0
-P	k=30,w=80,hpc=0,hpc_len=10,rc=1
-F	0	dummy.seeddb.0.seeds	1	96
-S	0	targetSeq0	0	0	96	38	6
-B	0	0	1	96
-)";
-    std::istringstream is(targetSeedDBString);
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> targetSeedDBCache =
-        PacBio::Pancake::LoadSeedDBIndexCache(is, "filename.seeddb");
-
     // Expected results.
     const std::vector<PacBio::Pancake::SeedHit> expected = {
 
@@ -491,17 +483,17 @@ B	0	0	1	96
         {targetId, false, 5, 0, 30, 30, 0},
 
         // 123
-        {targetId, true, 7, 1, 30, 30, 0},
-        {targetId, true, 2, 1, 30, 30, 0},
-        {targetId, true, 0, 1, 30, 30, 0},
+        {targetId, true, 1, 7, 30, 30, 0},
+        {targetId, true, 6, 7, 30, 30, 0},
+        {targetId, true, 8, 7, 30, 30, 0},
 
         /// 5
-        {targetId, true, 6, 2, 30, 30, 0},
-        {targetId, true, 1, 2, 30, 30, 0},
+        {targetId, true, 2, 6, 30, 30, 0},
+        {targetId, true, 7, 6, 30, 30, 0},
         {targetId, false, 4, 2, 30, 30, 0},
 
         /// 7
-        {targetId, true, 5, 3, 30, 30, 0},
+        {targetId, true, 3, 5, 30, 30, 0},
 
         // 5
         {targetId, false, 2, 4, 30, 30, 0},
@@ -520,7 +512,7 @@ B	0	0	1	96
         // 5
         {targetId, false, 2, 7, 30, 30, 0},
         {targetId, false, 7, 7, 30, 30, 0},
-        {targetId, true, 4, 7, 30, 30, 0},
+        {targetId, true, 4, 1, 30, 30, 0},
 
         // 123
         {targetId, false, 1, 8, 30, 30, 0},
@@ -529,7 +521,7 @@ B	0	0	1	96
     };
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(targetSeedDBCache, std::move(targetSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(targetSeeds));
     std::vector<PacBio::Pancake::SeedHit> results;
     si.CollectHits(querySeeds, queryLen, results, freqCutoff);
 
@@ -547,6 +539,66 @@ B	0	0	1	96
     EXPECT_EQ(expected, results);
 }
 
+TEST(SeedIndex, CollectHitsLongSeedSpan)
+{
+    const int32_t targetId = 0;
+    std::vector<PacBio::Pancake::SeedDB::SeedRaw> targetSeeds = {
+        PacBio::Pancake::SeedDB::Seed::Encode(0, 164, targetId, 0, 0),
+        PacBio::Pancake::SeedDB::Seed::Encode(1, 15, targetId, 1, 0),
+        PacBio::Pancake::SeedDB::Seed::Encode(2, 128, targetId, 2, 0),
+        PacBio::Pancake::SeedDB::Seed::Encode(3, 255, targetId, 3, 0),
+    };
+    const int32_t queryId = 0;
+    const std::vector<PacBio::Pancake::SeedDB::SeedRaw> querySeeds = {
+        // PacBio::Pancake::SeedDB::Seed::Encode(0, 164, queryId, 0, 0),
+        // PacBio::Pancake::SeedDB::Seed::Encode(1, 15, queryId, 153, 0),
+        // PacBio::Pancake::SeedDB::Seed::Encode(1, 15, queryId, 155, 0),
+        // PacBio::Pancake::SeedDB::Seed::Encode(1, 15, queryId, 157, 0),
+
+        PacBio::Pancake::SeedDB::Seed::Encode(0, 164, queryId, 0, 0),
+        PacBio::Pancake::SeedDB::Seed::Encode(1, 15, queryId, 1, 0),
+        PacBio::Pancake::SeedDB::Seed::Encode(2, 128, queryId, 2, 0),
+        PacBio::Pancake::SeedDB::Seed::Encode(3, 255, queryId, 3, 0),
+    };
+    const int32_t queryLen = 173;
+
+    // clang-format off
+    // Expected results.
+    const std::vector<PacBio::Pancake::SeedHit> expected = {
+        {targetId, false, 0, 0, 164, 164, 0},
+        {targetId, false, 1, 1, 15, 15, 0},
+        {targetId, false, 2, 2, 128, 128, 0},
+        {targetId, false, 3, 3, 255, 255, 0},
+    };
+    // clang-format on
+
+    // Run the unit under test.
+    PacBio::Pancake::SeedIndex si(std::move(targetSeeds));
+    std::vector<PacBio::Pancake::SeedHit> results;
+    si.CollectHits(querySeeds, queryLen, results, 100);
+
+    for (size_t i = 0; i < results.size(); ++i) {
+        const auto& hit = results[i];
+        std::cerr << "{targetId"
+                  << ", " << (hit.targetRev ? "true" : "false") << ", " << hit.targetPos << ", "
+                  << hit.queryPos << ", " << hit.targetSpan << ", " << hit.querySpan << ", "
+                  << hit.flags << "},\n";
+    }
+
+    // Evaluate.
+    // This test is not very useful to check for positive/negative spans because
+    // the SeedHit constructor will convert those positive values >=128 to a signed 8-bit form.
+    EXPECT_EQ(expected, results);
+
+    // This actually captures that something went wrong.
+    for (const auto& result : results) {
+        std::ostringstream oss;
+        oss << result;
+        SCOPED_TRACE("Testing hit: " + oss.str());
+        EXPECT_TRUE(static_cast<int32_t>(result.querySpan) >= 0);
+    }
+}
+
 TEST(SeedIndex, ComputeFrequencyStatsEmptyIndex)
 {
     /*
@@ -562,13 +614,8 @@ TEST(SeedIndex, ComputeFrequencyStatsEmptyIndex)
     double expectedFreqMedian = 0;
     int64_t expectedFreqCutoff = 0;
 
-    // Dummy SeedDB cache.
-    // No cache information is needed for this test.
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> dummySeedDBCache(
-        new PacBio::Pancake::SeedDBIndexCache);
-
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(dummySeedDBCache, std::move(inSeeds));
+    PacBio::Pancake::SeedIndex si(std::move(inSeeds));
     int64_t resultFreqMax = 0;
     double resultFreqAvg = 0.0;
     double resultFreqMedian = 0.0;
@@ -588,33 +635,29 @@ TEST(SeedIndex, ComputeFrequencyStatsNormal)
      * Initialize a SeedIndex, and compute the seed statistics.
     */
     // Input values.
-    int32_t seqId = 123;
+    const int32_t seqId = 123;
+    const int32_t span = 15;
     std::vector<PacBio::Pancake::Int128t> inSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, seqId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 5, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 6, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 7, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 8, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, seqId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 6, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 8, false),
     };
-    double freqPercentile = 0.60;  // Large percentile, just because this is a small test.
+    const double freqPercentile = 0.60;  // Large percentile, just because this is a small test.
 
     // Expected results.
-    int64_t expectedFreqMax = 3;
-    double expectedFreqAvg = 2.25;
-    double expectedFreqMedian = 2.5;
-    int64_t expectedFreqCutoff = 2;
-
-    // Dummy SeedDB cache.
-    // No cache information is needed for this test.
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> dummySeedDBCache(
-        new PacBio::Pancake::SeedDBIndexCache);
+    const int64_t expectedFreqMax = 3;
+    const double expectedFreqAvg = 2.25;
+    const double expectedFreqMedian = 2.5;
+    const int64_t expectedFreqCutoff = 2;
 
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(dummySeedDBCache, std::move(inSeeds));
+    const PacBio::Pancake::SeedIndex si(std::move(inSeeds));
     int64_t resultFreqMax = 0;
     double resultFreqAvg = 0.0;
     double resultFreqMedian = 0.0;
@@ -634,26 +677,22 @@ TEST(SeedIndex, ComputeFrequencyThresholdOutOfBounds)
      * This should throw, because freqPercentile should be in [0.0, 1.0].
     */
     // Input values.
-    int32_t seqId = 123;
+    const int32_t seqId = 123;
+    const int32_t span = 15;
     std::vector<PacBio::Pancake::Int128t> inSeeds = {
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 0, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 1, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 2, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(7, seqId, 3, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 4, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(0, seqId, 5, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 6, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(5, seqId, 7, false),
-        PacBio::Pancake::SeedDB::Seed::Encode(123, seqId, 8, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 0, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 1, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 2, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(7, span, seqId, 3, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 4, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(0, span, seqId, 5, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 6, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(5, span, seqId, 7, false),
+        PacBio::Pancake::SeedDB::Seed::Encode(123, span, seqId, 8, false),
     };
 
-    // Dummy SeedDB cache.
-    // No cache information is needed for this test.
-    std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> dummySeedDBCache(
-        new PacBio::Pancake::SeedDBIndexCache);
-
     // Run the unit under test.
-    PacBio::Pancake::SeedIndex si(dummySeedDBCache, std::move(inSeeds));
+    const PacBio::Pancake::SeedIndex si(std::move(inSeeds));
     int64_t resultFreqMax = 0;
     double resultFreqAvg = 0.0;
     double resultFreqMedian = 0.0;
@@ -679,7 +718,7 @@ TEST(SeedIndex, ParsingSeedIndexCache_Stream_RoundTrip_Good)
     // Load the SeedDB cache.
     const std::string targetSeedDBString =
         R"(V	0.1.0
-P	k=15,w=10,s=0,hpc=0,hpc_len=10,rc=1
+P	k=15,w=10,s=0,hpc=0,rc=1
 F	0	reads.seeddb.0.seeds	2	992
 S	0	read1-fwd	0	0	496	180	31
 S	1	read4-rev	0	496	496	180	31
@@ -700,7 +739,7 @@ TEST(SeedIndex, ParsingSeedIndexCache_File_RoundTrip_Good)
     // Load the SeedDB cache.
     const std::string targetSeedDBString =
         R"(V	0.1.0
-P	k=15,w=10,s=0,hpc=0,hpc_len=10,rc=1
+P	k=15,w=10,s=0,hpc=0,rc=1
 F	0	reads.seeddb.0.seeds	2	992
 S	0	read1-fwd	0	0	496	180	31
 S	1	read4-rev	0	496	496	180	31
@@ -768,4 +807,126 @@ B	0	0	2	992
                 PacBio::Pancake::LoadSeedDBIndexCache(fpIn, "test.seeddb");
         },
         std::runtime_error);
+}
+
+TEST(SeedIndex, ComputeSeedHitHistogram_ArrayOfTests)
+{
+    // clang-format off
+    struct TestData
+    {
+        const std::string testName;
+        const std::vector<PacBio::Pancake::SeedDB::SeedRaw> targetSeeds;
+        const std::vector<PacBio::Pancake::SeedDB::SeedRaw> querySeeds;
+        const std::vector<std::pair<int64_t, int64_t>> expected;
+    };
+
+    const int32_t span = 15;
+    const int32_t targetId = 0;
+    const std::vector<TestData> testData = {
+        {   // Test 1.
+            "Empty input",
+            {},
+            {},
+            {},
+        },
+        {   // Test 2.
+            "Perfect match (query and target seeds are the same)",
+            {   // Target seeds.
+                PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 0, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 1, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 2, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(7, span, targetId, 3, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 4, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 5, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 6, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 7, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 8, false),
+            },
+            {   // Query seeds.
+                PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 0, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 1, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 2, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(7, span, targetId, 3, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 4, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 5, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 6, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 7, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 8, false),
+            },
+            {   // Expected results.
+                // Seed hit occurrence:
+                //  "0":    2
+                //  "123":  3
+                //  "5":    3
+                //  "7":    1
+                //  "5":    3
+                //  "0":    2
+                //  "123":  3
+                //  "5":    3
+                //  "123":  3
+                // Sorted order:
+                {1, 1},
+                {2, 2},
+                {3, 6},
+            },
+        },
+        {   // Test 3.
+            "Query and target seed set are different.",
+            {   // Target seeds.
+                PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 0, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 1, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 2, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(7, span, targetId, 3, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 4, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 5, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 6, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 7, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 8, false),
+            },
+            {   // Query seeds.
+                PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 0, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(99999, span, targetId, 1, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 2, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(7, span, targetId, 3, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 4, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(0, span, targetId, 5, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(99999, span, targetId, 6, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(5, span, targetId, 7, false),
+                PacBio::Pancake::SeedDB::Seed::Encode(123, span, targetId, 8, false),
+            },
+            {   // Expected results.
+                //  "0":        2
+                //  "99999":    0
+                //  "5":        3
+                //  "7":        1
+                //  "5":        3
+                //  "0":        2
+                //  "99999":    0
+                //  "5":        3
+                //  "123":      3
+                // Sorted order:
+                {0, 2},
+                {1, 1},
+                {2, 2},
+                {3, 4},
+            },
+        },
+    };
+    // clang-format on
+
+    for (const auto& data : testData) {
+        SCOPED_TRACE(data.testName);
+        std::cerr << "testName = " << data.testName << "\n";
+
+        // Construct the hash needed for this test.
+        auto targetSeeds = data.targetSeeds;
+        const PacBio::Pancake::SeedIndex si(std::move(targetSeeds));
+
+        // Run unit under test.
+        const std::vector<std::pair<int64_t, int64_t>> results =
+            PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(data.querySeeds.data(),
+                                                             data.querySeeds.size(), si.GetHash());
+
+        EXPECT_EQ(data.expected, results);
+    }
 }

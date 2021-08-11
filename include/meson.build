@@ -42,14 +42,6 @@ if not meson.is_subproject()
       ]),
       subdir : 'lib/kxsort')
 
-  # lib/ksw2
-  install_headers(
-    files([
-      'lib/ksw2/kalloc.h',
-      'lib/ksw2/ksw2.h',
-      ]),
-      subdir : 'lib/ksw2')
-
   # lib/sparsehash/internal
   install_headers(
     files([
@@ -113,11 +105,13 @@ if not meson.is_subproject()
   install_headers(
     files([
       'pacbio/pancake/AlignerBase.h',
-      'pacbio/pancake/AlignerKSW2.h',
+      'pacbio/pancake/AlignerBatchBase.h',
+      'pacbio/pancake/AlignerBatchCPU.h',
       'pacbio/pancake/AlignerEdlib.h',
+      'pacbio/pancake/AlignerFactory.h',
+      'pacbio/pancake/AlignerKSW2.h',
       'pacbio/pancake/AlignerSES1.h',
       'pacbio/pancake/AlignerSES2.h',
-      'pacbio/pancake/AlignerFactory.h',
       'pacbio/pancake/AlignmentParameters.h',
       'pacbio/pancake/AlignmentResult.h',
       'pacbio/pancake/AlignmentSeeded.h',
@@ -125,11 +119,16 @@ if not meson.is_subproject()
       'pacbio/pancake/ContiguousFilePart.h',
       'pacbio/pancake/DPChain.h',
       'pacbio/pancake/FastaSequenceCached.h',
+      'pacbio/pancake/FastaSequenceCachedStore.h',
       'pacbio/pancake/FastaSequenceId.h',
       'pacbio/pancake/Lookups.h',
       'pacbio/pancake/MapperBase.h',
+      'pacbio/pancake/MapperBatchBase.h',
+      'pacbio/pancake/MapperBatchCPU.h',
+      'pacbio/pancake/MapperBatchUtility.h',
       'pacbio/pancake/MapperCLR.h',
       'pacbio/pancake/MapperHiFi.h',
+      'pacbio/pancake/MapperUtility.h',
       'pacbio/pancake/Minimizers.h',
       'pacbio/pancake/Overlap.h',
       'pacbio/pancake/OverlapWriterBase.h',
@@ -142,9 +141,6 @@ if not meson.is_subproject()
       'pacbio/pancake/Range.h',
       'pacbio/pancake/Secondary.h',
       'pacbio/pancake/Seed.h',
-      'pacbio/pancake/SeedHit.h',
-      'pacbio/pancake/SeedHitWriter.h',
-      'pacbio/pancake/SeedIndex.h',
       'pacbio/pancake/SeedDBIndexCache.h',
       'pacbio/pancake/SeedDBParameters.h',
       'pacbio/pancake/SeedDBReader.h',
@@ -152,6 +148,9 @@ if not meson.is_subproject()
       'pacbio/pancake/SeedDBReaderCachedBlock.h',
       'pacbio/pancake/SeedDBReaderRawBlock.h',
       'pacbio/pancake/SeedDBWriter.h',
+      'pacbio/pancake/SeedHit.h',
+      'pacbio/pancake/SeedHitWriter.h',
+      'pacbio/pancake/SeedIndex.h',
       'pacbio/pancake/SeqDBIndexCache.h',
       'pacbio/pancake/SeqDBReader.h',
       'pacbio/pancake/SeqDBReaderBase.h',
@@ -171,13 +170,22 @@ if not meson.is_subproject()
       'pacbio/util/CommonTypes.h',
       'pacbio/util/Conversion.h',
       'pacbio/util/FileIO.h',
+      'pacbio/util/GenomicUnit.h',
       'pacbio/util/RunLengthEncoding.h',
+      'pacbio/util/SeqLengthStats.h',
       'pacbio/util/TicToc.h',
       'pacbio/util/Util.h',
       ]),
       subdir : 'pacbio/util')
 
+  if opt_cuda
+      install_headers(
+        files([
+          'pacbio/pancake/AlignerBatchGPU.h',
+          'pacbio/pancake/MapperBatchGPU.h',
+          ]),
+          subdir : 'pacbio/pancake')
+  endif
 endif
 
-pancake_include_directories = include_directories(['.', 'pacbio', 'lib/sparsehash', 'lib/ksw2'])
-ksw2_include_directories = include_directories(['lib/ksw2'])
+pancake_include_directories = include_directories(['.', 'pacbio', 'lib/sparsehash'])

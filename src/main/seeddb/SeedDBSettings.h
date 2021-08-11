@@ -24,7 +24,6 @@ struct SeedDBSettings
         static const int32_t Spacing = 0;
         static const bool UseHPC = false;
         static const bool UseHPCForSeedsOnly = false;
-        static const int32_t MaxHPCLen = 10;
         static const bool NoRevCmp = false;
     };
 
@@ -34,8 +33,7 @@ struct SeedDBSettings
     bool SplitBlocks = Defaults::SplitBlocks;
     SeedDBParameters SeedParameters{
         Defaults::KmerSize, Defaults::MinimizerWindow,    Defaults::Spacing,
-        Defaults::UseHPC,   Defaults::UseHPCForSeedsOnly, Defaults::MaxHPCLen,
-        !Defaults::NoRevCmp};
+        Defaults::UseHPC,   Defaults::UseHPCForSeedsOnly, !Defaults::NoRevCmp};
 
     SeedDBSettings();
     SeedDBSettings(const PacBio::CLI_v2::Results& options);

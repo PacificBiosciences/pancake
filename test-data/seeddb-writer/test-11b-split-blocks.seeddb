@@ -1,5 +1,5 @@
 V	0.1.0
-P	k=20,w=80,s=0,hpc=0,hpc_len=10,rc=1
+P	k=20,w=80,s=0,hpc=0,rc=1
 F	0	test-11b-split-blocks.seeddb.0.seeds	2	7216
 F	1	test-11b-split-blocks.seeddb.1.seeds	1	9488
 F	2	test-11b-split-blocks.seeddb.2.seeds	2	9360

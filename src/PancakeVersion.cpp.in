@@ -7,14 +7,20 @@ namespace Pancake {
 namespace {
 
 constexpr char   pancakeVersion[]    = "@PANCAKE_VERSION@";
-constexpr size_t pancakeVersionMajor = @PANCAKE_VERSION_MAJOR@;
-constexpr size_t pancakeVersionMinor = @PANCAKE_VERSION_MINOR@;
-constexpr size_t pancakeVersionPatch = @PANCAKE_VERSION_PATCH@;
+constexpr int pancakeVersionMajor = @PANCAKE_VERSION_MAJOR@;
+constexpr int pancakeVersionMinor = @PANCAKE_VERSION_MINOR@;
+constexpr int pancakeVersionPatch = @PANCAKE_VERSION_PATCH@;
 
 } // namespace
 
 std::string PancakeVersion()
 { return pancakeVersion; }
+
+std::string PancakeFormattedVersion()
+{ return PancakeVersion() + " (commit " + PancakeGitSha1() + ")"; }
+
+std::tuple<int, int, int> PancakeVersionTriple()
+{ return std::make_tuple(pancakeVersionMajor, pancakeVersionMinor, pancakeVersionPatch); }
 
 } // namespace Pancake
 } // namespace PacBio

@@ -14,23 +14,44 @@ using namespace PacBio::Pancake;
 
 namespace AlignmentToolsTests {
 
-TEST(Test_AlignmentTools, EmptyInput)
+TEST(Test_AlignmentTools_EdlibAlignmentToCigar, EmptyInput)
 {
     std::vector<unsigned char> input = {};
     PacBio::BAM::Cigar expected;
-    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input.data(), input.size());
+    PacBio::Pancake::Alignment::DiffCounts expectedDiffs;
+
+    PacBio::Pancake::Alignment::DiffCounts diffs;
+    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input.data(), input.size(), diffs);
     EXPECT_EQ(expected, result);
+    EXPECT_EQ(expectedDiffs, diffs);
 }
 
-TEST(Test_AlignmentTools, SimpleTest)
+TEST(Test_AlignmentTools_EdlibAlignmentToCigar, SingleOp)
+{
+    // Edlib move codes: 0: '=', 1: 'I', 2: 'D', 3: 'X'
+    std::vector<unsigned char> input = {EDLIB_EDOP_MISMATCH};
+    PacBio::BAM::Cigar expected("1X");
+    PacBio::Pancake::Alignment::DiffCounts expectedDiffs(0, 1, 0, 0);
+
+    PacBio::Pancake::Alignment::DiffCounts diffs;
+    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input.data(), input.size(), diffs);
+    EXPECT_EQ(expected, result);
+    EXPECT_EQ(expectedDiffs, diffs);
+}
+
+TEST(Test_AlignmentTools_EdlibAlignmentToCigar, SimpleTest)
 {
     // Edlib move codes: 0: '=', 1: 'I', 2: 'D', 3: 'X'
     std::vector<unsigned char> input = {EDLIB_EDOP_MATCH,    EDLIB_EDOP_MATCH,  EDLIB_EDOP_MATCH,
                                         EDLIB_EDOP_MISMATCH, EDLIB_EDOP_INSERT, EDLIB_EDOP_DELETE,
                                         EDLIB_EDOP_DELETE,   EDLIB_EDOP_INSERT};
     PacBio::BAM::Cigar expected("3=1X1I2D1I");
-    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input.data(), input.size());
+    PacBio::Pancake::Alignment::DiffCounts expectedDiffs(3, 1, 2, 2);
+
+    PacBio::Pancake::Alignment::DiffCounts diffs;
+    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input.data(), input.size(), diffs);
     EXPECT_EQ(expected, result);
+    EXPECT_EQ(expectedDiffs, diffs);
 }
 
 TEST(Test_AlignmentTools_ValidateCigar, ArrayOfTests)
@@ -1120,6 +1141,220 @@ TEST(Test_AlignmentTools_ScoreCigarAlignment, ArrayOfTests)
         const int32_t result = PacBio::Pancake::ScoreCigarAlignment(
             cigar, data.match, data.mismatch, data.gapOpen, data.gapExtend);
         EXPECT_EQ(data.expectedScore, result);
+    }
+}
+
+TEST(Test_AlignmentTools_MergeCigars, ArrayOfTests)
+{
+    // clang-format off
+    struct TestDataStruct {
+        std::string name;
+        std::string destCigar;
+        std::string sourceCigar;
+        std::string expected;
+    };
+    std::vector<TestDataStruct> testData = {
+        {"Empty input", "", "", ""},
+        {"Empty destination", "", "5=1X3I", "5=1X3I"},
+        {"Empty source", "5=1X3I", "", "5=1X3I"},
+        {"Nonempty source and destination, no events to merge", "1X", "5=1X3I", "1X5=1X3I"},
+        {"Nonempty source and destination with merging of same events", "3=1X3=", "5=1X3I", "3=1X8=1X3I"},
+    };
+    // clang-format on
+
+    for (const auto& data : testData) {
+        // Inputs.
+        PacBio::BAM::Cigar destCigar(data.destCigar);
+        const PacBio::BAM::Cigar sourceCigar(data.sourceCigar);
+
+        // Name the test.
+        SCOPED_TRACE("MergeCigars-" + data.name);
+
+        // Run the unit under test.
+        PacBio::Pancake::MergeCigars(destCigar, sourceCigar);
+
+        // Convert the result for comparison.
+        const std::string result = destCigar.ToStdString();
+
+        EXPECT_EQ(data.expected, result);
+    }
+}
+
+TEST(Test_AlignmentTools_ComputeSimpleRepeatMask, ArrayOfTests)
+{
+    // clang-format off
+    struct TestDataStruct {
+        std::string name;
+        std::string seq;
+        int32_t maxSpan = 0;
+        std::vector<uint8_t> expected;
+        bool expectedThrow = false;
+    };
+    std::vector<TestDataStruct> testData = {
+        {"Empty input", "", 0, {}, false},
+        {"Simple sequence, no masking", "ACTGAAACACTG", 0, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, false},
+        {"Simple sequence, HP masking", "ACTGAAACACTG", 1, {0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0}, false},
+        {"Simple sequence, dinuc masking", "ACTGAAACACTG", 2, {0, 0, 0, 0, 1, 1, 3, 2, 2, 2, 0, 0}, false},
+        {"Simple sequence, trinuc masking",
+                    "ACTG" "AA" "ACAC" "TG" "ATGATGATG" "ACTGACTG", 3,
+                    /*
+                        Seq:        ACTGAAACACTGATGATGATGACTGACTG
+                        No mask:    0000  |  |         | |      |
+                        HP:             111  |         | |      |
+                        Dinuc:            2222         | |      |
+                        Trinuc:               444444444444      |
+                        Quadnuc:                       8888888888
+                    */
+                    {
+                        0, 0, 0, 0,                     // ACTG
+                        1, 1, 3, 2, 2, 2, 4, 4,         // AAACACTG
+                        4, 4, 4, 4, 4, 4, 4, 4, 4,      // ATGATGATG
+                        4, 0, 0, 0, 0, 0, 0, 0,         // ACTGACTG
+                    },
+                    false
+        },
+        {"Simple sequence, quadnuc masking",
+                    "ACTG" "AA" "ACAC" "TG" "ATGATGATG" "ACTGACTG", 4,
+                    /*
+                        Seq:        ACTGAAACACTGATGATGATGACTGACTG
+                        No mask:    0000  |  |         | |      |
+                        HP:             111  |         | |      |
+                        Dinuc:            2222         | |      |
+                        Trinuc:               444444444444      |
+                        Quadnuc:                       8888888888
+                    */
+                    {
+                        0, 0, 0, 0,                     // ACTG
+                        1, 1, 3, 2, 2, 2, 4, 4,         // AAACACTG
+                        4, 4, 4, 4, 4, 4, 4, 12, 12,    // ATGATGATG
+                        12, 8, 8, 8, 8, 8, 8, 8,        // ACTGACTG
+                    },
+                    false
+        },
+        {"Simple sequence, level 7 masking",
+                    "ACTG" "AA" "ACAC" "TG" "ATGATGATG" "ACTGACTG", 7,
+                    {
+                        0, 0, 0, 0,                             // ACTG
+                        1, 1, 3, 2, 2, 2, 36, 36,               // AAACACTG
+                        36, 36, 36, 36, 36, 36, 36, 44, 44,     // ATGATGATG
+                        44, 8, 8, 8, 8, 8, 8, 8,                // ACTGACTG
+                    },
+                    false
+        },
+        {"Too large max span, return everything masked at level 7",
+                    "ACTG" "AA" "ACAC" "TG" "ATGATGATG" "ACTGACTG", 8,
+                    {
+                        0, 0, 0, 0,                             // ACTG
+                        1, 1, 3, 2, 2, 2, 36, 36,               // AAACACTG
+                        36, 36, 36, 36, 36, 36, 36, 44, 44,     // ATGATGATG
+                        44, 8, 8, 8, 8, 8, 8, 8,                // ACTGACTG
+                    },
+                    false
+        },
+        {"Two homopolymers", "AAAAAAAACCCCCCC", 1, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, false},
+        {"Long HPs are also dinucs and trinucs", "AAAAAAAACCCCCCC", 3, {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7}, false},
+        {"Regular sequence with HPs", "GGATCAGTTTTATATACAC", 3, {1, 1, 0, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2}, false},
+        {"Non-ACTG base, simple sequence, HP masking", "ACTGANAACACTG", 1, {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0}, false},
+        {"Multiple non-ACTG bases, simple sequence, HP masking", "ACTGANNNANACACTG", 1, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, false},
+
+    };
+    // clang-format on
+
+    for (const auto& data : testData) {
+
+        // Name the test.
+        SCOPED_TRACE("ComputeSimpleRepeatMask-" + data.name);
+
+        // std::cerr << "Test: " << data.name << "\n";
+
+        // Run.
+        if (data.expectedThrow) {
+            EXPECT_THROW(
+                {
+                    const std::vector<uint8_t> results =
+                        ComputeSimpleRepeatMask(data.seq.c_str(), data.seq.size(), data.maxSpan);
+                },
+                std::runtime_error);
+        } else {
+
+            const std::vector<uint8_t> results =
+                ComputeSimpleRepeatMask(data.seq.c_str(), data.seq.size(), data.maxSpan);
+
+            // std::cerr << "Len: seq.size() = " << data.seq.size()
+            //           << ", results.size() = " << results.size()
+            //           << ", expected.size() = " << data.expected.size() << "\n";
+            // std::cerr << "Seq: ";
+            // for (const auto& v : data.seq) {
+            //     std::cerr << v << " ";
+            // }
+            // std::cerr << "\n";
+            // std::cerr << "Res: ";
+            // for (const auto& v : results) {
+            //     std::cerr << static_cast<uint32_t>(v) << " ";
+            // }
+            // std::cerr << "\n";
+            // std::cerr << "Exp: ";
+            // for (const auto& v : data.expected) {
+            //     std::cerr << static_cast<uint32_t>(v) << " ";
+            // }
+            // std::cerr << "\n";
+
+            EXPECT_EQ(data.expected, results);
+        }
+        // std::cerr << "\n";
+    }
+}
+
+TEST(Test_AlignmentTools_CheckAlignmentOutOfBand, ArrayOfTests)
+{
+    // clang-format off
+    struct TestDataStruct {
+        const std::string name;
+        const std::string cigar;
+        const int32_t bandwidth;
+        const bool expected;
+    };
+    std::vector<TestDataStruct> testData = {
+        // Within band.
+        {"Empty input", "", 0, false},
+        {"No indels, within band", "100=", 10, false},
+        {"Insertions within band", "50=5I50=", 10, false},
+        {"Deletions within band", "50=5D50=", 10, false},
+        {"Indels within band", "50=5I5D50=", 10, false},
+        {"No indels, marginal to bandwidth 0", "100=", 0, false},
+        {"No indels, marginal to bandwidth 1", "100=", 1, false},
+        {"No indels, within band", "100=", -1, false},
+
+        // Out of band.
+        {"Single insertion", "100=1I", 0, true},
+        {"Single deletion", "100=1D", 0, true},
+        {"Single insertion, bw 1", "100=1I", 1, true},
+        {"Single insertion, bw -1", "100=1I", -1, true},
+        {"Single deletion, bw 1", "100=1D", 1, true},
+        {"Single deletion, bw -1", "100=1D", -1, true},
+        {"Insertions, touches the boundary", "50=10I50=", 10, true},
+        {"Insertions, touches the diagonal -1 from the boundary (fuzz buffer)", "50=9I50=", 10, true},
+        {"Deletions, touches the boundary", "50=10D50=", 10, true},
+        {"Deletions, touches the diagonal -1 from the boundary (fuzz buffer)", "50=9D50=", 10, true},
+        {"Indels, out of band", "50=10I10D50=", 10, true},
+        {"Indels, out of band", "50=5I2D10=3I1D1=5I50=", 10, true},
+        {"Indels, out of band", "50=10D10I50=", 10, true},
+        {"Indels, out of band", "50=5D2I10=3D1I1=5D50=", 10, true},
+    };
+    // clang-format on
+
+    for (const auto& data : testData) {
+        // Inputs.
+        const PacBio::BAM::Cigar cigar(data.cigar);
+
+        // Name the test.
+        SCOPED_TRACE("CheckAlignmentOutOfBand-" + data.name);
+
+        // Run the unit under test.
+        const bool result = PacBio::Pancake::CheckAlignmentOutOfBand(cigar, data.bandwidth);
+
+        // Evaluate.
+        EXPECT_EQ(data.expected, result);
     }
 }
 }

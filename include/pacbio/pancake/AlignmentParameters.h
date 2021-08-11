@@ -25,6 +25,7 @@ public:
     int32_t gapExtend1 = 2;                 // 'e' in Minimap2.
     int32_t gapOpen2 = 24;                  // 'q2' in Minimap2.
     int32_t gapExtend2 = 1;                 // 'e2' in Minimap2.
+    bool dynamicBandwidth = false;
 };
 // clang-format on
 
@@ -39,7 +40,8 @@ inline std::ostream& operator<<(std::ostream& out, const AlignmentParameters& a)
         << "gapOpen1 = " << a.gapOpen1 << "\n"
         << "gapExtend1 = " << a.gapExtend1 << "\n"
         << "gapOpen2 = " << a.gapOpen2 << "\n"
-        << "gapExtend2 = " << a.gapExtend2 << "\n";
+        << "gapExtend2 = " << a.gapExtend2 << "\n"
+        << "dynamicBandwidth = " << std::boolalpha << a.dynamicBandwidth << "\n";
     return out;
 }
 
