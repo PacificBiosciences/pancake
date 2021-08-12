@@ -95,43 +95,76 @@ static int64_t FindLongestCigarLength(Iterator begin, Iterator end)
     return longestCigarLength;
 }
 
-static void AllocateCigarsBuffers(gw::device_buffer<PacBio::Data::CigarOperation>& deviceBuffer, gw::pinned_host_vector<PacBio::Data::CigarOperation>& hostBuffer, int64_t idealSize, int64_t longestCigarLength = -1)
+template <typename T>
+static int64_t GetMaxSize(const gw::device_buffer<T>& buffer)
 {
-    int64_t cigarBufSize = idealSize;
-    bool failedOnDeviceMem = false;
-    while (1)
-    {
-        try
-        {
-            deviceBuffer.clear_and_resize(cigarBufSize);
-            hostBuffer.clear();
-            hostBuffer.shrink_to_fit();
-            hostBuffer.resize(cigarBufSize);
-            return;
-        }
-        catch (const std::bad_alloc&)
-        {
-            failedOnDeviceMem = false;
-        }
-        catch(const gw::device_memory_allocation_exception&)
-        {
-            failedOnDeviceMem = true;
-        }
-        deviceBuffer.free();
-        hostBuffer.clear();
-        hostBuffer.shrink_to_fit();
+    return buffer.get_allocator().get_size_of_largest_free_memory_block();
+}
 
-        if(longestCigarLength < 0)
-        {
-            throw std::bad_alloc();
-        }
+template <typename T>
+static int64_t GetMaxSize(const gw::pinned_host_vector<T>&)
+{
+    return std::numeric_limits<int64_t>::max();
+}
 
-        if(cigarBufSize == longestCigarLength)
-        {
-            throw std::runtime_error(std::string("Could not allocate enough") + (failedOnDeviceMem ? "device" : "pinned host") + " memory in " + std::string(__func__) + ".");
-        }
+template <typename T>
+static void Reallocate(gw::device_buffer<T>& buffer, int64_t size)
+{
+    buffer.clear_and_resize(size);
+}
 
-        cigarBufSize = std::max(cigarBufSize/2, longestCigarLength);
+template <typename T>
+static void Reallocate(gw::pinned_host_vector<T>& buffer, int64_t size)
+{
+    buffer.clear();
+    buffer.shrink_to_fit();
+    buffer.resize(size);
+}
+
+
+template <typename Buffer>
+static void TryResizeCigarsBuffer(Buffer& buffer, int64_t size, int64_t minSize = -1)
+{
+    if (static_cast<int64_t>(buffer.size()) < size) {
+        const int64_t sizePlus = size + size / 5;
+        Reallocate(buffer, 0);
+        const int64_t maxSize = GetMaxSize(buffer);
+        if (sizePlus < maxSize) {
+            try {
+                Reallocate(buffer, sizePlus);
+                return;
+            }
+            catch (const std::bad_alloc&) {
+            }
+            catch (const gw::device_memory_allocation_exception&) {
+            }
+        }
+        if (size < maxSize) {
+            try {
+                Reallocate(buffer, size);
+                return;
+            }
+            catch (const std::bad_alloc&) {
+            }
+            catch (const gw::device_memory_allocation_exception&) {
+            }
+        }
+        if (minSize >= 0) {
+            for (int64_t s = size / 2; s > minSize; s /= 2) {
+                if(s < maxSize) {
+                    try {
+                        Reallocate(buffer, s);
+                        return;
+                    }
+                    catch (const std::bad_alloc&) {
+                    }
+                    catch (const gw::device_memory_allocation_exception&) {
+                    }
+                }
+            }
+            // If we cannot fulfil the minSize requirement => throw the exception
+            Reallocate(buffer, minSize);
+        }
     }
 }
 
@@ -177,23 +210,27 @@ void RetrieveResultsAsPacBioCigar(
     gw::device_buffer<int64_t> scoresDevice(numberOfAlignments, allocator, stream);
     gw::device_buffer<PacBio::Data::CigarOperation> pacbioCigarsDevice(0, allocator, stream);
 
-
-    try {
-        // try to get ideal buffer length
-        AllocateCigarsBuffers(pacbioCigarsDevice, hostBuffers->cigarOpsBuffer, aln.total_length * 12 / 10); // +20%
-        gw::cudautils::device_copy_n_async(aln.metadata, numberOfAlignments, hostBuffers->metaData.data(), stream);
-    }
-    catch(const std::bad_alloc&) {
+    TryResizeCigarsBuffer(pacbioCigarsDevice, aln.total_length);
+    TryResizeCigarsBuffer(hostBuffers->cigarOpsBuffer, aln.total_length);
+    int64_t longestCigarLength = 0;
+    if (pacbioCigarsDevice.size() < aln.total_length || static_cast<int64_t>(hostBuffers->cigarOpsBuffer.size()) < aln.total_length)
+    {
         GW_CU_CHECK_ERR(cudaStreamSynchronize(stream)); // wait for cigarOffsets
-        gw::cudautils::device_copy_n_async(aln.metadata, numberOfAlignments, hostBuffers->metaData.data(), stream);
-        const int64_t longestCigarLength = FindLongestCigarLength(begin(hostBuffers->cigarOffsets), end(hostBuffers->cigarOffsets));
-        // retry with smaller and minimum buffer sizes
-        AllocateCigarsBuffers(pacbioCigarsDevice, hostBuffers->cigarOpsBuffer, aln.total_length, longestCigarLength);
+        longestCigarLength = FindLongestCigarLength(begin(hostBuffers->cigarOffsets), end(hostBuffers->cigarOffsets));
+    }
+    gw::cudautils::device_copy_n_async(aln.metadata, numberOfAlignments, hostBuffers->metaData.data(), stream);
+    if (pacbioCigarsDevice.size() < aln.total_length)
+    {
+        TryResizeCigarsBuffer(pacbioCigarsDevice, aln.total_length, longestCigarLength);
+    }
+    if (static_cast<int64_t>(hostBuffers->cigarOpsBuffer.size()) < pacbioCigarsDevice.size())
+    {
+        TryResizeCigarsBuffer(hostBuffers->cigarOpsBuffer, pacbioCigarsDevice.size(), longestCigarLength);
     }
 
     results.resize(numberOfAlignments);
     GW_CU_CHECK_ERR(cudaStreamSynchronize(stream));
-    const int64_t cigarBufSize = std::min(pacbioCigarsDevice.size(), aln.total_length);
+    const int64_t cigarBufSize = std::min({static_cast<int64_t>(hostBuffers->cigarOpsBuffer.size()), pacbioCigarsDevice.size(), aln.total_length});
     int32_t completedAlignments = 0;
     while (completedAlignments < numberOfAlignments)
     {
