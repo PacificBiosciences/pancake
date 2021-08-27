@@ -66,3 +66,149 @@ Composite test for multiple tools, from an empty input FASTA.
   0
   unit	total	num	min	max	avg	median	AUC	N10	N10_n	N25	N25_n	N50	N50_n	N75	N75_n	N90	N90_n	N100	N100_n
   bp	0.00	0	0.00	0.00	0.00	0.00	0.00	0.00	0	0.00	0	0.00	0	0.00	0	0.00	0	0.00	0
+
+
+
+### Test combinations of SeqDBs where File, Sequence and/or Block lines are missing from the SeqDB file. In some of these cases,
+### the tool should throw an ERROR, but not in all cases.
+# F S B
+# 1 1 1 FSB
+# 1 1 0 FS
+# 1 0 1 FB
+# 1 0 0 F
+# 0 1 1 SB
+# 0 1 0 S
+# 0 0 1 B
+# 0 0 0 -
+All three (File, Sequence and Block) lines are present in the input.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > cat out/out.seqdb > out/v1.FSB.seqdb
+  > ${BIN_DIR}/pancake seeddb out/v*.seqdb out/out 2>&1 | sed 's/.*pancake //g'
+
+File and Sequence lines are present, but not Block lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > cat out/out.seqdb | grep -v "^[B]" > out/v2.FS.seqdb
+  > ${BIN_DIR}/pancake seeddb out/v*.seqdb out/out 2>&1 | sed 's/.*pancake //g'
+  seeddb ERROR: There are no block specifications in the input SeqDB index file, but there are sequence lines listed.
+
+File and Block lines are present, but not Sequence lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > cat out/out.seqdb | grep -v "^[S]" > out/v3.FB.seqdb
+  > ${BIN_DIR}/pancake seeddb out/v*.seqdb out/out 2>&1 | sed 's/.*pancake //g'
+  seeddb ERROR: There are blocks specified in the input SeqDB index file, but there are no sequences listed.
+
+File lines are present, but not Sequence or Block lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > cat out/out.seqdb | grep -v "^[SB]" > out/v4.F.seqdb
+  > ${BIN_DIR}/pancake seeddb out/v*.seqdb out/out 2>&1 | sed 's/.*pancake //g'
+
+Sequence and Block lines are present, but not File lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > cat out/out.seqdb | grep -v "^[F]" > out/v5.SB.seqdb
+  > ${BIN_DIR}/pancake seeddb out/v*.seqdb out/out 2>&1 | sed 's/.*pancake //g'
+  seeddb ERROR: There are no file specifications in the input SeqDB index file, but there are sequence lines listed.
+
+Sequence lines are present, but not Block or File lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > cat out/out.seqdb | grep -v "^[FB]" > out/v6.S.seqdb
+  > ${BIN_DIR}/pancake seeddb out/v*.seqdb out/out 2>&1 | sed 's/.*pancake //g'
+  seeddb ERROR: There are no file specifications in the input SeqDB index file, but there are sequence lines listed.
+
+Block lines are present, but not Sequence or File lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > cat out/out.seqdb | grep -v "^[FS]" > out/v7.B.seqdb
+  > ${BIN_DIR}/pancake seeddb out/v*.seqdb out/out 2>&1 | sed 's/.*pancake //g'
+  seeddb ERROR: There are no file specifications in the input SeqDB index file, but there are block lines listed.
+
+There are no File, Sequence or Block lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > cat out/out.seqdb | grep -v "^[FSB]" > out/v8.no_FSB.seqdb
+  > ${BIN_DIR}/pancake seeddb out/v*.seqdb out/out 2>&1 | sed 's/.*pancake //g'
+
+### Test combinations of SeedDBs where File, Seeds and/or Block lines are missing from the SeedDB file. In some of these cases,
+### the tool should throw an ERROR, but not in all cases.
+# F S B
+# 1 1 1 FSB
+# 1 1 0 FS
+# 1 0 1 FB
+# 1 0 0 F
+# 0 1 1 SB
+# 0 1 0 S
+# 0 0 1 B
+# 0 0 0 -
+
+All three (File, Seed and Block) lines are present in the input.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out.vanilla 2>&1 | sed 's/.*pancake //g'
+  > cat out/out.vanilla.seeddb > out/out.seeddb
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
+
+File and Seed lines are present, but not Block lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out.vanilla 2>&1 | sed 's/.*pancake //g'
+  > cat out/out.vanilla.seeddb | grep -v "^[B]" > out/out.seeddb
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
+  ovl-hifi ERROR: There are no block specifications in the input SeedDB index file, but there are seed lines listed.
+
+File and Block lines are present, but not Seed lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out.vanilla 2>&1 | sed 's/.*pancake //g'
+  > cat out/out.vanilla.seeddb | grep -v "^[S]" > out/out.seeddb
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
+  ovl-hifi ERROR: There are blocks specified in the input SeedDB index file, but there are no seed lines listed.
+
+File lines are present, but not Seed or Block lines.
+In this case, the SeedDB itself is not formatted wrongly, but it does not match the accompanying SeqDB (i.e.
+it is missing the target block required for overlapping).
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out.vanilla 2>&1 | sed 's/.*pancake //g'
+  > cat out/out.vanilla.seeddb | grep -v "^[SB]" > out/out.seeddb
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
+  ovl-hifi ERROR: Invalid blockId (SeedDBReader). blockId = 0, blocks.size() = 0
+
+Seed and Block lines are present, but not File lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out.vanilla 2>&1 | sed 's/.*pancake //g'
+  > cat out/out.vanilla.seeddb | grep -v "^[F]" > out/out.seeddb
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
+  ovl-hifi ERROR: There are no file specifications in the input SeedDB index file, but there are seed lines listed.
+
+Seed lines are present, but not Block or File lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out.vanilla 2>&1 | sed 's/.*pancake //g'
+  > cat out/out.vanilla.seeddb | grep -v "^[FB]" > out/out.seeddb
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
+  ovl-hifi ERROR: There are no file specifications in the input SeedDB index file, but there are seed lines listed.
+
+Block lines are present, but not Seed or File lines.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out.vanilla 2>&1 | sed 's/.*pancake //g'
+  > cat out/out.vanilla.seeddb | grep -v "^[FS]" > out/out.seeddb
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
+  ovl-hifi ERROR: There are no file specifications in the input SeedDB index file, but there are block lines listed.
+
+There are no File, Seed or Block lines.
+In this case, the SeedDB itself is not formatted wrongly, but it does not match the accompanying SeqDB (i.e.
+it is missing the target block required for overlapping).
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/out ${PROJECT_DIR}/test-data/seqdb-writer/in-2-small.fasta
+  > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out.vanilla 2>&1 | sed 's/.*pancake //g'
+  > cat out/out.vanilla.seeddb | grep -v "^[FSB]" > out/out.seeddb
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
+  ovl-hifi ERROR: Invalid blockId (SeedDBReader). blockId = 0, blocks.size() = 0
+############################
