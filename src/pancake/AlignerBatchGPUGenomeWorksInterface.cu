@@ -106,17 +106,16 @@ __global__ void convert_to_pacbio_kernel(
     using claraparabricks::genomeworks::cudaaligner::DeviceAlignmentsPtrs;
     using claraparabricks::genomeworks::cudaaligner::AlignmentState;
     const int64_t tid = static_cast<int64_t>(blockIdx.x) * blockDim.x + threadIdx.x;
-    if(tid > cigar_buf_size)
+    if(tid >= cigar_buf_size)
         return;
 
     const int64_t global_start = cigar_offsets[start_offset_index];
     const int64_t i = global_start + tid;
 
     // Find alignment index:
-    const int32_t offset_idx = upper_bound(cigar_offsets, cigar_offsets + n_alignments, i) - cigar_offsets - 1;
-    assert(offset_idx >= start_offset_index);
-    if(offset_idx < start_offset_index)
-        return;
+    const int32_t offset_idx = upper_bound(cigar_offsets + start_offset_index, cigar_offsets + n_alignments, i) - cigar_offsets - 1;
+    assert(offset_idx >= 0);
+    assert(offset_idx < n_alignments);
 
     const int32_t alignment_idx = metadata[offset_idx] & DeviceAlignmentsPtrs::index_mask;
     assert(alignment_idx >= 0);
@@ -124,9 +123,11 @@ __global__ void convert_to_pacbio_kernel(
     // Get start and length of the alignment data:
     const int64_t start = cigar_offsets[offset_idx];
     const int32_t len   = cigar_offsets[offset_idx+1] - cigar_offsets[offset_idx];
+    // offset_idx+1 is safe, since cigar_offsets has length n_alignments + 1.
+    // (see comment on aln.cigar_offsets in AlignerBatchGPU.cpp)
 
     // Check if the alignment will be processed completely otherwise abort and leave it for a future iteration.
-    if (start + len > global_start + cigar_buf_size)
+    if ((start + len) > (global_start + cigar_buf_size))
         return;
 
     // For all data belonging to the alignment...

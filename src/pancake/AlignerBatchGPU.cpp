@@ -82,15 +82,17 @@ struct AlignerBatchGPU::AlignerBatchGPUHostBuffers
     }
 };
 
-template <typename Iterator>
-static int64_t FindLongestCigarLength(Iterator begin, Iterator end)
+static int64_t FindLongestCigarLength(gw::pinned_host_vector<int32_t>::const_iterator begin,gw::pinned_host_vector<int32_t>::const_iterator end)
 {
     int64_t longestCigarLength = 0;
-    for(auto it = begin + 1; it < end; ++it)
+    if(begin != end)
     {
-        const int64_t cigarLength = *it - *(it - 1);
-        assert(cigarLength >= 0);
-        longestCigarLength = std::max(longestCigarLength, cigarLength);
+        for(auto it = begin + 1; it != end; ++it)
+        {
+            const int64_t cigarLength = *it - *(it - 1);
+            assert(cigarLength >= 0);
+            longestCigarLength = std::max(longestCigarLength, cigarLength);
+        }
     }
     return longestCigarLength;
 }
@@ -128,8 +130,8 @@ static void TryResizeCigarsBuffer(Buffer& buffer, int64_t size, int64_t minSize 
     if (static_cast<int64_t>(buffer.size()) < size) {
         const int64_t sizePlus = size + size / 5;
         Reallocate(buffer, 0);
-        const int64_t maxSize = GetMaxSize(buffer);
-        if (sizePlus < maxSize) {
+        const int64_t maxSize = GetMaxSize(buffer) / sizeof(typename Buffer::value_type);
+        if (sizePlus <= maxSize) {
             try {
                 Reallocate(buffer, sizePlus);
                 return;
@@ -139,7 +141,7 @@ static void TryResizeCigarsBuffer(Buffer& buffer, int64_t size, int64_t minSize 
             catch (const gw::device_memory_allocation_exception&) {
             }
         }
-        if (size < maxSize) {
+        if (size <= maxSize) {
             try {
                 Reallocate(buffer, size);
                 return;
@@ -151,7 +153,7 @@ static void TryResizeCigarsBuffer(Buffer& buffer, int64_t size, int64_t minSize 
         }
         if (minSize >= 0) {
             for (int64_t s = size / 2; s > minSize; s /= 2) {
-                if(s < maxSize) {
+                if(s <= maxSize) {
                     try {
                         Reallocate(buffer, s);
                         return;
@@ -204,6 +206,11 @@ void RetrieveResultsAsPacBioCigar(
     aligner->free_temporary_device_buffers(); // such that we can reuse the memory here.
 
     gw::cudaaligner::DeviceAlignmentsPtrs aln = aligner->get_alignments_device();
+    // aln.cigar_offsets contains the start and end of the different cigars in aln.cigar_operations.
+    // The offset entry at position i is at the same time the start of cigar i and the end of the
+    // previous cigar (except for the first enty).
+    // The last entry aln.cigar_offsets[numberOfAlignments] is the end of the last cigar.
+    // Therefore, the array has numberOfAlignments + 1 entries in total.
     gw::cudautils::device_copy_n_async(aln.cigar_offsets, numberOfAlignments + 1, hostBuffers->cigarOffsets.data(), stream);
 
     gw::device_buffer<int4> diffsDevice(numberOfAlignments, allocator, stream);
