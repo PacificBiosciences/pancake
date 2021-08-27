@@ -22,15 +22,15 @@
 namespace PacBio {
 namespace Pancake {
 
-namespace gw = claraparabricks::genomeworks;
+namespace cpgw = claraparabricks::genomeworks;
 
 struct AlignerBatchGPU::AlignerBatchGPUHostBuffers
 {
-    gw::pinned_host_vector<int32_t> cigarOffsets;
-    gw::pinned_host_vector<uint32_t> metaData;
-    gw::pinned_host_vector<int4> diffs;
-    gw::pinned_host_vector<int64_t> scores;
-    gw::pinned_host_vector<PacBio::Data::CigarOperation> cigarOpsBuffer;
+    cpgw::pinned_host_vector<int32_t> cigarOffsets;
+    cpgw::pinned_host_vector<uint32_t> metaData;
+    cpgw::pinned_host_vector<int4> diffs;
+    cpgw::pinned_host_vector<int64_t> scores;
+    cpgw::pinned_host_vector<PacBio::Data::CigarOperation> cigarOpsBuffer;
 
     void ResizeForNumAlignments(int32_t numAlns)
     {
@@ -82,7 +82,7 @@ struct AlignerBatchGPU::AlignerBatchGPUHostBuffers
     }
 };
 
-static int64_t FindLongestCigarLength(gw::pinned_host_vector<int32_t>::const_iterator begin,gw::pinned_host_vector<int32_t>::const_iterator end)
+static int64_t FindLongestCigarLength(cpgw::pinned_host_vector<int32_t>::const_iterator begin, cpgw::pinned_host_vector<int32_t>::const_iterator end)
 {
     int64_t longestCigarLength = 0;
     if(begin != end)
@@ -98,25 +98,25 @@ static int64_t FindLongestCigarLength(gw::pinned_host_vector<int32_t>::const_ite
 }
 
 template <typename T>
-static int64_t GetMaxSize(const gw::device_buffer<T>& buffer)
+static int64_t GetMaxSize(const cpgw::device_buffer<T>& buffer)
 {
     return buffer.get_allocator().get_size_of_largest_free_memory_block();
 }
 
 template <typename T>
-static int64_t GetMaxSize(const gw::pinned_host_vector<T>&)
+static int64_t GetMaxSize(const cpgw::pinned_host_vector<T>&)
 {
     return std::numeric_limits<int64_t>::max();
 }
 
 template <typename T>
-static void Reallocate(gw::device_buffer<T>& buffer, int64_t size)
+static void Reallocate(cpgw::device_buffer<T>& buffer, int64_t size)
 {
     buffer.clear_and_resize(size);
 }
 
 template <typename T>
-static void Reallocate(gw::pinned_host_vector<T>& buffer, int64_t size)
+static void Reallocate(cpgw::pinned_host_vector<T>& buffer, int64_t size)
 {
     buffer.clear();
     buffer.shrink_to_fit();
@@ -138,7 +138,7 @@ static void TryResizeCigarsBuffer(Buffer& buffer, int64_t size, int64_t minSize 
             }
             catch (const std::bad_alloc&) {
             }
-            catch (const gw::device_memory_allocation_exception&) {
+            catch (const cpgw::device_memory_allocation_exception&) {
             }
         }
         if (size <= maxSize) {
@@ -148,7 +148,7 @@ static void TryResizeCigarsBuffer(Buffer& buffer, int64_t size, int64_t minSize 
             }
             catch (const std::bad_alloc&) {
             }
-            catch (const gw::device_memory_allocation_exception&) {
+            catch (const cpgw::device_memory_allocation_exception&) {
             }
         }
         if (minSize >= 0) {
@@ -160,7 +160,7 @@ static void TryResizeCigarsBuffer(Buffer& buffer, int64_t size, int64_t minSize 
                     }
                     catch (const std::bad_alloc&) {
                     }
-                    catch (const gw::device_memory_allocation_exception&) {
+                    catch (const cpgw::device_memory_allocation_exception&) {
                     }
                 }
             }
@@ -178,7 +178,6 @@ void RetrieveResultsAsPacBioCigar(
     int32_t gapOpenScore, int32_t gapExtScore)
 {
     GW_NVTX_RANGE(profiler, "pancake retrieve results");
-    namespace gw = claraparabricks::genomeworks;
     cudaStream_t stream = aligner.get_stream();
     auto allocator = aligner.get_device_allocator();
     const int32_t numberOfAlignments = aligner.num_alignments();
@@ -201,17 +200,17 @@ void RetrieveResultsAsPacBioCigar(
     GW_CU_CHECK_ERR(cudaStreamSynchronize(stream));
     aligner.free_temporary_device_buffers(); // such that we can reuse the memory here.
 
-    gw::cudaaligner::DeviceAlignmentsPtrs aln = aligner.get_alignments_device();
+    cpgw::cudaaligner::DeviceAlignmentsPtrs aln = aligner.get_alignments_device();
     // aln.cigar_offsets contains the start and end of the different cigars in aln.cigar_operations.
     // The offset entry at position i is at the same time the start of cigar i and the end of the
     // previous cigar (except for the first enty).
     // The last entry aln.cigar_offsets[numberOfAlignments] is the end of the last cigar.
     // Therefore, the array has numberOfAlignments + 1 entries in total.
-    gw::cudautils::device_copy_n_async(aln.cigar_offsets, numberOfAlignments + 1, hostBuffers.cigarOffsets.data(), stream);
+    cpgw::cudautils::device_copy_n_async(aln.cigar_offsets, numberOfAlignments + 1, hostBuffers.cigarOffsets.data(), stream);
 
-    gw::device_buffer<int4> diffsDevice(numberOfAlignments, allocator, stream);
-    gw::device_buffer<int64_t> scoresDevice(numberOfAlignments, allocator, stream);
-    gw::device_buffer<PacBio::Data::CigarOperation> pacbioCigarsDevice(0, allocator, stream);
+    cpgw::device_buffer<int4> diffsDevice(numberOfAlignments, allocator, stream);
+    cpgw::device_buffer<int64_t> scoresDevice(numberOfAlignments, allocator, stream);
+    cpgw::device_buffer<PacBio::Data::CigarOperation> pacbioCigarsDevice(0, allocator, stream);
 
     TryResizeCigarsBuffer(pacbioCigarsDevice, aln.total_length);
     TryResizeCigarsBuffer(hostBuffers.cigarOpsBuffer, aln.total_length);
@@ -221,7 +220,7 @@ void RetrieveResultsAsPacBioCigar(
         GW_CU_CHECK_ERR(cudaStreamSynchronize(stream)); // wait for cigarOffsets
         longestCigarLength = FindLongestCigarLength(begin(hostBuffers.cigarOffsets), end(hostBuffers.cigarOffsets));
     }
-    gw::cudautils::device_copy_n_async(aln.metadata, numberOfAlignments, hostBuffers.metaData.data(), stream);
+    cpgw::cudautils::device_copy_n_async(aln.metadata, numberOfAlignments, hostBuffers.metaData.data(), stream);
     if (pacbioCigarsDevice.size() < aln.total_length)
     {
         TryResizeCigarsBuffer(pacbioCigarsDevice, aln.total_length, longestCigarLength);
@@ -242,15 +241,15 @@ void RetrieveResultsAsPacBioCigar(
             completedAlignments, matchScore, mismatchScore, gapOpenScore, gapExtScore, stream,
             aligner.get_device());
 
-        gw::cudautils::device_copy_n_async(diffsDevice.data(), numberOfAlignments, hostBuffers.diffs.data(), stream);
-        gw::cudautils::device_copy_n_async(scoresDevice.data(), numberOfAlignments, hostBuffers.scores.data(), stream);
-        gw::cudautils::device_copy_n_async(pacbioCigarsDevice.data(), cigarBufSize, hostBuffers.cigarOpsBuffer.data(), stream);
+        cpgw::cudautils::device_copy_n_async(diffsDevice.data(), numberOfAlignments, hostBuffers.diffs.data(), stream);
+        cpgw::cudautils::device_copy_n_async(scoresDevice.data(), numberOfAlignments, hostBuffers.scores.data(), stream);
+        cpgw::cudautils::device_copy_n_async(pacbioCigarsDevice.data(), cigarBufSize, hostBuffers.cigarOpsBuffer.data(), stream);
 
         GW_CU_CHECK_ERR(cudaStreamSynchronize(stream));
         int32_t i = completedAlignments;
         for(; i < numberOfAlignments; ++i)
         {
-            const int32_t idx = hostBuffers.metaData[i] & gw::cudaaligner::DeviceAlignmentsPtrs::index_mask;
+            const int32_t idx = hostBuffers.metaData[i] & cpgw::cudaaligner::DeviceAlignmentsPtrs::index_mask;
             const bool isOptimal = hostBuffers.metaData[i] >> 31;
             const int64_t startPos = hostBuffers.cigarOffsets[i] - hostBuffers.cigarOffsets[completedAlignments];
             const int64_t len = hostBuffers.cigarOffsets[i+1] - hostBuffers.cigarOffsets[i];
