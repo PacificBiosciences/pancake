@@ -419,7 +419,7 @@ OverlapHifiSettings::OverlapHifiSettings(const PacBio::CLI_v2::Results& options)
 
 PacBio::CLI_v2::Interface OverlapHifiSettings::CreateCLI()
 {
-    PacBio::CLI_v2::Interface i{"pancake", "HiFi overlapping.",
+    PacBio::CLI_v2::Interface i{"pancake ovl-hifi", "HiFi overlapping.",
                                 PacBio::Pancake::PancakeFormattedVersion()};
 
     // clang-format off
