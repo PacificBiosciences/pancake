@@ -4,7 +4,7 @@
 Wrong filter, should throw.
   $ rm -f test-1.filtered*
   > ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-type something_wrong ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered 2>&1 | sed 's/^.*pancake //g'
-  ERROR: Unknown filter type: 'something_wrong'.
+  dbfilter ERROR: Unknown filter type: 'something_wrong'.
 
 No filtering applied.
 Test construction of the DB from a small test FASTA file. Store each sequence into a separate 2-bit compressed file.
@@ -97,7 +97,7 @@ Also, unlike the input DB, here all the sequences will be stored in the same fil
 Wrong subsampling type, should throw.
   $ rm -f test-1.filtered*
   > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling something_wrong ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered 2>&1 | sed 's/^.*pancake //g'
-  ERROR: Unknown sampling type: 'something_wrong'.
+  dbfilter ERROR: Unknown sampling type: 'something_wrong'.
 
 No sampling, output should be the same as input.
   $ rm -f test-1.filtered*

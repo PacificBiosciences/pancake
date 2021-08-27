@@ -167,7 +167,7 @@ DBFilterSettings::DBFilterSettings(const PacBio::CLI_v2::Results& options)
 
 PacBio::CLI_v2::Interface DBFilterSettings::CreateCLI()
 {
-    PacBio::CLI_v2::Interface i{"pancake", "Convert FASTA/FASTQ sequences to SeqDB.",
+    PacBio::CLI_v2::Interface i{"pancake dbfilter", "Filters the input SeqDB.",
                                 PacBio::Pancake::PancakeFormattedVersion()};
 
     // clang-format off
