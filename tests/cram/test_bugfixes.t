@@ -25,9 +25,10 @@ SeedDB test for empty SeqDB.
   $ rm -rf out; mkdir -p out
   > ${BIN_DIR}/pancake seeddb ${PROJECT_DIR}/test-data/bugfixes/empty-seqdb/test-1-seqdb-with-no-seqs.seqdb out/out
 
-Ovl-hifi test for empty SeqDB.
+Ovl-hifi test for empty SeqDB. This test is expected to throw, because the target block ID ("0") is explicitly specified, while there are no blocks in the input file.
   $ rm -rf out; mkdir -p out
-  > ${BIN_DIR}/pancake ovl-hifi ${PROJECT_DIR}/test-data/bugfixes/empty-seqdb/test-1-seqdb-with-no-seqs ${PROJECT_DIR}/test-data/bugfixes/empty-seqdb/test-1-seqdb-with-no-seqs 0 0 0
+  > ${BIN_DIR}/pancake ovl-hifi ${PROJECT_DIR}/test-data/bugfixes/empty-seqdb/test-1-seqdb-with-no-seqs ${PROJECT_DIR}/test-data/bugfixes/empty-seqdb/test-1-seqdb-with-no-seqs 0 0 0 2>&1 | sed 's/.*pancake //g'
+  ovl-hifi ERROR: Invalid blockId (a). blockId = 0, blockLines.size() = 0
 
 DBFilter test for empty SeqDB.
   $ rm -rf out; mkdir -p out
@@ -53,7 +54,7 @@ Composite test for multiple tools, from an empty input FASTA.
   > touch out/in.fasta
   > ${BIN_DIR}/pancake seqdb out/out out/in.fasta
   > ${BIN_DIR}/pancake seeddb out/out.seqdb out/out
-  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0
+  > ${BIN_DIR}/pancake ovl-hifi out/out out/out 0 0 0 2>&1 | sed 's/.*pancake //g'
   > ${BIN_DIR}/pancake dbfilter out/out out/out.filtered
   > touch out/to_fetch.txt
   > ${BIN_DIR}/pancake seqfetch out/out.fetched.fasta out/to_fetch.txt out/out.seqdb
@@ -61,6 +62,7 @@ Composite test for multiple tools, from an empty input FASTA.
   > ${BIN_DIR}/pancake seqdb-dump out/out.seqdb out/out.all.fasta
   > diff out/in.fasta out/out.all.fasta
   > ${BIN_DIR}/pancake seqdb-info out/out.seqdb --human | cut -f 2-
+  ovl-hifi ERROR: Invalid blockId (a). blockId = 0, blockLines.size() = 0
   0
   unit	total	num	min	max	avg	median	AUC	N10	N10_n	N25	N25_n	N50	N50_n	N75	N75_n	N90	N90_n	N100	N100_n
   bp	0.00	0	0.00	0.00	0.00	0.00	0.00	0.00	0	0.00	0	0.00	0	0.00	0	0.00	0	0.00	0
