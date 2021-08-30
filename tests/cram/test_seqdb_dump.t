@@ -30,8 +30,8 @@ Note - the Awk command here concatenates the multiline FASTA into a single line 
 
 Try dumping a block out of bounds.
   $ rm -f out.*
-  > ${BIN_DIR}/pancake seqdb-dump ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb out.fasta --block-id 10 2>&1 | sed 's/.*pancake seqfetch //g'
-  ERROR: Specified block ID is too large, numBlocks = 5.
+  > ${BIN_DIR}/pancake seqdb-dump ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb out.fasta --block-id 10 2>&1 | sed 's/.*pancake //g'
+  seqdb-dump ERROR: Specified block ID is too large, numBlocks = 5.
 
 Test fetching the homopolymer compressed sequences.
   $ rm -f out.*

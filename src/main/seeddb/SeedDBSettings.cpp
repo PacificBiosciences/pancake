@@ -93,7 +93,7 @@ SeedDBSettings::SeedDBSettings(const PacBio::CLI_v2::Results& options)
 
 PacBio::CLI_v2::Interface SeedDBSettings::CreateCLI()
 {
-    PacBio::CLI_v2::Interface i{"pancake", "Compute seeds from a SeqDB.",
+    PacBio::CLI_v2::Interface i{"pancake seeddb", "Compute seeds from a SeqDB.",
                                 PacBio::Pancake::PancakeFormattedVersion()};
 
     // clang-format off

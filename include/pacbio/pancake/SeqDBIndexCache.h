@@ -104,7 +104,7 @@ const SeqDBSequenceLine& GetSeqLine(const SeqDBIndexCache& indexCache,
                                     const std::string& header);
 
 /// \brief Validates the pointer and then calls indexCache->Validate.
-void ValidateSeqDBIndexCache(std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& indexCache);
+void ValidateSeqDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& indexCache);
 
 /// \brief Writes the .seqdb file to disk.
 void WriteSeqDBIndexCache(FILE* fpOut, const SeqDBIndexCache& cache);

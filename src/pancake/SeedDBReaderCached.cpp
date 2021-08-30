@@ -12,12 +12,7 @@ SeedDBReaderCached::SeedDBReaderCached(
     : seedDBIndexCache_(seedDBCache), blockId_(blockId)
 {
     // Sanity check.
-    if (seedDBIndexCache_->fileLines.empty())
-        throw std::runtime_error("There are no file specifications in the input index file.");
-    if (seedDBIndexCache_->seedLines.empty())
-        throw std::runtime_error("There are no sequences in the input index file.");
-    if (seedDBIndexCache_->blockLines.empty())
-        throw std::runtime_error("There are no blocks in the input index file.");
+    ValidateSeedDBIndexCache(seedDBCache);
 
     // Create a SeedDB reader.
     PacBio::Pancake::SeedDBReader reader(seedDBCache);

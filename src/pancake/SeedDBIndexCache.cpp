@@ -209,10 +209,6 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
         }
     }
 
-    if (cache->seedLines.empty())
-        throw std::runtime_error("There are no sequences in the input index file: " +
-                                 indexFilename);
-
     return cache;
 }
 
@@ -346,6 +342,37 @@ std::ostream& operator<<(std::ostream& os, const PacBio::Pancake::SeedDBIndexCac
            << bl.numBytes << "\n";
     }
     return os;
+}
+
+void SeedDBIndexCache::Validate() const
+{
+    if (seedLines.size() > 0 && fileLines.empty()) {
+        throw std::runtime_error(
+            "There are no file specifications in the input SeedDB index file, but there are seed "
+            "lines listed.");
+    }
+    if (blockLines.size() > 0 && fileLines.empty()) {
+        throw std::runtime_error(
+            "There are no file specifications in the input SeedDB index file, but there are block "
+            "lines listed.");
+    }
+    if (seedLines.size() > 0 && blockLines.empty()) {
+        throw std::runtime_error(
+            "There are no block specifications in the input SeedDB index file, but there are seed "
+            "lines listed.");
+    }
+    if (blockLines.size() > 0 && seedLines.empty()) {
+        throw std::runtime_error(
+            "There are blocks specified in the input SeedDB index file, but there are no seed "
+            "lines listed.");
+    }
+}
+
+void ValidateSeedDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeedDBIndexCache>& indexCache)
+{
+    // Sanity checks.
+    if (indexCache == nullptr) throw std::runtime_error("Provided seedDBCache == nullptr!");
+    indexCache->Validate();
 }
 
 }  // namespace Pancake

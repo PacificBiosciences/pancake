@@ -13,12 +13,7 @@ SeedDBReaderCachedBlock::SeedDBReaderCachedBlock(
     : indexCache_(seedDBCache)
 {
     // Sanity check.
-    if (indexCache_->fileLines.empty())
-        throw std::runtime_error("There are no file specifications in the input index file.");
-    if (indexCache_->seedLines.empty())
-        throw std::runtime_error("There are no sequences in the input index file.");
-    if (indexCache_->blockLines.empty())
-        throw std::runtime_error("There are no blocks in the input index file.");
+    ValidateSeedDBIndexCache(seedDBCache);
 }
 
 SeedDBReaderCachedBlock::SeedDBReaderCachedBlock(
