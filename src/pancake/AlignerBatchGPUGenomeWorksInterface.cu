@@ -168,6 +168,9 @@ void RunConvertToPacBioCigarAndScoreGpuKernel(
     assert(cigar_buf_size >= 0);
     assert(start_at_offset_index >= 0);
     assert(start_at_offset_index < aln_ptrs.n_alignments);
+    if(aln_ptrs.total_length == 0) {
+        return;
+    }
     cigar_buf_size = std::min(cigar_buf_size, aln_ptrs.total_length);
     const int32_t n_alignments  = aln_ptrs.n_alignments;
     assert(n_alignments > 0);

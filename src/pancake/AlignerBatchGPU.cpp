@@ -138,27 +138,29 @@ static bool TryReallocate(Buffer& buffer, int64_t size)
     return true;
 }
 
-template <typename Buffer>
-static void ResizeToEither(Buffer& buffer, const std::vector<int64_t>& sizesToTry)
+template <typename Buffer, typename Iterator>
+static void ResizeToEither(Buffer& buffer, Iterator begin, Iterator end)
 {
-    assert(std::is_sorted(begin(sizesToTry), end(sizesToTry), std::greater<int64_t>()));
-    if(sizesToTry.empty()){
+    assert(std::is_sorted(begin, end, std::greater<int64_t>()));
+    if(begin == end) {
         return;
     }
 
     Reallocate(buffer, 0);
     const int64_t maxSize = GetMaxSize(buffer) / sizeof(typename Buffer::value_type);
-    for(const int64_t s : sizesToTry) {
-        if (s > maxSize) {
+    Iterator last = end - 1;
+    for(Iterator it = begin; it != last; ++it) {
+        const int64_t size = *it;
+        if (size > maxSize) {
             continue;
         }
-        if (TryReallocate(buffer, s)) {
+        if (TryReallocate(buffer, size)) {
             return;
         }
     }
     // Try to allocate the last size (assuming it is the smallest).
     // If it cannot be allocated => let it throw an exception
-    Reallocate(buffer, sizesToTry.back());
+    Reallocate(buffer, *last);
 }
 
 static std::vector<int64_t> computeSizesToTry(int64_t maxSize, int64_t minSize)
@@ -218,11 +220,13 @@ void RetrieveResultsAsPacBioCigar(
 
     if (pacbioCigarsDevice.size() < aln.total_length)
     {
-        ResizeToEither(pacbioCigarsDevice, {aln.total_length + aln.total_length / 5, aln.total_length, 0});
+        std::array<int64_t, 3> sizesToTry = {aln.total_length + aln.total_length / 5, aln.total_length, 0};
+        ResizeToEither(pacbioCigarsDevice, begin(sizesToTry), end(sizesToTry));
     }
     if (static_cast<int64_t>(hostBuffers.cigarOpsBuffer.size()) < aln.total_length)
     {
-        ResizeToEither(hostBuffers.cigarOpsBuffer, {aln.total_length + aln.total_length / 5, aln.total_length, 0});
+        std::array<int64_t, 3> sizesToTry = {aln.total_length + aln.total_length / 5, aln.total_length, 0};
+        ResizeToEither(hostBuffers.cigarOpsBuffer, begin(sizesToTry), end(sizesToTry));
     }
     int64_t longestCigarLength = 0;
     if (pacbioCigarsDevice.size() < aln.total_length || static_cast<int64_t>(hostBuffers.cigarOpsBuffer.size()) < aln.total_length)
@@ -233,11 +237,11 @@ void RetrieveResultsAsPacBioCigar(
         const std::vector<int64_t> sizesToTry = computeSizesToTry(aln.total_length, longestCigarLength);
         if (pacbioCigarsDevice.size() < aln.total_length)
         {
-            ResizeToEither(pacbioCigarsDevice, sizesToTry);
+            ResizeToEither(pacbioCigarsDevice, begin(sizesToTry), end(sizesToTry));
         }
         if (static_cast<int64_t>(hostBuffers.cigarOpsBuffer.size()) < pacbioCigarsDevice.size())
         {
-            ResizeToEither(hostBuffers.cigarOpsBuffer, sizesToTry);
+            ResizeToEither(hostBuffers.cigarOpsBuffer, begin(sizesToTry), end(sizesToTry));
         }
     }
     else
@@ -278,6 +282,7 @@ void RetrieveResultsAsPacBioCigar(
             }
             auto& res = results[idx];
             res.cigar.clear();
+            res.cigar.reserve(len);
             res.cigar.insert(end(res.cigar), begin(hostBuffers.cigarOpsBuffer) + startPos, begin(hostBuffers.cigarOpsBuffer) + startPos + len);
             res.lastQueryPos  = querySpans[idx];
             res.lastTargetPos = targetSpans[idx];
