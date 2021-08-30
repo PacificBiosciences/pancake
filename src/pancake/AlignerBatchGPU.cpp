@@ -123,50 +123,68 @@ static void Reallocate(cpgw::pinned_host_vector<T>& buffer, int64_t size)
     buffer.resize(size);
 }
 
-
 template <typename Buffer>
-static void TryResizeCigarsBuffer(Buffer& buffer, int64_t size, int64_t minSize = -1)
+static bool TryReallocate(Buffer& buffer, int64_t size)
 {
+    try {
+        Reallocate(buffer, size);
+    }
+    catch (const std::bad_alloc&) {
+        return false;
+    }
+    catch (const cpgw::device_memory_allocation_exception&) {
+        return false;
+    }
+    return true;
+}
+
+// This function tries to resize the buffer to size (+20%), but does not
+// guarantee that a resize happened or succeeded.
+// The function may also deallocate the buffer completely even though
+// a non-zero size was requested.
+// I.e., you need to check the size of the buffer after calling this function.
+template <typename Buffer>
+static void TryResizeCigarsBufferForSize(Buffer& buffer, int64_t size)
+{
+    assert(size >= 0);
     if (static_cast<int64_t>(buffer.size()) < size) {
-        const int64_t sizePlus = size + size / 5;
-        Reallocate(buffer, 0);
+        Reallocate(buffer, 0); // deallocate to make space available for new allocation
         const int64_t maxSize = GetMaxSize(buffer) / sizeof(typename Buffer::value_type);
+        const int64_t sizePlus = size + size / 5;
         if (sizePlus <= maxSize) {
-            try {
-                Reallocate(buffer, sizePlus);
+            if(TryReallocate(buffer, sizePlus)) {
                 return;
-            }
-            catch (const std::bad_alloc&) {
-            }
-            catch (const cpgw::device_memory_allocation_exception&) {
             }
         }
         if (size <= maxSize) {
-            try {
-                Reallocate(buffer, size);
+            if(TryReallocate(buffer, size)) {
                 return;
             }
-            catch (const std::bad_alloc&) {
-            }
-            catch (const cpgw::device_memory_allocation_exception&) {
-            }
         }
-        if (minSize >= 0) {
-            for (int64_t s = size / 2; s > minSize; s /= 2) {
-                if(s <= maxSize) {
-                    try {
-                        Reallocate(buffer, s);
-                        return;
-                    }
-                    catch (const std::bad_alloc&) {
-                    }
-                    catch (const cpgw::device_memory_allocation_exception&) {
-                    }
+    }
+}
+
+// ResizeCigarBufferToAtLeast guarantees that the buffer size is at least
+// between [idealSize, minimalRequiredSize] after calling the function.
+// If this requirement cannot be met, the function will throw
+// a std::bad_alloc or cpgw::device_memory_allocation_exception.
+template <typename Buffer>
+static void ResizeCigarsBufferToAtLeast(Buffer& buffer, int64_t idealSize, int64_t minimalRequiredSize)
+{
+    assert(idealSize >= 0);
+    assert(minimalRequiredSize >= 0);
+    if (static_cast<int64_t>(buffer.size()) < idealSize) {
+        Reallocate(buffer, 0); // deallocate to make space available for new allocation
+        const int64_t maxSize = GetMaxSize(buffer) / sizeof(typename Buffer::value_type);
+        for (int64_t s = idealSize; s > minimalRequiredSize; s /= 2) {
+            if(s <= maxSize) {
+                if(TryReallocate(buffer, s)) {
+                    return;
                 }
             }
-            // If we cannot fulfil the minSize requirement => throw the exception
-            Reallocate(buffer, minSize);
         }
+        // Try to allocate the minimalRequiredSize requirement. If it can't be fulfilled => throw the exception
+        Reallocate(buffer, minimalRequiredSize);
     }
 }
 
@@ -212,8 +230,8 @@ void RetrieveResultsAsPacBioCigar(
     cpgw::device_buffer<int64_t> scoresDevice(numberOfAlignments, allocator, stream);
     cpgw::device_buffer<PacBio::Data::CigarOperation> pacbioCigarsDevice(0, allocator, stream);
 
-    TryResizeCigarsBuffer(pacbioCigarsDevice, aln.total_length);
-    TryResizeCigarsBuffer(hostBuffers.cigarOpsBuffer, aln.total_length);
+    TryResizeCigarsBufferForSize(pacbioCigarsDevice, aln.total_length);
+    TryResizeCigarsBufferForSize(hostBuffers.cigarOpsBuffer, aln.total_length);
     int64_t longestCigarLength = 0;
     if (pacbioCigarsDevice.size() < aln.total_length || static_cast<int64_t>(hostBuffers.cigarOpsBuffer.size()) < aln.total_length)
     {
@@ -223,11 +241,11 @@ void RetrieveResultsAsPacBioCigar(
     cpgw::cudautils::device_copy_n_async(aln.metadata, numberOfAlignments, hostBuffers.metaData.data(), stream);
     if (pacbioCigarsDevice.size() < aln.total_length)
     {
-        TryResizeCigarsBuffer(pacbioCigarsDevice, aln.total_length, longestCigarLength);
+        ResizeCigarsBufferToAtLeast(pacbioCigarsDevice, aln.total_length, longestCigarLength);
     }
     if (static_cast<int64_t>(hostBuffers.cigarOpsBuffer.size()) < pacbioCigarsDevice.size())
     {
-        TryResizeCigarsBuffer(hostBuffers.cigarOpsBuffer, pacbioCigarsDevice.size(), longestCigarLength);
+        ResizeCigarsBufferToAtLeast(hostBuffers.cigarOpsBuffer, pacbioCigarsDevice.size(), longestCigarLength);
     }
 
     results.resize(numberOfAlignments);
