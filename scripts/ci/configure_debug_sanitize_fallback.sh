@@ -14,5 +14,4 @@ meson \
   --buildtype=debugoptimized \
   -Db_sanitize=address \
   -Dtests="${ENABLED_TESTS:-false}" \
-  -Dsse41="${ENABLED_SSE41:-false}" \
   "${BUILD_DIR}" .
