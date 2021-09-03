@@ -1,5 +1,5 @@
 [wrap-git]
 directory=genomeworks
 url=https://github.com/armintoepfer/GenomeWorks
-revision=mesonify-2021-03-22
+revision=mesonify-2021-08
 clone-recursive=true
