@@ -15,6 +15,8 @@
 #include <unordered_map>
 #include <vector>
 
+#define DEBUG_MAPPERCLR_TIMINGS
+
 namespace PacBio {
 namespace Pancake {
 
@@ -27,6 +29,7 @@ struct ChainedRegion
     int32_t priority = 0;
     bool isSupplementary = false;
 };
+
 inline bool operator==(const ChainedRegion& lhs, const ChainedRegion& rhs)
 {
     return true;
@@ -63,6 +66,9 @@ class MapperBaseResult
 {
 public:
     std::vector<std::unique_ptr<ChainedRegion>> mappings;
+#ifdef DEBUG_MAPPERCLR_TIMINGS
+    std::unordered_map<std::string, double> time;
+#endif
 };
 inline bool operator==(const MapperBaseResult& lhs, const MapperBaseResult& rhs)
 {
