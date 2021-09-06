@@ -15,6 +15,7 @@
 #include <pacbio/util/Util.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/third-party/edlib.h>
+#include <util/TicToc.h>
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -29,6 +30,8 @@
 
 // #define PANCAKE_MAP_CLR_DEBUG_PRINT_CHAINED_REGIONS
 // #define PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
+
+#define DEBUG_MAPPERCLR_TIMINGS
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
 #include <pbcopper/utility/MemoryConsumption.h>
@@ -279,15 +282,38 @@ MapperBaseResult MapperCLR::WrapMapAndAlign_(
     return result;
 }
 
+#ifdef DEBUG_MAPPERCLR_TIMINGS
+inline void LogTicToc(const std::string& label, TicToc& tt,
+                      std::unordered_map<std::string, double>& timings)
+{
+    tt.Stop();
+    timings[label] = tt.GetMicrosecs();
+    tt.Start();
+}
+#else
+inline void LogTicToc(const std::string& label, TicToc& tt,
+                      std::unordered_map<std::string, double>& timings)
+{
+}
+#endif
+
 MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                                  const PacBio::Pancake::SeedIndex& index,
                                  const std::vector<PacBio::Pancake::Int128t>& querySeeds,
                                  const int32_t queryLen, const int32_t queryId,
                                  const MapperCLRSettings& settings, int64_t freqCutoff)
 {
+#ifdef DEBUG_MAPPERCLR_TIMINGS
+    TicToc ttMapAll;
+    TicToc ttPartial;
+#endif
+
+    MapperBaseResult result;
+
     // Skip short queries.
     if (queryLen < settings.map.minQueryLen) {
-        return {};
+        LogTicToc("map-all", ttMapAll, result.time);
+        return result;
     }
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
@@ -328,9 +354,12 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         seedHitHistogram, settings.map.seedOccurrenceMin, settings.map.seedOccurrenceMax,
         settings.map.seedOccurrenceMaxMemory, freqCutoff, debugVerboseOccurrenceThreshold);
 
+    LogTicToc("map-01-occthresh", ttPartial, result.time);
+
     // Collect seed hits.
     std::vector<SeedHit> hits;
     index.CollectHits(&querySeeds[0], querySeeds.size(), queryLen, hits, occThreshold);
+    LogTicToc("map-02-collect", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     {
@@ -355,6 +384,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
             }
         }
     }
+    LogTicToc("map-03-perfaln", ttPartial, result.time);
 
     // Filter symmetric and self hits.
     if (settings.map.skipSymmetricOverlaps ||
@@ -364,6 +394,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
             settings.map.skipSymmetricOverlaps);
         std::swap(hits, newHits);
     }
+    LogTicToc("map-04-skipsym", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     {
@@ -378,9 +409,11 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     std::sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) {
         return PackSeedHitWithDiagonalToTuple(a) < PackSeedHitWithDiagonalToTuple(b);
     });
+    LogTicToc("map-05-sortseeds", ttPartial, result.time);
 
     // Group seed hits by diagonal.
     auto groups = DiagonalGroup(hits, settings.map.chainBandwidth, true);
+    LogTicToc("map-06-diaggroup", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     {
@@ -398,6 +431,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore,
         settings.map.useLIS);
     DebugWriteChainedRegion(allChainedRegions, "1-chain-and-make-overlap", queryId, queryLen);
+    LogTicToc("map-07-chain", ttPartial, result.time);
 
     // Take the remaining regions, merge all seed hits, and rechain.
     // Needed because diagonal chaining was greedy and a wide window could have split
@@ -408,20 +442,24 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         settings.map.chainMaxPredecessors, settings.map.maxGap, settings.map.chainBandwidth,
         settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore);
     DebugWriteChainedRegion(allChainedRegions, "2-rechain-hits", queryId, queryLen);
+    LogTicToc("map-08-rechain", ttPartial, result.time);
 
     // Sort all chains in descending order of the number of hits.
     std::sort(allChainedRegions.begin(), allChainedRegions.end(),
               [](const auto& a, const auto& b) { return a->chain.score > b->chain.score; });
+    LogTicToc("map-09-sortchained", ttPartial, result.time);
 
     // Secondary/supplementary flagging.
     WrapFlagSecondaryAndSupplementary(
         allChainedRegions, settings.map.secondaryAllowedOverlapFractionQuery,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
     DebugWriteChainedRegion(allChainedRegions, "3-wrap-flag-secondary-suppl-1", queryId, queryLen);
+    LogTicToc("map-10-secondary", ttPartial, result.time);
 
     // Merge long gaps.
     LongMergeChains_(allChainedRegions, settings.map.maxGap);
     DebugWriteChainedRegion(allChainedRegions, "4-long-merge-chains", queryId, queryLen);
+    LogTicToc("map-11-longmerge", ttPartial, result.time);
 
     // Add an extra query alignment only if needed (i.e. if the MapperSelfHitPolicy == PERFECT_ALIGNMENT
     // and the query has self-hits ("self" in term of queryId/targetId).
@@ -432,12 +470,14 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
             CreateMockedMapping_(queryId, queryLen, targetId, targetLen);
         allChainedRegions.emplace_back(std::move(newChainedRegion));
     }
+    LogTicToc("map-12-addperfect", ttPartial, result.time);
 
     // Again relabel, because some chains are longer now.
     WrapFlagSecondaryAndSupplementary(
         allChainedRegions, settings.map.secondaryAllowedOverlapFractionQuery,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
     DebugWriteChainedRegion(allChainedRegions, "5-wrap-flag-secondary-suppl-2", queryId, queryLen);
+    LogTicToc("map-13-secondary", ttPartial, result.time);
 
     // Sort all chains by priority and then score.
     std::sort(allChainedRegions.begin(), allChainedRegions.end(),
@@ -448,6 +488,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                                                                b->chain.score);
                   return at < bt;
               });
+    LogTicToc("map-14-sortchained", ttPartial, result.time);
 
     // Refine seed hits for alignment.
     for (size_t i = 0; i < allChainedRegions.size(); ++i) {
@@ -472,11 +513,12 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         }
     }
     DebugWriteChainedRegion(allChainedRegions, "6-refining-seed-hits", queryId, queryLen);
+    LogTicToc("map-15-refineseeds", ttPartial, result.time);
 
     // Filter out the mappings.
-    MapperBaseResult result;
     result.mappings = std::move(allChainedRegions);
     const int32_t numPrimary = CondenseMappings(result.mappings, settings.map.bestNSecondary);
+    LogTicToc("map-16-condense", ttPartial, result.time);
 
     // If this occurs, that means that a filtering stage removed the primary alignment for some reason.
     // This can happen in case self-hits are skipped in the overlapping use case (the self-hit is the
@@ -488,6 +530,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                                           settings.map.secondaryAllowedOverlapFractionTarget,
                                           settings.map.secondaryMinScoreFraction);
     }
+    LogTicToc("map-17-secondary", ttPartial, result.time);
 
     // Collect regions for alignment.
     for (size_t i = 0; i < result.mappings.size(); ++i) {
@@ -500,6 +543,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     }
 
     DebugWriteChainedRegion(result.mappings, "7-result-mappings", queryId, queryLen);
+    LogTicToc("map-18-collectalnregions", ttPartial, result.time);
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
     std::cerr << "All hits: hits.size() = " << hits.size() << "\n";
@@ -524,6 +568,8 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     }
 #endif
 
+    LogTicToc("map-all", ttMapAll, result.time);
+
     return result;
 }
 
@@ -533,6 +579,11 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
                                    const MapperCLRSettings& settings, AlignerBasePtr& alignerGlobal,
                                    AlignerBasePtr& alignerExt)
 {
+#ifdef DEBUG_MAPPERCLR_TIMINGS
+    TicToc ttAlignAll;
+    TicToc ttPartial;
+#endif
+
 #ifdef PANCAKE_MAP_CLR_DEBUG_ALIGN
     std::cerr << "Aligning.\n";
     std::cerr << "alignerTypeGlobal = " << AlignerTypeToString(settings.align.alignerTypeGlobal)
@@ -604,6 +655,7 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
         }
 #endif
     }
+    LogTicToc("aln-01-alnseeded", ttPartial, alignedResult.time);
 
     // Secondary/supplementary flagging.
     WrapFlagSecondaryAndSupplementary(
@@ -611,9 +663,11 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
 
     DebugWriteChainedRegion(alignedResult.mappings, "8-result-after-align", queryId, queryLen);
+    LogTicToc("aln-02-secondary", ttPartial, alignedResult.time);
 
     const int32_t numPrimary =
         CondenseMappings(alignedResult.mappings, settings.map.bestNSecondary);
+    LogTicToc("aln-03-condense", ttPartial, alignedResult.time);
 
     // If this occurs, that means that a filtering stage removed the primary alignment for some reason.
     // This can happen in case self-hits are skipped in the overlapping use case (the self-hit is the
@@ -627,6 +681,9 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
                                           settings.map.secondaryAllowedOverlapFractionTarget,
                                           settings.map.secondaryMinScoreFraction);
     }
+    LogTicToc("aln-04-secondary", ttPartial, alignedResult.time);
+
+    LogTicToc("aln-all", ttAlignAll, alignedResult.time);
 
     return alignedResult;
 }
