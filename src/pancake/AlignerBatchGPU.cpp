@@ -429,9 +429,10 @@ std::pair<int64_t, int64_t> AlignerBatchGPU::AlignAll()
     timer.Reset();
 
     alnResults_.resize(querySpans_.size());
-    auto [cpuTimeCigar, gpuTimeCigar] = RetrieveResultsAsPacBioCigar(*gpuHostBuffers_.get(), querySpans_, targetSpans_, *aligner_.get(),
-                                 alnResults_, alnParams_.matchScore, alnParams_.mismatchPenalty,
-                                 alnParams_.gapOpen1, alnParams_.gapExtend1);
+    auto[cpuTimeCigar, gpuTimeCigar] = RetrieveResultsAsPacBioCigar(
+        *gpuHostBuffers_.get(), querySpans_, targetSpans_, *aligner_.get(), alnResults_,
+        alnParams_.matchScore, alnParams_.mismatchPenalty, alnParams_.gapOpen1,
+        alnParams_.gapExtend1);
 
     cpuTime += cpuTimeCigar;
     gpuTime += gpuTimeCigar;
