@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-#define DEBUG_MAPPERCLR_TIMINGS
+#define DEBUG_LOG_TIMINGS
 
 namespace PacBio {
 namespace Pancake {
@@ -66,7 +66,7 @@ class MapperBaseResult
 {
 public:
     std::vector<std::unique_ptr<ChainedRegion>> mappings;
-#ifdef DEBUG_MAPPERCLR_TIMINGS
+#ifdef DEBUG_LOG_TIMINGS
     std::unordered_map<std::string, double> time;
 #endif
 };
