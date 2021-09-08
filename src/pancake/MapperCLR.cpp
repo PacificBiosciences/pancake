@@ -796,11 +796,19 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
 #endif
 
         // DP Chaining of the filtered hits to remove outliers.
-        std::vector<ChainedHits> chains = ChainHits(
-            &hits2[group.start], group.end - group.start, chainMaxSkip, chainMaxPredecessors,
-            maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore);
+        double timeChaining = 0.0, timeBacktrack = 0.0;
+        std::vector<ChainedHits> chains =
+            ChainHits(&hits2[group.start], group.end - group.start, chainMaxSkip,
+                      chainMaxPredecessors, maxGap, chainBandwidth, minNumSeeds, minCoveredBases,
+                      minDPScore, timeChaining, timeBacktrack);
 
+        double timeChainHits = ttPartial.GetMicrosecs(true);
         LogTicTocAdd("map-L2-rechain-03-chainhits", ttPartial, retTimings);
+        LogTicTocAdd("map-L3-rechain-01-chaining", timeChaining, retTimings);
+        LogTicTocAdd("map-L3-rechain-02-backtrack", timeBacktrack, retTimings);
+        LogTicTocAdd("map-L2-total-chainhits", timeChainHits, retTimings);
+        LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
+        LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
         std::cerr << "[group " << groupId << "] After ChainHits:\n";
@@ -897,10 +905,18 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             LogTicTocAdd("map-L2-chain-02-lis", ttPartial, retTimings);
 
             // DP Chaining of the filtered hits to remove outliers.
+            double timeChaining = 0.0, timeBacktrack = 0.0;
             chains = ChainHits(&lisHits[0], lisHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore);
+                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
+                               timeChaining, timeBacktrack);
 
+            double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
+            LogTicTocAdd("map-L3-chain-01-chaining", timeChaining, retTimings);
+            LogTicTocAdd("map-L3-chain-02-backtrack", timeBacktrack, retTimings);
+            LogTicTocAdd("map-L2-total-chainhits", timeChainHits, retTimings);
+            LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
+            LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
             std::cerr << "  - Hits before LIS:\n";
@@ -917,10 +933,18 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             }
 #endif
         } else {
+            double timeChaining = 0.0, timeBacktrack = 0.0;
             chains = ChainHits(&groupHits[0], groupHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore);
+                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
+                               timeChaining, timeBacktrack);
 
+            double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
+            LogTicTocAdd("map-L3-chain-01-chaining", timeChaining, retTimings);
+            LogTicTocAdd("map-L3-chain-02-backtrack", timeBacktrack, retTimings);
+            LogTicTocAdd("map-L2-total-chainhits", timeChainHits, retTimings);
+            LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
+            LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
             std::cerr << "  - not using LIS.\n";
 #endif
