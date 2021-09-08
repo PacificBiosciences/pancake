@@ -169,6 +169,7 @@ if not meson.is_subproject()
   install_headers(
     files([
       'pacbio/util/CommonTypes.h',
+      'pacbio/util/DebugTools.h',
       'pacbio/util/Conversion.h',
       'pacbio/util/FileIO.h',
       'pacbio/util/GenomicUnit.h',
