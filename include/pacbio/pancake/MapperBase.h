@@ -64,9 +64,7 @@ class MapperBaseResult
 {
 public:
     std::vector<std::unique_ptr<ChainedRegion>> mappings;
-#ifdef DEBUG_LOG_TIMINGS
     std::unordered_map<std::string, double> time;
-#endif
 };
 inline bool operator==(const MapperBaseResult& lhs, const MapperBaseResult& rhs)
 {
