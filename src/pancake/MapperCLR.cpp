@@ -31,38 +31,12 @@
 // #define PANCAKE_MAP_CLR_DEBUG_PRINT_CHAINED_REGIONS
 // #define PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
 
-#define DEBUG_MAPPERCLR_TIMINGS
+#define DEBUG_LOG_TIMINGS
+#include <util/DebugTools.h>
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
 #include <pbcopper/utility/MemoryConsumption.h>
 #include <iomanip>
-#endif
-
-#ifdef DEBUG_MAPPERCLR_TIMINGS
-inline void LogTicToc(const std::string& label, TicToc& tt,
-                      std::unordered_map<std::string, double>& timings)
-{
-    tt.Stop();
-    timings[label] = tt.GetMicrosecs();
-    tt.Start();
-}
-inline void LogTicTocAdd(const std::string& label, TicToc& tt,
-                         std::unordered_map<std::string, double>& timings)
-{
-    tt.Stop();
-    timings[label] += tt.GetMicrosecs();
-    tt.Start();
-}
-
-#else
-inline void LogTicToc(const std::string& label, TicToc& tt,
-                      std::unordered_map<std::string, double>& timings)
-{
-}
-inline void LogTicTocAdd(const std::string& label, TicToc& tt,
-                         std::unordered_map<std::string, double>& timings)
-{
-}
 #endif
 
 namespace PacBio {
@@ -945,6 +919,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
         } else {
             chains = ChainHits(&groupHits[0], groupHits.size(), chainMaxSkip, chainMaxPredecessors,
                                maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore);
+
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
             std::cerr << "  - not using LIS.\n";
