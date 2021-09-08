@@ -15,8 +15,6 @@
 #include <unordered_map>
 #include <vector>
 
-#define DEBUG_LOG_TIMINGS
-
 namespace PacBio {
 namespace Pancake {
 
