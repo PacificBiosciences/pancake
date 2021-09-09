@@ -71,7 +71,7 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
         // Add the initial gap open penalty.
         const int32_t x_i_score = hits[i - 1].querySpan;
 
-        int32_t new_dp_val = x_i_score;
+        double new_dp_val = x_i_score;
         int32_t new_dp_pred = 0;
         int32_t new_dp_chain = num_chains;
         int32_t num_skipped_predecessors = 0;
@@ -146,12 +146,12 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
 
             num_processed += 1;
 
-            const int32_t lin_part = (gap_dist * lin_factor);
-            const int32_t log_part = ((gap_dist == 0) ? 0 : raptor::utility::ilog2_32(gap_dist));
-            const int32_t edge_score = lin_part + (log_part >> 1);
-            const int32_t x_j_score =
+            const double lin_part = (gap_dist * lin_factor);
+            const double log_part = ((gap_dist == 0) ? 0 : raptor::utility::ilog2_32(gap_dist));
+            const double edge_score = lin_part + (log_part / 2.0);
+            const double x_j_score =
                 std::min(x_j_span, static_cast<int32_t>(std::min(abs(dist_x), abs(dist_y))));
-            const int32_t score_ij = dp[j] + x_j_score - edge_score;
+            const double score_ij = dp[j] + x_j_score - edge_score;
 
 #ifdef DPCHAIN_DEBUG
             std::cerr << "    [i = " << i << ", j = " << j << "] score_ij = " << score_ij
