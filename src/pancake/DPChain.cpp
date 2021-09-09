@@ -12,6 +12,8 @@
 #include <lib/math.hpp>
 #include <sstream>
 
+// #define DPCHAIN_DEBUG
+
 namespace PacBio {
 namespace Pancake {
 
@@ -54,6 +56,12 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
     const double lin_factor = 0.01 * avgQuerySpan;
 
     for (int32_t i = 1; i < (n_hits + 1); i++) {
+#ifdef DPCHAIN_DEBUG
+        std::cerr << "[i = " << i << "] hits[i - 1] = " << hits[i - 1] << "\n";
+#endif
+
+        // The [i - 1] is correct here. This is because the "i" loop starts at 1,
+        // just to make sure there are at least 2 points.
         const int32_t x_i_start = hits[i - 1].queryPos;
         const int32_t y_i_start = hits[i - 1].targetPos;
         // int32_t l_i = y_i_start - x_i_start;
@@ -73,10 +81,17 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
             (chainMaxPredecessors <= 0) ? 0 : std::max(0, (i - 1 - chainMaxPredecessors));
 
         for (int32_t j = (i - 1); j > min_j; j--) {
+#ifdef DPCHAIN_DEBUG
+            std::cerr << "[i = " << i << ", j = " << j << "] Checking predecessor.\n";
+            std::cerr << "    hits[j - 1] = " << hits[j - 1] << "\n";
+#endif
+
 #ifdef EXPERIMENTAL_QUERY_MASK
             bool is_tandem = hits[j - 1].QueryMask() & MINIMIZER_HIT_TANDEM_FLAG;
 #endif
 
+            // The [j - 1] is correct here. The outter loop looks at hits[i-1], and this one has to go
+            // one before that.
             const int32_t x_j_start = hits[j - 1].queryPos;
             const int32_t y_j_start = hits[j - 1].targetPos;
             const int32_t t_id_j = hits[j - 1].targetId;
@@ -90,9 +105,15 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
             const int32_t gap_dist = (dist_x < dist_y) ? (dist_y - dist_x) : (dist_x - dist_y);
 
             if (t_id_j != t_id_i || t_rev_j != t_rev_i) {
+#ifdef DPCHAIN_DEBUG
+                std::cerr << "    Break 1.\n";
+#endif
                 break;
             }
             if (dist_y > seedJoinDist) {
+#ifdef DPCHAIN_DEBUG
+                std::cerr << "    Break 2.\n";
+#endif
                 break;
             }
 
@@ -103,12 +124,23 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
 #endif
 
             if (x_i_start <= x_j_start || y_i_start <= y_j_start) {
+#ifdef DPCHAIN_DEBUG
+                std::cerr << "    x_i_start = " << x_i_start << ", x_j_start = " << x_j_start
+                          << ", y_i_start = " << y_i_start << ", y_j_start = " << y_j_start << "\n";
+                std::cerr << "    Continue 1. Start coords.\n";
+#endif
                 continue;
             }
             if (gap_dist > diagMargin) {
+#ifdef DPCHAIN_DEBUG
+                std::cerr << "    Continue 2. Diag margin.\n";
+#endif
                 continue;
             }
             if (dist_x > seedJoinDist) {
+#ifdef DPCHAIN_DEBUG
+                std::cerr << "    Continue 3. maxGap\n";
+#endif
                 continue;
             }
 
@@ -117,12 +149,19 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
             const int32_t lin_part = (gap_dist * lin_factor);
             const int32_t log_part = ((gap_dist == 0) ? 0 : raptor::utility::ilog2_32(gap_dist));
             const int32_t edge_score = lin_part + (log_part >> 1);
-
             const int32_t x_j_score =
                 std::min(x_j_span, static_cast<int32_t>(std::min(abs(dist_x), abs(dist_y))));
             const int32_t score_ij = dp[j] + x_j_score - edge_score;
 
+#ifdef DPCHAIN_DEBUG
+            std::cerr << "    [i = " << i << ", j = " << j << "] score_ij = " << score_ij
+                      << ", new_dp_val = " << new_dp_val << "\n";
+#endif
+
             if (score_ij >= new_dp_val) {
+#ifdef DPCHAIN_DEBUG
+                std::cerr << "    -> Better.\n";
+#endif
                 new_dp_pred = j;
                 new_dp_val = score_ij;
                 new_dp_chain = chain_id[j];
@@ -134,11 +173,19 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
             } else {
                 num_skipped_predecessors += 1;
                 if (num_skipped_predecessors > chainMaxSkip) {
-                    // std::cerr << "Bump! num_skipped_predecessors = " << num_skipped_predecessors << ", chainMaxSkip = " << chainMaxSkip << std::endl;
+#ifdef DPCHAIN_DEBUG
+                    std::cerr << "Bump! num_skipped_predecessors = " << num_skipped_predecessors
+                              << ", chainMaxSkip = " << chainMaxSkip << ", i = " << i
+                              << ", j = " << j << std::endl;
+#endif
                     break;
                 }
             }
         }
+
+#ifdef DPCHAIN_DEBUG
+        std::cerr << "\n";
+#endif
 
         dp[i] = new_dp_val;
         pred[i] = new_dp_pred;
