@@ -59,7 +59,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
         // Add the initial gap open penalty.
         const int32_t x_i_score = hits[i - 1].querySpan;
 
-        double newDpVal = x_i_score;
+        int32_t newDpVal = x_i_score;
         int32_t newDpPred = 0;
         int32_t newDpChain = numChains;
         int32_t numSkippedPredecessors = 0;
@@ -101,11 +101,11 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
 
             numProcessed += 1;
 
-            const double linPart = (gapDist * linFactor);
-            const double logPart = ((gapDist == 0) ? 0 : raptor::utility::ilog2_32(gapDist));
-            const double edge_score = linPart + (logPart / 2.0);
-            const double x_j_score = std::min(x_j_span, std::min<int32_t>(abs(distX), abs(distY)));
-            const double score_ij = dp[j] + x_j_score - edge_score;
+            const int32_t linPart = (gapDist * linFactor);
+            const int32_t logPart = ((gapDist == 0) ? 0 : raptor::utility::ilog2_32(gapDist));
+            const int32_t edge_score = linPart + (logPart / 2.0);
+            const int32_t x_j_score = std::min(x_j_span, std::min<int32_t>(abs(distX), abs(distY)));
+            const int32_t score_ij = dp[j] + x_j_score - edge_score;
 
             if (score_ij >= newDpVal) {
                 newDpPred = j;
