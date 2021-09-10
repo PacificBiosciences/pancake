@@ -32,12 +32,6 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
     pred.clear();
     chainId.clear();
 
-    // Shring to ensure that resizing will fill data from beginning.
-    // Could use memset instead.
-    dp.shrink_to_fit();
-    pred.shrink_to_fit();
-    chainId.shrink_to_fit();
-
     // Zeroth element will be the "Null" state.
     // For each node, it's chain ID is the same as of it's predecessor.
     dp.resize(hitsSize + 1, 0);
@@ -110,8 +104,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
             const double linPart = (gapDist * linFactor);
             const double logPart = ((gapDist == 0) ? 0 : raptor::utility::ilog2_32(gapDist));
             const double edge_score = linPart + (logPart / 2.0);
-            const double x_j_score =
-                std::min(x_j_span, static_cast<int32_t>(std::min(abs(distX), abs(distY))));
+            const double x_j_score = std::min(x_j_span, std::min<int32_t>(abs(distX), abs(distY)));
             const double score_ij = dp[j] + x_j_score - edge_score;
 
             if (score_ij >= newDpVal) {
