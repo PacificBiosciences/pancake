@@ -19,47 +19,42 @@ namespace Pancake {
 
 constexpr int32_t PlusInf = std::numeric_limits<int32_t>::max() - 10000;  // Leave a margin.
 
-std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_t chainMaxSkip,
-                                   int32_t chainMaxPredecessors, int32_t seedJoinDist,
-                                   int32_t diagMargin, int32_t minNumSeeds, int32_t minCovBases,
-                                   int32_t minDPScore)
+/*
+ * \brief Performs the forward pass of the DP chaining procedure (no backtrack included).
+ *          The DP results are returned via parameters: dp, pred and chainId.
+*/
+int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
+                         const int32_t chainMaxPredecessors, const int32_t seedJoinDist,
+                         const int32_t diagMargin, std::vector<int32_t>& dp,
+                         std::vector<int32_t>& pred, std::vector<int32_t>& chainId)
 {
-    /*
-     * Hits need to be sorted in this order of priority:
-     *      target_id, target_rev, target_pos, query_pos
-    */
+    dp.clear();
+    pred.clear();
+    chainId.clear();
 
-    std::vector<ChainedHits> chains;
-    const int32_t n_hits = hitsSize;
-
-    if (n_hits == 0) {
-        return chains;
-    }
-
-    if (chainMaxSkip <= 0) {
-        return chains;
-    }
+    // Shring to ensure that resizing will fill data from beginning.
+    // Could use memset instead.
+    dp.shrink_to_fit();
+    pred.shrink_to_fit();
+    chainId.shrink_to_fit();
 
     // Zeroth element will be the "Null" state.
-    std::vector<int32_t> dp(n_hits + 1, 0);  // Initial dp score is 0, for local alignment.
-    std::vector<int32_t> pred(n_hits + 1, 0);
-    std::vector<int32_t> chain_id(
-        n_hits + 1, -1);  // For each node, it's chain ID is the same as of it's predecessor.
-    int32_t num_chains = 0;
+    // For each node, it's chain ID is the same as of it's predecessor.
+    dp.resize(hitsSize + 1, 0);
+    pred.resize(hitsSize + 1, 0);
+    chainId.resize(hitsSize + 1, -1);
+
+    int32_t numChains = 0;
 
     double avgQuerySpan = 0.0;
-    for (int32_t i = 0; i < n_hits; i++) {
+    for (int32_t i = 0; i < hitsSize; i++) {
         avgQuerySpan += static_cast<double>(hits[i].querySpan);
     }
-    avgQuerySpan = (n_hits > 0) ? avgQuerySpan / static_cast<double>(n_hits) : 0.0;
+    avgQuerySpan = (hitsSize > 0) ? avgQuerySpan / static_cast<double>(hitsSize) : 0.0;
 
     const double lin_factor = 0.01 * avgQuerySpan;
 
-    for (int32_t i = 1; i < (n_hits + 1); i++) {
-#ifdef DPCHAIN_DEBUG
-        std::cerr << "[i = " << i << "] hits[i - 1] = " << hits[i - 1] << "\n";
-#endif
-
+    for (int32_t i = 1; i < (hitsSize + 1); i++) {
         // The [i - 1] is correct here. This is because the "i" loop starts at 1,
         // just to make sure there are at least 2 points.
         const int32_t x_i_start = hits[i - 1].queryPos;
@@ -73,7 +68,7 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
 
         double new_dp_val = x_i_score;
         int32_t new_dp_pred = 0;
-        int32_t new_dp_chain = num_chains;
+        int32_t new_dp_chain = numChains;
         int32_t num_skipped_predecessors = 0;
         int32_t num_processed = 0;
 
@@ -81,15 +76,6 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
             (chainMaxPredecessors <= 0) ? 0 : std::max(0, (i - 1 - chainMaxPredecessors));
 
         for (int32_t j = (i - 1); j > min_j; j--) {
-#ifdef DPCHAIN_DEBUG
-            std::cerr << "[i = " << i << ", j = " << j << "] Checking predecessor.\n";
-            std::cerr << "    hits[j - 1] = " << hits[j - 1] << "\n";
-#endif
-
-#ifdef EXPERIMENTAL_QUERY_MASK
-            bool is_tandem = hits[j - 1].QueryMask() & MINIMIZER_HIT_TANDEM_FLAG;
-#endif
-
             // The [j - 1] is correct here. The outter loop looks at hits[i-1], and this one has to go
             // one before that.
             const int32_t x_j_start = hits[j - 1].queryPos;
@@ -105,42 +91,19 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
             const int32_t gap_dist = (dist_x < dist_y) ? (dist_y - dist_x) : (dist_x - dist_y);
 
             if (t_id_j != t_id_i || t_rev_j != t_rev_i) {
-#ifdef DPCHAIN_DEBUG
-                std::cerr << "    Break 1.\n";
-#endif
                 break;
             }
             if (dist_y > seedJoinDist) {
-#ifdef DPCHAIN_DEBUG
-                std::cerr << "    Break 2.\n";
-#endif
                 break;
             }
 
-#ifdef EXPERIMENTAL_QUERY_MASK
-            if (is_tandem) {
-                continue;
-            }
-#endif
-
             if (x_i_start <= x_j_start || y_i_start <= y_j_start) {
-#ifdef DPCHAIN_DEBUG
-                std::cerr << "    x_i_start = " << x_i_start << ", x_j_start = " << x_j_start
-                          << ", y_i_start = " << y_i_start << ", y_j_start = " << y_j_start << "\n";
-                std::cerr << "    Continue 1. Start coords.\n";
-#endif
                 continue;
             }
             if (gap_dist > diagMargin) {
-#ifdef DPCHAIN_DEBUG
-                std::cerr << "    Continue 2. Diag margin.\n";
-#endif
                 continue;
             }
             if (dist_x > seedJoinDist) {
-#ifdef DPCHAIN_DEBUG
-                std::cerr << "    Continue 3. maxGap\n";
-#endif
                 continue;
             }
 
@@ -153,18 +116,10 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
                 std::min(x_j_span, static_cast<int32_t>(std::min(abs(dist_x), abs(dist_y))));
             const double score_ij = dp[j] + x_j_score - edge_score;
 
-#ifdef DPCHAIN_DEBUG
-            std::cerr << "    [i = " << i << ", j = " << j << "] score_ij = " << score_ij
-                      << ", new_dp_val = " << new_dp_val << "\n";
-#endif
-
             if (score_ij >= new_dp_val) {
-#ifdef DPCHAIN_DEBUG
-                std::cerr << "    -> Better.\n";
-#endif
                 new_dp_pred = j;
                 new_dp_val = score_ij;
-                new_dp_chain = chain_id[j];
+                new_dp_chain = chainId[j];
 
                 // This is the main difference to how I previously calculated the scan_depth.
                 num_skipped_predecessors -= 1;
@@ -173,40 +128,64 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
             } else {
                 num_skipped_predecessors += 1;
                 if (num_skipped_predecessors > chainMaxSkip) {
-#ifdef DPCHAIN_DEBUG
-                    std::cerr << "Bump! num_skipped_predecessors = " << num_skipped_predecessors
-                              << ", chainMaxSkip = " << chainMaxSkip << ", i = " << i
-                              << ", j = " << j << std::endl;
-#endif
                     break;
                 }
             }
         }
 
-#ifdef DPCHAIN_DEBUG
-        std::cerr << "\n";
-#endif
-
         dp[i] = new_dp_val;
         pred[i] = new_dp_pred;
-        chain_id[i] = new_dp_chain;
-        if (new_dp_chain == num_chains) {
-            num_chains += 1;
+        chainId[i] = new_dp_chain;
+        if (new_dp_chain == numChains) {
+            numChains += 1;
         }
     }
 
+    return numChains;
+}
+
+std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_t chainMaxSkip,
+                                   int32_t chainMaxPredecessors, int32_t seedJoinDist,
+                                   int32_t diagMargin, int32_t minNumSeeds, int32_t minCovBases,
+                                   int32_t minDPScore)
+{
+    /**
+     * Hits need to be sorted in this order of priority:
+     *      target_id, target_rev, target_pos, query_pos
+    */
+
+    std::vector<ChainedHits> chains;
+    const int32_t n_hits = hitsSize;
+
+    if (n_hits == 0) {
+        return chains;
+    }
+
+    if (chainMaxSkip <= 0) {
+        return chains;
+    }
+
+    std::vector<int32_t> dp;
+    std::vector<int32_t> pred;
+    std::vector<int32_t> chainId;
+
+    const int32_t numChains = ChainHitsForward(hits, hitsSize, chainMaxSkip, chainMaxPredecessors,
+                                               seedJoinDist, diagMargin, dp, pred, chainId);
+
+    ////////////////////
+    /// Backtrack.   ///
+    ////////////////////
     // Find the maximum of every chain for backtracking.
-    std::vector<int32_t> chain_maxima(num_chains, -PlusInf);
+    std::vector<int32_t> chainMaxima(numChains, -PlusInf);
     for (int32_t i = 1; i < (n_hits + 1); i++) {
-        if (chain_maxima[chain_id[i]] == -PlusInf || dp[i] >= dp[chain_maxima[chain_id[i]]]) {
-            chain_maxima[chain_id[i]] = i;
+        if (chainMaxima[chainId[i]] == -PlusInf || dp[i] >= dp[chainMaxima[chainId[i]]]) {
+            chainMaxima[chainId[i]] = i;
         }
     }
 
-    // Backtrack.
-    for (int32_t i = 0; i < static_cast<int32_t>(chain_maxima.size()); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(chainMaxima.size()); i++) {
         // Trace back from the maxima.
-        int32_t node_id = chain_maxima[i];
+        int32_t node_id = chainMaxima[i];
         const int32_t score = dp[node_id];
 
         if (score < minDPScore) {
@@ -265,7 +244,7 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
 #ifdef DEBUG_DP_VERBOSE_
     printf("The DP:\n");
     for (int32_t i = 0; i < dp.size(); i++) {
-        printf("[%d] dp[i] = %d, pred[i] = %d, chain_id[i] = %d\n", i, dp[i], pred[i], chain_id[i]);
+        printf("[%d] dp[i] = %d, pred[i] = %d, chainId[i] = %d\n", i, dp[i], pred[i], chainId[i]);
     }
 #endif
 
