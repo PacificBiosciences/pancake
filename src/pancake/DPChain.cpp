@@ -59,7 +59,6 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
         // just to make sure there are at least 2 points.
         const int32_t x_i_start = hits[i - 1].queryPos;
         const int32_t y_i_start = hits[i - 1].targetPos;
-        // int32_t l_i = y_i_start - x_i_start;
         const int32_t t_id_i = hits[i - 1].targetId;
         const bool t_rev_i = hits[i - 1].targetRev;
 
@@ -86,7 +85,6 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
 
             const int32_t dist_x = x_i_start - x_j_start;  // If < 0, it's not a predecessor.
             const int32_t dist_y = y_i_start - y_j_start;
-            // int32_t l_j = y_j_start - x_j_start;
 
             const int32_t gap_dist = (dist_x < dist_y) ? (dist_y - dist_x) : (dist_x - dist_y);
 
