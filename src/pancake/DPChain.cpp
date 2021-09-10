@@ -52,7 +52,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
     }
     avgQuerySpan = (hitsSize > 0) ? avgQuerySpan / static_cast<double>(hitsSize) : 0.0;
 
-    const double lin_factor = 0.01 * avgQuerySpan;
+    const double linFactor = 0.01 * avgQuerySpan;
 
     for (int32_t i = 1; i < (hitsSize + 1); i++) {
         // The [i - 1] is correct here. This is because the "i" loop starts at 1,
@@ -65,16 +65,16 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
         // Add the initial gap open penalty.
         const int32_t x_i_score = hits[i - 1].querySpan;
 
-        double new_dp_val = x_i_score;
-        int32_t new_dp_pred = 0;
-        int32_t new_dp_chain = numChains;
-        int32_t num_skipped_predecessors = 0;
-        int32_t num_processed = 0;
+        double newDpVal = x_i_score;
+        int32_t newDpPred = 0;
+        int32_t newDpChain = numChains;
+        int32_t numSkippedPredecessors = 0;
+        int32_t numProcessed = 0;
 
-        const int32_t min_j =
+        const int32_t minJ =
             (chainMaxPredecessors <= 0) ? 0 : std::max(0, (i - 1 - chainMaxPredecessors));
 
-        for (int32_t j = (i - 1); j > min_j; j--) {
+        for (int32_t j = (i - 1); j > minJ; j--) {
             // The [j - 1] is correct here. The outter loop looks at hits[i-1], and this one has to go
             // one before that.
             const int32_t x_j_start = hits[j - 1].queryPos;
@@ -83,58 +83,58 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
             const bool t_rev_j = hits[j - 1].targetRev;
             const int32_t x_j_span = hits[j - 1].querySpan;
 
-            const int32_t dist_x = x_i_start - x_j_start;  // If < 0, it's not a predecessor.
-            const int32_t dist_y = y_i_start - y_j_start;
+            const int32_t distX = x_i_start - x_j_start;  // If < 0, it's not a predecessor.
+            const int32_t distY = y_i_start - y_j_start;
 
-            const int32_t gap_dist = (dist_x < dist_y) ? (dist_y - dist_x) : (dist_x - dist_y);
+            const int32_t gapDist = (distX < distY) ? (distY - distX) : (distX - distY);
 
             if (t_id_j != t_id_i || t_rev_j != t_rev_i) {
                 break;
             }
-            if (dist_y > seedJoinDist) {
+            if (distY > seedJoinDist) {
                 break;
             }
 
             if (x_i_start <= x_j_start || y_i_start <= y_j_start) {
                 continue;
             }
-            if (gap_dist > diagMargin) {
+            if (gapDist > diagMargin) {
                 continue;
             }
-            if (dist_x > seedJoinDist) {
+            if (distX > seedJoinDist) {
                 continue;
             }
 
-            num_processed += 1;
+            numProcessed += 1;
 
-            const double lin_part = (gap_dist * lin_factor);
-            const double log_part = ((gap_dist == 0) ? 0 : raptor::utility::ilog2_32(gap_dist));
-            const double edge_score = lin_part + (log_part / 2.0);
+            const double linPart = (gapDist * linFactor);
+            const double logPart = ((gapDist == 0) ? 0 : raptor::utility::ilog2_32(gapDist));
+            const double edge_score = linPart + (logPart / 2.0);
             const double x_j_score =
-                std::min(x_j_span, static_cast<int32_t>(std::min(abs(dist_x), abs(dist_y))));
+                std::min(x_j_span, static_cast<int32_t>(std::min(abs(distX), abs(distY))));
             const double score_ij = dp[j] + x_j_score - edge_score;
 
-            if (score_ij >= new_dp_val) {
-                new_dp_pred = j;
-                new_dp_val = score_ij;
-                new_dp_chain = chainId[j];
+            if (score_ij >= newDpVal) {
+                newDpPred = j;
+                newDpVal = score_ij;
+                newDpChain = chainId[j];
 
                 // This is the main difference to how I previously calculated the scan_depth.
-                num_skipped_predecessors -= 1;
-                num_skipped_predecessors = std::max(0, num_skipped_predecessors);
+                numSkippedPredecessors -= 1;
+                numSkippedPredecessors = std::max(0, numSkippedPredecessors);
 
             } else {
-                num_skipped_predecessors += 1;
-                if (num_skipped_predecessors > chainMaxSkip) {
+                numSkippedPredecessors += 1;
+                if (numSkippedPredecessors > chainMaxSkip) {
                     break;
                 }
             }
         }
 
-        dp[i] = new_dp_val;
-        pred[i] = new_dp_pred;
-        chainId[i] = new_dp_chain;
-        if (new_dp_chain == numChains) {
+        dp[i] = newDpVal;
+        pred[i] = newDpPred;
+        chainId[i] = newDpChain;
+        if (newDpChain == numChains) {
             numChains += 1;
         }
     }
