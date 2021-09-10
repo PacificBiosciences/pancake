@@ -8,6 +8,7 @@
  */
 
 #include <pacbio/pancake/DPChain.h>
+#include <pacbio/util/TicToc.h>
 #include <iostream>
 #include <lib/math.hpp>
 #include <sstream>
@@ -138,13 +139,19 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
 std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_t chainMaxSkip,
                                    int32_t chainMaxPredecessors, int32_t seedJoinDist,
                                    int32_t diagMargin, int32_t minNumSeeds, int32_t minCovBases,
-                                   int32_t minDPScore)
+                                   int32_t minDPScore, double& timeChaining, double& timeBacktrack)
 {
-    /**
+/**
      * Hits need to be sorted in this order of priority:
      *      target_id, target_rev, target_pos, query_pos
     */
 
+#ifdef DEBUG_LOG_TIMINGS
+    TicToc ttPartial;
+#endif
+
+    timeChaining = 0.0;
+    timeBacktrack = 0.0;
     std::vector<ChainedHits> chains;
     const int32_t n_hits = hitsSize;
 
@@ -162,6 +169,12 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
 
     const int32_t numChains = ChainHitsForward(hits, hitsSize, chainMaxSkip, chainMaxPredecessors,
                                                seedJoinDist, diagMargin, dp, pred, chainId);
+
+#ifdef DEBUG_LOG_TIMINGS
+    ttPartial.Stop();
+    timeChaining = ttPartial.GetMicrosecs();
+    ttPartial.Start();
+#endif
 
     ////////////////////
     /// Backtrack.   ///
@@ -237,6 +250,12 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
     for (int32_t i = 0; i < dp.size(); i++) {
         printf("[%d] dp[i] = %d, pred[i] = %d, chainId[i] = %d\n", i, dp[i], pred[i], chainId[i]);
     }
+#endif
+
+#ifdef DEBUG_LOG_TIMINGS
+    ttPartial.Stop();
+    timeBacktrack = ttPartial.GetMicrosecs();
+    ttPartial.Start();
 #endif
 
     return chains;
