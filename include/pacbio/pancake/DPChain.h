@@ -13,10 +13,18 @@
 #include <pacbio/pancake/Range.h>
 #include <pacbio/pancake/SeedHit.h>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {
 namespace Pancake {
+
+struct ChainingScratchSpace
+{
+    std::vector<int32_t> dp;
+    std::vector<int32_t> pred;
+    std::vector<int32_t> chainId;
+};
 
 struct ChainedHits
 {
@@ -127,7 +135,8 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, const int32_t hitsSize,
                                    const int32_t seedJoinDist, const int32_t diagMargin,
                                    const int32_t minNumSeeds, const int32_t minCovBases,
                                    const int32_t minDPScore, double& timeChaining,
-                                   double& timeBacktrack);
+                                   double& timeBacktrack,
+                                   std::shared_ptr<ChainingScratchSpace> ss = nullptr);
 
 double ComputeChainDivergence(const std::vector<SeedHit>& hits);
 
