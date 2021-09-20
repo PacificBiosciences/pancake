@@ -238,6 +238,10 @@ private:
     ///
     static std::vector<OverlapPtr> FilterTandemOverlaps_(const std::vector<OverlapPtr>& overlaps);
 
+    static std::vector<OverlapPtr> FilterTandemOverlapsSmart_(
+        const std::vector<OverlapPtr>& overlaps, const double secondaryAllowedOverlapFraction,
+        const double secondaryMinScoreFraction);
+
     /// \brief  Helper function which extracts a subsequence from a given sequence, and reverse
     ///         complements if needed.
     /// \param targetSeq The full sequence from which a subsequence should be extracted.
