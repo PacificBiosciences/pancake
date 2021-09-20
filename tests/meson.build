@@ -13,6 +13,7 @@ pancake_test_cpp_sources = files([
   'src/test_Minimizers.cpp',
   'src/test_Overlap.cpp',
   'src/test_Pancake.cpp',
+  'src/test_RangeTools.cpp',
   'src/test_RunLengthEncoding.cpp',
   'src/test_Secondary.cpp',
   'src/test_SeedIndex.cpp',

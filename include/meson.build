@@ -32,6 +32,7 @@ if not meson.is_subproject()
   install_headers(
     files([
       'lib/istl/lis.hpp',
+      'lib/istl/range_tools.hpp',
       ]),
       subdir : 'lib/istl')
 
