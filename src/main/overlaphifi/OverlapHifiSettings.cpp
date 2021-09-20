@@ -172,6 +172,13 @@ R"({
     "type" : "bool"
 })", OverlapHifiSettings::Defaults::OneHitPerTarget};
 
+const CLI_v2::Option SmartHitPerTarget{
+R"({
+    "names" : ["smart-hit-per-target"],
+    "description" : "Allow supplementary alignments on the same target (e.g. circular overlaps). Secondary alignments on the same target are not allowed.",
+    "type" : "bool"
+})", OverlapHifiSettings::Defaults::SmartHitPerTarget};
+
 const CLI_v2::Option WriteReverseOverlaps{
 R"({
     "names" : ["write-rev"],
@@ -352,6 +359,7 @@ OverlapHifiSettings::OverlapHifiSettings(const PacBio::CLI_v2::Results& options)
     , NoIndelsInIdentity{options[OptionNames::NoIndelsInIdentity]}
     , MinMappedLength{options[OptionNames::MinMappedLength]}
     , OneHitPerTarget{options[OptionNames::OneHitPerTarget]}
+    , SmartHitPerTarget{options[OptionNames::SmartHitPerTarget]}
     , WriteReverseOverlaps{options[OptionNames::WriteReverseOverlaps]}
     , WriteIds{options[OptionNames::WriteIds]}
     , WriteCigar{options[OptionNames::WriteCigar]}
@@ -444,6 +452,7 @@ PacBio::CLI_v2::Interface OverlapHifiSettings::CreateCLI()
         OptionNames::SkipSymmetricOverlaps,
         OptionNames::AllowSelfHits,
         OptionNames::OneHitPerTarget,
+        OptionNames::SmartHitPerTarget,
         OptionNames::WriteReverseOverlaps,
         OptionNames::WriteIds,
         OptionNames::WriteCigar,
