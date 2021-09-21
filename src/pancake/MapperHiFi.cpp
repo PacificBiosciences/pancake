@@ -762,6 +762,8 @@ std::vector<OverlapPtr> Mapper::FilterTandemOverlapsSmart_(
         }
     }
 
+    assert(ret.size() > 0);
+
     return ret;
 }
 
