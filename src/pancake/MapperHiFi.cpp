@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <iostream>
 #include <lib/istl/lis.hpp>
+#include <lib/istl/range_tools.hpp>
 #include <pacbio/alignment/Ses2AlignBanded.hpp>
 #include <pacbio/alignment/Ses2DistanceBanded.hpp>
 #include <pacbio/alignment/SesAlignBanded.hpp>
@@ -98,17 +99,28 @@ MapperResult Mapper::MapSingleQuery_(const PacBio::Pancake::FastaSequenceCachedS
     ttChain.Stop();
 #ifdef PANCAKE_DEBUG
     PBLOG_INFO << "Formed diagonal anchors: " << overlaps.size();
+    for (const auto& ovl : overlaps) {
+        PBLOG_INFO << *ovl;
+    }
+    PBLOG_INFO << "\n";
 #endif
 
     // Filter out multiple hits per query-target pair (e.g. tandem repeats) by
     // taking only the longest overlap chain.
     TicToc ttFilterTandem;
-    if (settings_.OneHitPerTarget) {
+    if (settings_.SmartHitPerTarget) {
+        overlaps = FilterTandemOverlapsSmart_(overlaps, settings_.SecondaryAllowedOverlapFraction,
+                                              settings_.SecondaryMinScoreFraction);
+    } else if (settings_.OneHitPerTarget) {
         overlaps = FilterTandemOverlaps_(overlaps);
     }
     ttFilterTandem.Stop();
 #ifdef PANCAKE_DEBUG
     PBLOG_INFO << "Overlaps after tandem filtering: " << overlaps.size();
+    for (const auto& ovl : overlaps) {
+        PBLOG_INFO << *ovl;
+    }
+    PBLOG_INFO << "\n";
 #endif
 
     const std::string reverseQuerySeq =
@@ -677,6 +689,80 @@ std::vector<OverlapPtr> Mapper::FilterTandemOverlaps_(const std::vector<OverlapP
         }
         ret.emplace_back(createOverlap(ovl));
     }
+
+    return ret;
+}
+
+std::vector<OverlapPtr> Mapper::FilterTandemOverlapsSmart_(
+    const std::vector<OverlapPtr>& overlaps, const double secondaryAllowedOverlapFraction,
+    const double secondaryMinScoreFraction)
+{
+    if (overlaps.empty()) {
+        return {};
+    }
+
+    // Make an internal copy for sorting.
+    std::vector<OverlapPtr> ovlCopy;
+    for (const auto& ovl : overlaps) {
+        ovlCopy.emplace_back(createOverlap(ovl));
+    }
+
+    // Sort by length.
+    std::sort(ovlCopy.begin(), ovlCopy.end(), [](const auto& a, const auto& b) {
+        return a->Bid < b->Bid ||
+               (a->Bid == b->Bid &&
+                std::max(a->ASpan(), a->BSpan()) > std::max(b->ASpan(), b->BSpan()));
+    });
+
+    std::vector<std::pair<size_t, size_t>> ranges = istl::FindRanges<OverlapPtr>(
+        ovlCopy, [](const auto& a, const auto& b) { return a->Bid == b->Bid; });
+
+    // Filter.
+    std::vector<OverlapPtr> ret;
+    for (const auto& range : ranges) {
+        const auto[start, end] = range;
+        if (end < start) {
+            assert(false);
+            continue;
+        }
+
+        const size_t span = end - start;
+        if (span == 0) {
+            continue;
+        }
+
+        std::vector<OverlapPtr> hits;
+        bool sameStrand = true;
+        bool prevRev = ovlCopy[start]->Brev;
+        for (size_t i = start; i < end; ++i) {
+            if (ovlCopy[i]->Brev != prevRev) {
+                sameStrand = false;
+            }
+            prevRev = ovlCopy[i]->Brev;
+            hits.emplace_back(std::move(ovlCopy[i]));
+        }
+
+        // If not all alignments of a query/target pair are on the same strand, then
+        // just output the best scoring match.
+        if (sameStrand == false) {
+            ret.emplace_back(std::move(hits.front()));
+            continue;
+        }
+
+        // Otherwise, mark the supplementary and secondary ones.
+        const std::vector<OverlapPriority> overlapPriorities = FlagSecondaryAndSupplementary(
+            hits, secondaryAllowedOverlapFraction, secondaryAllowedOverlapFraction,
+            secondaryMinScoreFraction);
+
+        for (size_t i = 0; i < hits.size(); ++i) {
+            if (overlapPriorities[i].priority > 0) {
+                continue;
+            }
+            ret.emplace_back(std::move(hits[i]));
+        }
+    }
+
+    assert(ret.size() > 0);
 
     return ret;
 }

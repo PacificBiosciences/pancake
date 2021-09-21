@@ -38,6 +38,7 @@ struct OverlapHifiSettings
         static const bool SkipSymmetricOverlaps = false;
         static const bool SkipSelfHits = false;
         static const bool OneHitPerTarget = false;
+        static const bool SmartHitPerTarget = false;
         static const bool WriteReverseOverlaps = false;
         static const bool WriteIds = false;
         static const bool WriteCigar = false;
@@ -86,6 +87,7 @@ struct OverlapHifiSettings
     bool SkipSymmetricOverlaps = Defaults::SkipSymmetricOverlaps;
     bool SkipSelfHits = Defaults::SkipSelfHits;
     bool OneHitPerTarget = Defaults::OneHitPerTarget;
+    bool SmartHitPerTarget = Defaults::SmartHitPerTarget;
     bool WriteReverseOverlaps = Defaults::WriteReverseOverlaps;
     bool WriteIds = Defaults::WriteIds;
     bool WriteCigar = Defaults::WriteCigar;
