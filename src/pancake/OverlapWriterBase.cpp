@@ -53,33 +53,34 @@ void OverlapWriterBase::PrintOverlapAsIPAOvl(FILE* fpOut, const Overlap& ovl,
                 fprintf(fpOut, "%u%c", op.Length(), ConstexprTypeToChar(op.Type()));
             }
         }
-    } else {
-        fprintf(fpOut, " *");
-    }
 
-    // [17] Write the A-read variant string, in the fwd orientation of the A-read.
-    // Variant string is a list of variant bases for every non-match CIGAR operation.
-    if (ovl.Avars.empty()) {
-        fprintf(fpOut, " *");
-    } else {
-        if (ovl.Arev) {
-            auto vars = Pancake::ReverseComplement(ovl.Avars, 0, ovl.Avars.size());
-            fprintf(fpOut, " %s", vars.c_str());
+        // [17] Write the A-read variant string, in the fwd orientation of the A-read.
+        // Variant string is a list of variant bases for every non-match CIGAR operation.
+        if (ovl.Avars.empty()) {
+            fprintf(fpOut, " *");
         } else {
-            fprintf(fpOut, " %s", ovl.Avars.c_str());
+            if (ovl.Arev) {
+                auto vars = Pancake::ReverseComplement(ovl.Avars, 0, ovl.Avars.size());
+                fprintf(fpOut, " %s", vars.c_str());
+            } else {
+                fprintf(fpOut, " %s", ovl.Avars.c_str());
+            }
         }
-    }
 
-    // [18] Write the B-read variant string, in the fwd orientation of the B-read.
-    if (ovl.Bvars.empty()) {
-        fprintf(fpOut, " *");
-    } else {
-        if (ovl.Brev) {
-            auto vars = Pancake::ReverseComplement(ovl.Bvars, 0, ovl.Bvars.size());
-            fprintf(fpOut, " %s", vars.c_str());
+        // [18] Write the B-read variant string, in the fwd orientation of the B-read.
+        if (ovl.Bvars.empty()) {
+            fprintf(fpOut, " *");
         } else {
-            fprintf(fpOut, " %s", ovl.Bvars.c_str());
+            if (ovl.Brev) {
+                auto vars = Pancake::ReverseComplement(ovl.Bvars, 0, ovl.Bvars.size());
+                fprintf(fpOut, " %s", vars.c_str());
+            } else {
+                fprintf(fpOut, " %s", ovl.Bvars.c_str());
+            }
         }
+
+    } else {
+        fprintf(fpOut, " * * *");
     }
 
     // [19] Write the additional label column which is unused for now.
