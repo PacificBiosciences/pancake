@@ -60,7 +60,7 @@ void OverlapWriterBase::PrintOverlapAsIPAOvl(FILE* fpOut, const Overlap& ovl,
             fprintf(fpOut, " *");
         } else {
             if (ovl.Arev) {
-                auto vars = Pancake::ReverseComplement(ovl.Avars, 0, ovl.Avars.size());
+                const auto vars = Pancake::ReverseComplement(ovl.Avars, 0, ovl.Avars.size());
                 fprintf(fpOut, " %s", vars.c_str());
             } else {
                 fprintf(fpOut, " %s", ovl.Avars.c_str());
@@ -72,7 +72,7 @@ void OverlapWriterBase::PrintOverlapAsIPAOvl(FILE* fpOut, const Overlap& ovl,
             fprintf(fpOut, " *");
         } else {
             if (ovl.Brev) {
-                auto vars = Pancake::ReverseComplement(ovl.Bvars, 0, ovl.Bvars.size());
+                const auto vars = Pancake::ReverseComplement(ovl.Bvars, 0, ovl.Bvars.size());
                 fprintf(fpOut, " %s", vars.c_str());
             } else {
                 fprintf(fpOut, " %s", ovl.Bvars.c_str());
