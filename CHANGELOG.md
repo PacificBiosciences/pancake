@@ -2,7 +2,22 @@
 
 ## Active version in development
 ### Changes
- - Add `dynamicBandwidth` boolean to `AlignmentParameters` that allows iterative KSW2 bandwidth exploration
+## v1.4.0
+ - Added a CLI option `--smart-hit-per-target` to the `ovl-hifi` subtool.  For a query/target pair, this labels supplementary and secondary overlaps for that pair only. It discards secondary alignments, but keeps all supplementary. These supplementary alignments all have to be on the same strand.
+ - Added `dynamicBandwidth` boolean to `AlignmentParameters` that allows iterative KSW2 bandwidth exploration.
+ - GCC11 fixes.
+ - Feature: added configurable maximum seed occurrence threshold to MapperCLR. This adds 3 new settings to the MapperCLRMapSettings: `seedOccurrenceMin`, `seedOccurrenceMax` and `seedOccurrenceMaxMemory`.
+ - Feature: Cudaaligner updates.
+ - Fixed the CLI command line help for almost all subtools.
+ - Tools no longer throw an exception when the input SeqDB is empty. Instead, they just return with empty output.
+ - Catching exceptions and returning empty results in all public interfaces of: MapperHiFi, MapperCLR, MapperBatchCPU and MapperBatchGPU.
+ - Bugfix in `seqdb-dump`. Wrong sequence length was used to write the sequences.
+ - Added alignment optimality checking to AlignerKSW2.
+ - Bugfix in MapperBatchGPU, wrong bandwidth passed to the aligner.
+ - Added an alignment tool function "ComputeSimpleRepeatMask". It computes a mask of simple repeats (HPs, dinuc, trinuc, etc.).
+ - Refactored the batch aligner classes. They now have the same base class.
+ - Unit tests for ChainHits.
+ - Variant strings are no longer written when the CIGAR is not output, in `ovl-hifi`.
 
 ## v1.3.0
 ### Version

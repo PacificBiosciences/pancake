@@ -206,10 +206,6 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
         }
     }
 
-    if (cache->seqLines.empty())
-        throw std::runtime_error("There are no sequences in the input index file: " +
-                                 indexFilename);
-
     return cache;
 }
 
@@ -328,15 +324,31 @@ void NormalizeSeqDBIndexCache(SeqDBIndexCache& cache, int64_t blockSize)
 
 void SeqDBIndexCache::Validate() const
 {
-    if (fileLines.empty())
-        throw std::runtime_error("There are no file specifications in the input index file.");
-    if (seqLines.empty())
-        throw std::runtime_error("There are no sequences in the input index file.");
-    if (blockLines.empty())
-        throw std::runtime_error("There are no blocks in the input index file.");
+    if (seqLines.size() > 0 && fileLines.empty()) {
+        throw std::runtime_error(
+            "There are no file specifications in the input SeqDB index file, but there are "
+            "sequence "
+            "lines listed.");
+    }
+    if (blockLines.size() > 0 && fileLines.empty()) {
+        throw std::runtime_error(
+            "There are no file specifications in the input SeqDB index file, but there are block "
+            "lines listed.");
+    }
+    if (seqLines.size() > 0 && blockLines.empty()) {
+        throw std::runtime_error(
+            "There are no block specifications in the input SeqDB index file, but there are "
+            "sequence "
+            "lines listed.");
+    }
+    if (blockLines.size() > 0 && seqLines.empty()) {
+        throw std::runtime_error(
+            "There are blocks specified in the input SeqDB index file, but there are no sequences "
+            "listed.");
+    }
 }
 
-void ValidateSeqDBIndexCache(std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& indexCache)
+void ValidateSeqDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& indexCache)
 {
     // Sanity checks.
     if (indexCache == nullptr) throw std::runtime_error("Provided seqDBCache == nullptr!");
@@ -397,7 +409,7 @@ const SeqDBBlockLine& SeqDBIndexCache::GetBlockLine(int32_t blockId) const
     // Sanity check for the sequence ID.
     if (blockId < 0 || blockId >= static_cast<int32_t>(blockLines.size())) {
         std::ostringstream oss;
-        oss << "Invalid blockId. blockId = " << blockId
+        oss << "Invalid blockId (a). blockId = " << blockId
             << ", blockLines.size() = " << blockLines.size();
         throw std::runtime_error(oss.str());
     }

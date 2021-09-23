@@ -238,6 +238,22 @@ private:
     ///
     static std::vector<OverlapPtr> FilterTandemOverlaps_(const std::vector<OverlapPtr>& overlaps);
 
+    /// \brief  Filters multiple overlaps for the same query-target pair, for example tandem repeats.
+    ///         If there are multiple overlaps between the same query/target pair and all of them are
+    ///         on the same strand of the target, then each overlap will internally be labeled as either primary,
+    ///         supplementary or secondary. Secondary overlaps will be ignored, but primary and supplementary
+    ///         will all be output. This is, for example, suitable for small circular sequences, e.g. plasmids.
+    /// \param overlaps A vector of overlaps to filter.
+    /// \param secondaryAllowedOverlapFraction Controls the maximum fraction that a supplementary
+    ///         alignment can overlap a primary alignment, otherwise it is marked as secondary.
+    /// \param secondaryMinScoreFraction Ignores potential secondary alignments if their score is less
+    ///         than this fraction of the primary alignment's score.
+    /// \return A vector of filtered overlaps.
+    ///
+    static std::vector<OverlapPtr> FilterTandemOverlapsSmart_(
+        const std::vector<OverlapPtr>& overlaps, const double secondaryAllowedOverlapFraction,
+        const double secondaryMinScoreFraction);
+
     /// \brief  Helper function which extracts a subsequence from a given sequence, and reverse
     ///         complements if needed.
     /// \param targetSeq The full sequence from which a subsequence should be extracted.

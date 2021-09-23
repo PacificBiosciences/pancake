@@ -57,6 +57,11 @@ inline std::ostream& operator<<(std::ostream& os, const ChainedHits& b)
     return os;
 }
 
+int32_t ChainHitsForward(const SeedHit* hits, int32_t hitsSize, int32_t chainMaxSkip,
+                         int32_t chainMaxPredecessors, int32_t seedJoinDist, int32_t diagMargin,
+                         std::vector<int32_t>& dp, std::vector<int32_t>& pred,
+                         std::vector<int32_t>& chainId);
+
 std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hits_size, int32_t chain_max_skip,
                                    int32_t chain_max_predecessors, int32_t seed_join_dist,
                                    int32_t diag_margin, int32_t min_num_seeds,

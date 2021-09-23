@@ -60,9 +60,8 @@ SeqDBDumpSettings::SeqDBDumpSettings(const PacBio::CLI_v2::Results& options)
 
 PacBio::CLI_v2::Interface SeqDBDumpSettings::CreateCLI()
 {
-    PacBio::CLI_v2::Interface i{"pancake seqfetch",
-                                "Fetches a set of sequences in random access from a list of "
-                                "specified indexed sequence files.",
+    PacBio::CLI_v2::Interface i{"pancake seqdb-dump",
+                                "Writes the entire SeqDB as FASTA to file or stdout.",
                                 PacBio::Pancake::PancakeFormattedVersion()};
 
     i.DisableNumThreadsOption();

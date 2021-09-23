@@ -212,7 +212,7 @@ TEST(MapperBatchGPU, BatchMapping_ArrayOfTests)
 
         const uint32_t gpuDeviceId = 0;
         const int64_t gpuMaxMemoryCap =
-            static_cast<int64_t>(100) * static_cast<int64_t>(1024 * 1024);
+            static_cast<int64_t>(1000) * static_cast<int64_t>(1024 * 1024);
         const int32_t numThreads = 1;
         const int32_t startBandwidth = 500;
         const int32_t maxBandwidth = 2000;
@@ -619,7 +619,7 @@ TEST(MapperBatchGPU, CheckSelfHitPolicyAndSkippingSymmetrical)
         // Create the mapper.
         const uint32_t gpuDeviceId = 0;
         const int64_t gpuMaxMemoryCap =
-            static_cast<int64_t>(100) * static_cast<int64_t>(1024 * 1024);
+            static_cast<int64_t>(1000) * static_cast<int64_t>(1024 * 1024);
         const int32_t numThreads = 2;
         const int32_t startBandwidth = 500;
         const int32_t maxBandwidth = 2000;

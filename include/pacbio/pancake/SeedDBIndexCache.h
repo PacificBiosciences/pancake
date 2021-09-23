@@ -77,6 +77,10 @@ public:
     const SeedDBFileLine& GetFileLine(int32_t fileId) const;
     const SeedDBBlockLine& GetBlockLine(int32_t blockId) const;
     const SeedDBSeedsLine& GetSeedsLine(int32_t seqId) const;
+
+    /// \brief Checks that the fileLines, seqLines and blockLines are not empty.
+    ///        Throws if they are.
+    void Validate() const;
 };
 
 void ComputeSeedDBIndexHeaderLookup(const PacBio::Pancake::SeedDBIndexCache& dbCache,
@@ -99,6 +103,9 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
 
 std::vector<ContiguousFilePart> GetSeedDBContiguousParts(
     const std::shared_ptr<PacBio::Pancake::SeedDBIndexCache>& seedDBIndexCache, int32_t blockId);
+
+/// \brief Validates the pointer and then calls indexCache->Validate.
+void ValidateSeedDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeedDBIndexCache>& indexCache);
 
 }  // namespace Pancake
 }  // namespace PacBio

@@ -15,12 +15,7 @@ namespace Pancake {
 SeqDBReader::SeqDBReader(std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& seqDBCache)
     : seqDBIndexCache_(seqDBCache)
 {
-    // Sanity check.
-    if (seqDBIndexCache_->fileLines.empty())
-        throw std::runtime_error("There are no file specifications in the input index file.");
-    if (seqDBIndexCache_->seqLines.empty())
-        throw std::runtime_error("There are no sequences in the input index file.");
-
+    ValidateSeqDBIndexCache(seqDBIndexCache_);
     ComputeSeqDBIndexHeaderLookup(*seqDBIndexCache_, headerToOrdinalId_);
 }
 
@@ -179,7 +174,7 @@ bool SeqDBReader::GetBlock(std::vector<Pancake::FastaSequenceId>& records, int32
     // Sanity check for the sequence ID.
     if (blockId < 0 || blockId >= static_cast<int32_t>(seqDBIndexCache_->blockLines.size())) {
         std::ostringstream oss;
-        oss << "Invalid blockId. blockId = " << blockId
+        oss << "Invalid blockId (b). blockId = " << blockId
             << ", blocks.size() = " << seqDBIndexCache_->blockLines.size();
         throw std::runtime_error(oss.str());
     }

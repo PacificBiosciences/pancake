@@ -635,3 +635,10 @@ Test masking of indels at the very beginning, when the front of the sequence is 
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 reads reads 0 0 0 --traceback --write-cigar --mask-hp --mask-hp-arbitrary --mask-repeats --skip-sym --write-rev --out-fmt ipa
   001235617 000125429 -6445 99.9690 0 0 6461 21031 0 12793 19250 19250 5 3 u 1=1D758=1D103=1I158=1X87=1D304=1I73=1D32=1D323=1I84=1I123=1I98=1I175=1D204=1I12=1D5=1I64=1I61=1D54=1X54=1I1150=1D807=1I1416=1I98=1I94=1I53=1D54= cAggtcccgaTataat ttTtataaaAtt *
   000125429 001235617 -6445 99.9690 0 12793 19250 19250 0 0 6461 21031 3 5 u 1=1I758=1I103=1D158=1X87=1I304=1D73=1I32=1I323=1D84=1D123=1D98=1D175=1I204=1D12=1I5=1D64=1D61=1I54=1X54=1D1150=1I807=1D1416=1D98=1D94=1D53=1I54= ttTtataaaAtt cAggtcccgaTataat *
+
+Same test at the first one in this section, but the output is to be written without the CIGAR and variant strings.
+  $ ${BIN_DIR}/pancake seqdb reads ${PROJECT_DIR}/test-data/varstr/reads1.weird_masking_issue.fasta
+  > ${BIN_DIR}/pancake seeddb reads.seqdb reads
+  > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 reads reads 0 0 0 --traceback --mask-hp --mask-repeats --skip-sym --write-rev --out-fmt ipa
+  000000571 000000551 -8276 99.9275 0 0 8287 10491 1 0 8284 8714 5 5 u * * * *
+  000000551 000000571 -8276 99.9275 0 0 8284 8714 1 0 8287 10491 5 5 u * * * *
