@@ -93,7 +93,7 @@ std::vector<MapperBaseResult> MapperCLR::MapAndAlign(const FastaSequenceCachedSt
                                                      const FastaSequenceCachedStore& querySeqs)
 {
     return WrapBuildIndexMapAndAlignWithFallback_(targetSeqs, querySeqs, settings_, ssChain_,
-                                                  alignerGlobal_, alignerExt_);
+                                                  ssSeedHits_, alignerGlobal_, alignerExt_);
 }
 
 MapperBaseResult MapperCLR::MapAndAlignSingleQuery(
@@ -102,7 +102,7 @@ MapperBaseResult MapperCLR::MapAndAlignSingleQuery(
     const int32_t queryId, int64_t freqCutoff)
 {
     return WrapMapAndAlign_(targetSeqs, index, querySeq, querySeeds, queryId, freqCutoff, settings_,
-                            ssChain_, alignerGlobal_, alignerExt_);
+                            ssChain_, ssSeedHits_, alignerGlobal_, alignerExt_);
 }
 
 MapperBaseResult MapperCLR::Map(const FastaSequenceCachedStore& targetSeqs,
@@ -110,7 +110,8 @@ MapperBaseResult MapperCLR::Map(const FastaSequenceCachedStore& targetSeqs,
                                 const std::vector<PacBio::Pancake::Int128t>& querySeeds,
                                 const int32_t queryLen, const int32_t queryId, int64_t freqCutoff)
 {
-    return Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings_, freqCutoff, ssChain_);
+    return Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings_, freqCutoff, ssChain_,
+                ssSeedHits_);
 }
 
 MapperBaseResult MapperCLR::Align(const FastaSequenceCachedStore& targetSeqs,
@@ -181,7 +182,7 @@ void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& 
 std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
     const FastaSequenceCachedStore& targetSeqs, const FastaSequenceCachedStore& querySeqs,
     const MapperCLRSettings& settings, std::shared_ptr<ChainingScratchSpace> ssChain,
-    AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
+    std::vector<SeedHit>& ssSeedHits, AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
 {
     // Construct the index.
     std::vector<PacBio::Pancake::Int128t> seeds;
@@ -237,7 +238,7 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
 
         MapperBaseResult queryResults =
             WrapMapAndAlign_(targetSeqs, *seedIndex, query, querySeeds, queryId, freqCutoff,
-                             settings, ssChain, alignerGlobal, alignerExt);
+                             settings, ssChain, ssSeedHits, alignerGlobal, alignerExt);
 
         if (queryResults.mappings.empty() && seedIndexFallback != nullptr) {
             rv = SeedDB::GenerateMinimizers(
@@ -250,9 +251,9 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
                     "Generating minimizers failed for the query sequence, id = " +
                     std::to_string(queryId));
 
-            queryResults =
-                WrapMapAndAlign_(targetSeqs, *seedIndexFallback, query, querySeeds, queryId,
-                                 freqCutoffFallback, settings, ssChain, alignerGlobal, alignerExt);
+            queryResults = WrapMapAndAlign_(targetSeqs, *seedIndexFallback, query, querySeeds,
+                                            queryId, freqCutoffFallback, settings, ssChain,
+                                            ssSeedHits, alignerGlobal, alignerExt);
         }
 
         for (const auto& m : queryResults.mappings) {
@@ -272,14 +273,14 @@ MapperBaseResult MapperCLR::WrapMapAndAlign_(
     const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
     const FastaSequenceCached& querySeq, const std::vector<PacBio::Pancake::Int128t>& querySeeds,
     const int32_t queryId, int64_t freqCutoff, const MapperCLRSettings& settings,
-    std::shared_ptr<ChainingScratchSpace> ssChain, AlignerBasePtr& alignerGlobal,
-    AlignerBasePtr& alignerExt)
+    std::shared_ptr<ChainingScratchSpace> ssChain, std::vector<SeedHit>& ssSeedHits,
+    AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
 {
     const int32_t queryLen = querySeq.size();
 
     // Map the query.
-    auto result =
-        Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings, freqCutoff, ssChain);
+    auto result = Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings, freqCutoff,
+                       ssChain, ssSeedHits);
 
     // Align if needed.
     if (settings.align.align) {
@@ -300,7 +301,8 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                                  const std::vector<PacBio::Pancake::Int128t>& querySeeds,
                                  const int32_t queryLen, const int32_t queryId,
                                  const MapperCLRSettings& settings, int64_t freqCutoff,
-                                 std::shared_ptr<ChainingScratchSpace> ssChain)
+                                 std::shared_ptr<ChainingScratchSpace> ssChain,
+                                 std::vector<SeedHit>& ssSeedHits)
 {
     TicToc ttMapAll;
     TicToc ttPartial;
@@ -354,7 +356,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     LogTicToc("map-L1-01-occthresh", ttPartial, result.time);
 
     // Collect seed hits.
-    std::vector<SeedHit> hits;
+    auto& hits = ssSeedHits;
     index.CollectHits(&querySeeds[0], querySeeds.size(), queryLen, hits, occThreshold);
     LogTicToc("map-L1-02-collect", ttPartial, result.time);
 

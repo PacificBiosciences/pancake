@@ -267,6 +267,7 @@ private:
     AlignerBasePtr alignerGlobal_;
     AlignerBasePtr alignerExt_;
     std::shared_ptr<ChainingScratchSpace> ssChain_;
+    std::vector<SeedHit> ssSeedHits_;
 
     /*
      * \brief Wraps the entire mapping and alignment process.
@@ -279,8 +280,8 @@ private:
         const FastaSequenceCached& querySeq,
         const std::vector<PacBio::Pancake::Int128t>& querySeeds, const int32_t queryId,
         int64_t freqCutoff, const MapperCLRSettings& settings,
-        std::shared_ptr<ChainingScratchSpace> ssChain, AlignerBasePtr& alignerGlobal,
-        AlignerBasePtr& alignerExt);
+        std::shared_ptr<ChainingScratchSpace> ssChain, std::vector<SeedHit>& ssSeedHits,
+        AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt);
 
     /*
      * This function starts from plain sequences, and constructs the seeds (minimizers),
@@ -294,7 +295,8 @@ private:
     static std::vector<MapperBaseResult> WrapBuildIndexMapAndAlignWithFallback_(
         const FastaSequenceCachedStore& targetSeqs, const FastaSequenceCachedStore& querySeqs,
         const MapperCLRSettings& settings, std::shared_ptr<ChainingScratchSpace> ssChain,
-        AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt);
+        std::vector<SeedHit>& ssSeedHits, AlignerBasePtr& alignerGlobal,
+        AlignerBasePtr& alignerExt);
 
     /*
      * \brief Maps the query sequence to the targets, where targets are provided by the SeedIndex.
@@ -304,7 +306,8 @@ private:
                                  const std::vector<PacBio::Pancake::Int128t>& querySeeds,
                                  const int32_t queryLen, const int32_t queryId,
                                  const MapperCLRSettings& settings, int64_t freqCutoff,
-                                 std::shared_ptr<ChainingScratchSpace> ssChain);
+                                 std::shared_ptr<ChainingScratchSpace> ssChain,
+                                 std::vector<SeedHit>& ssSeedHits);
 
     /*
      * \brief Aligns the query sequence to one or more target sequences, based on the mappings and
