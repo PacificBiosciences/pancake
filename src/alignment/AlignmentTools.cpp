@@ -3,6 +3,7 @@
 #include <pacbio/alignment/AlignmentTools.h>
 #include <pacbio/pancake/Lookups.h>
 #include <array>
+#include <cassert>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
