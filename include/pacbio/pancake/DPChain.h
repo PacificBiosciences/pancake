@@ -10,6 +10,7 @@
 #ifndef PANCAKE_DP_CHAIN_H
 #define PANCAKE_DP_CHAIN_H
 
+#include <emmintrin.h>
 #include <pacbio/pancake/Range.h>
 #include <pacbio/pancake/SeedHit.h>
 #include <cstdint>
@@ -24,6 +25,9 @@ struct ChainingScratchSpace
     std::vector<int32_t> dp;
     std::vector<int32_t> pred;
     std::vector<int32_t> chainId;
+
+    std::vector<__m128i> dpSimd;
+    std::vector<__m128i> predSimd;
 };
 
 struct ChainedHits
