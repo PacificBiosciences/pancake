@@ -32,16 +32,16 @@ inline void LogTicTocAdd(const std::string& label, const double timeToAdd,
     timings[label] += timeToAdd;
 }
 #else
-inline void LogTicToc(const std::string& label, TicToc& tt,
-                      std::unordered_map<std::string, double>& timings)
+inline void LogTicToc(const std::string& label, TicToc& /*tt*/,
+                      std::unordered_map<std::string, double>& /*timings*/)
 {
 }
-inline void LogTicTocAdd(const std::string& label, TicToc& tt,
-                         std::unordered_map<std::string, double>& timings)
+inline void LogTicTocAdd(const std::string& /*label*/, TicToc& /*tt*/,
+                         std::unordered_map<std::string, double>& /*timings*/)
 {
 }
-inline void LogTicTocAdd(const std::string& label, const double timeToAdd,
-                         std::unordered_map<std::string, double>& timings)
+inline void LogTicTocAdd(const std::string& /*label*/, const double /*timeToAdd*/,
+                         std::unordered_map<std::string, double>& /*timings*/)
 {
 }
 #endif
