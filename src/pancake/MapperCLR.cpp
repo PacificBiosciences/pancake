@@ -5,6 +5,7 @@
 #include <pacbio/alignment/DiffCounts.h>
 #include <pacbio/alignment/SesDistanceBanded.h>
 #include <pacbio/pancake/AlignmentSeeded.h>
+#include <pacbio/pancake/DPChainSimd.h>
 #include <pacbio/pancake/MapperCLR.h>
 #include <pacbio/pancake/MapperUtility.h>
 #include <pacbio/pancake/Minimizers.h>
@@ -18,6 +19,7 @@
 #include <util/TicToc.h>
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <lib/istl/lis.hpp>
 #include <sstream>
@@ -814,15 +816,15 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
         // DP Chaining of the filtered hits to remove outliers.
         double timeChaining = 0.0, timeBacktrack = 0.0;
         std::vector<ChainedHits> chains =
-            ChainHits(&hits2[group.start], group.end - group.start, chainMaxSkip,
-                      chainMaxPredecessors, maxGap, chainBandwidth, minNumSeeds, minCoveredBases,
-                      minDPScore, timeChaining, timeBacktrack, ssChain);
+            ChainHitsSimd(&hits2[group.start], group.end - group.start, chainMaxSkip,
+                          chainMaxPredecessors, maxGap, chainBandwidth, minNumSeeds,
+                          minCoveredBases, minDPScore, timeChaining, timeBacktrack, ssChain);
 
         double timeChainHits = ttPartial.GetMicrosecs(true);
         LogTicTocAdd("map-L2-rechain-03-chainhits", ttPartial, retTimings);
         LogTicTocAdd("map-L3-rechain-01-chaining", timeChaining, retTimings);
         LogTicTocAdd("map-L3-rechain-02-backtrack", timeBacktrack, retTimings);
-        LogTicTocAdd("map-L2-total-chainhits", timeChainHits, retTimings);
+        LogTicTocAdd("map-L2-total-chainhits-simd", timeChainHits, retTimings);
         LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
         LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 
@@ -927,15 +929,15 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 
             // DP Chaining of the filtered hits to remove outliers.
             double timeChaining = 0.0, timeBacktrack = 0.0;
-            chains = ChainHits(&lisHits[0], lisHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
-                               timeChaining, timeBacktrack, ssChain);
+            chains = ChainHitsSimd(&lisHits[0], lisHits.size(), chainMaxSkip, chainMaxPredecessors,
+                                   maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
+                                   timeChaining, timeBacktrack, ssChain);
 
             const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
             LogTicTocAdd("map-L3-chain-01-chaining", timeChaining, retTimings);
             LogTicTocAdd("map-L3-chain-02-backtrack", timeBacktrack, retTimings);
-            LogTicTocAdd("map-L2-total-chainhits", timeChainHits, retTimings);
+            LogTicTocAdd("map-L2-total-chainhits-simd", timeChainHits, retTimings);
             LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
             LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 
