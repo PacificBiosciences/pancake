@@ -909,7 +909,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
                                maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
                                timeChaining, timeBacktrack);
 
-            double timeChainHits = ttPartial.GetMicrosecs(true);
+            const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
             LogTicTocAdd("map-L3-chain-01-chaining", timeChaining, retTimings);
             LogTicTocAdd("map-L3-chain-02-backtrack", timeBacktrack, retTimings);
@@ -937,7 +937,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
                                maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
                                timeChaining, timeBacktrack);
 
-            double timeChainHits = ttPartial.GetMicrosecs(true);
+            const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
             LogTicTocAdd("map-L3-chain-01-chaining", timeChaining, retTimings);
             LogTicTocAdd("map-L3-chain-02-backtrack", timeBacktrack, retTimings);
