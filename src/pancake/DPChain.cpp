@@ -34,6 +34,10 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
     pred.clear();
     chainId.clear();
 
+    if (hitsSize == 0) {
+        return 0;
+    }
+
     dp.resize(hitsSize, 0);
     pred.resize(hitsSize, -1);
     chainId.resize(hitsSize, -1);
@@ -92,30 +96,30 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
             const int32_t edge_score = linPart + (logPart / 2.0);
             const int32_t matchScore =
                 std::min(hjQuerySpan, std::min<int32_t>(abs(distQuery), abs(distTarget)));
-            int32_t score_ij = dp[j] + matchScore - edge_score;
+            int32_t score = dp[j] + matchScore - edge_score;
 
             if (hiQueryPos <= hjQueryPos || hiTargetPos <= hjTargetPos) {
-                score_ij = NegativeInf;
+                score = NegativeInf;
                 // NOTE: The 'continue' statement can improve mapping in low complexity regions
                 // (because of numSkippedPredecessors), but makes it slower.
                 continue;
             }
             if (gapDist > diagMargin) {
-                score_ij = NegativeInf;
+                score = NegativeInf;
                 // NOTE: The 'continue' statement can improve mapping in low complexity regions
                 // (because of numSkippedPredecessors), but makes it slower.
                 continue;
             }
             if (distQuery > seedJoinDist) {
-                score_ij = NegativeInf;
+                score = NegativeInf;
                 // NOTE: The 'continue' statement can improve mapping in low complexity regions
                 // (because of numSkippedPredecessors), but makes it slower.
                 continue;
             }
 
-            if (score_ij >= newDpVal) {
+            if (score >= newDpVal) {
                 newDpPred = j;
-                newDpVal = score_ij;
+                newDpVal = score;
                 newDpChain = chainId[j];
 
                 // This is the main difference to how I previously calculated the scan_depth.
