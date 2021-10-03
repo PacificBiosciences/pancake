@@ -46,11 +46,11 @@ void SeedIndex::BuildHash_(std::vector<PacBio::Pancake::SeedDB::SeedRaw>& seeds,
     kx::radix_sort(seeds.begin(), seeds.end());
 
 #ifdef SEED_INDEX_USING_DENSEHASH
-    hash_.resize(seeds_.size());
+    retHash.resize(seeds.size());
 #elif defined SEED_INDEX_USING_SPARSEHASH
-    hash_.resize(seeds_.size());
+    retHash.resize(seeds.size());
 #elif defined SEED_INDEX_USING_UNORDERED_MAP
-    hash_.reserve(seeds_.size());
+    retHash.reserve(seeds.size());
 #endif
 
     // Fill out the hash table.
