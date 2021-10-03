@@ -152,6 +152,13 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
                                  std::vector<int32_t>& dp, std::vector<int32_t>& pred,
                                  std::vector<int32_t>& chainId)
 {
+    /**
+     * \brief The only functional difference between ChainHitsForward and ChainHitsForwardFastSisd is that the
+     *          original function does not count predecessors (numSkippedPredecessors) which do not have valid
+     *          coordinates (the "c" conditions below). This can be re-enabled (check for the line marked as Legacy).
+     *
+     *          All other differences are just optimizations and should yield identical results as before.
+    */
     dp.clear();
     pred.clear();
     chainId.clear();
@@ -197,6 +204,7 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
                   << "\n";
 #endif
 
+        // clang-format off
         for (int32_t j = i - 1; j >= minJ && numSkippedPredecessors <= chainMaxSkip; --j) {
             const auto& hj = hits[j];
 
@@ -229,8 +237,8 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
 
             // Update the skipped predecessors heuristic.
             numSkippedPredecessors += ((-1) & isBetter);
-            numSkippedPredecessors += ((+1) & isBetterInv & (~c));  // Legacy.
-            // numSkippedPredecessors += ((+1) & isBetterInv);      // Faster in low complexity regions, but less accurate. Like Minimap2.
+            // numSkippedPredecessors += ((+1) & isBetterInv & (~c));   // Legacy.
+            numSkippedPredecessors += ((+1) & isBetterInv);             // Faster in low complexity regions, less accurate. Like Minimap2.
             const int32_t numSkippedSignMask = ~(numSkippedPredecessors >> 31);
             numSkippedPredecessors &= numSkippedSignMask;  // -> max(0, numSkippedPredecessors)
 
@@ -244,6 +252,7 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
 
             ++numProcessed;
         }
+// clang-format on
 
 #ifdef DPCHAIN_SISD_DEBUG
         std::cerr << "\n";
