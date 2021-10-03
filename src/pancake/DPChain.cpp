@@ -34,8 +34,6 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
     pred.clear();
     chainId.clear();
 
-    // Zeroth element will be the "Null" state.
-    // For each node, it's chain ID is the same as of it's predecessor.
     dp.resize(hitsSize, 0);
     pred.resize(hitsSize, -1);
     chainId.resize(hitsSize, -1);
@@ -50,51 +48,53 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
 
     const double linFactor = 0.01 * avgQuerySpan;
 
-    for (int32_t ii = 0; ii < hitsSize; ++ii) {
-        const int32_t x_i_start = hits[ii].queryPos;
-        const int32_t y_i_start = hits[ii].targetPos;
-        const int32_t t_id_i = hits[ii].targetId;
-        const bool t_rev_i = hits[ii].targetRev;
+    for (int32_t i = 0; i < hitsSize; ++i) {
+        const auto& hi = hits[i];
 
-        // Add the initial gap open penalty.
-        const int32_t x_i_score = hits[ii].querySpan;
+        const int32_t hiQueryPos = hi.queryPos;
+        const int32_t hiTargetPos = hi.targetPos;
+        const int32_t hiTargetId = hi.targetId;
+        const bool hiTargetRev = hi.targetRev;
+        const int32_t hiQuerySpan = hits[i].querySpan;
 
-        int32_t newDpVal = x_i_score;
+        int32_t newDpVal = hiQuerySpan;
         int32_t newDpPred = -1;
         int32_t newDpChain = numChains;
         int32_t numSkippedPredecessors = 0;
-        int32_t numProcessed = 0;
 
         const int32_t minJ =
-            (chainMaxPredecessors <= 0) ? 0 : std::max(0, (ii - chainMaxPredecessors));
+            (chainMaxPredecessors <= 0) ? 0 : std::max(0, (i - chainMaxPredecessors));
 
-        for (int32_t jj = ii - 1; jj >= minJ; --jj) {
-            const int32_t x_j_start = hits[jj].queryPos;
-            const int32_t y_j_start = hits[jj].targetPos;
-            const int32_t t_id_j = hits[jj].targetId;
-            const bool t_rev_j = hits[jj].targetRev;
-            const int32_t x_j_span = hits[jj].querySpan;
+        for (int32_t j = i - 1; j >= minJ; --j) {
+            const auto& hj = hits[j];
 
-            const int32_t distX = x_i_start - x_j_start;  // If < 0, it's not a predecessor.
-            const int32_t distY = y_i_start - y_j_start;
+            const int32_t hjQueryPos = hj.queryPos;
+            const int32_t hjTargetPos = hj.targetPos;
+            const int32_t hjTargetId = hj.targetId;
+            const bool hjTargetRev = hj.targetRev;
+            const int32_t hjQuerySpan = hits[j].querySpan;
 
-            const int32_t gapDist = (distX < distY) ? (distY - distX) : (distX - distY);
+            const int32_t distQuery = hiQueryPos - hjQueryPos;  // If < 0, it's not a predecessor.
+            const int32_t distTarget = hiTargetPos - hjTargetPos;
 
-            if (t_id_j != t_id_i || t_rev_j != t_rev_i) {
+            const int32_t gapDist =
+                (distQuery < distTarget) ? (distTarget - distQuery) : (distQuery - distTarget);
+
+            if (hjTargetId != hiTargetId || hjTargetRev != hiTargetRev) {
                 break;
             }
-            if (distY > seedJoinDist) {
+            if (distTarget > seedJoinDist) {
                 break;
             }
 
-            numProcessed += 1;
             const int32_t linPart = (gapDist * linFactor);
             const int32_t logPart = ((gapDist == 0) ? 0 : raptor::utility::ilog2_32(gapDist));
             const int32_t edge_score = linPart + (logPart / 2.0);
-            const int32_t x_j_score = std::min(x_j_span, std::min<int32_t>(abs(distX), abs(distY)));
-            int32_t score_ij = dp[jj] + x_j_score - edge_score;
+            const int32_t matchScore =
+                std::min(hjQuerySpan, std::min<int32_t>(abs(distQuery), abs(distTarget)));
+            int32_t score_ij = dp[j] + matchScore - edge_score;
 
-            if (x_i_start <= x_j_start || y_i_start <= y_j_start) {
+            if (hiQueryPos <= hjQueryPos || hiTargetPos <= hjTargetPos) {
                 score_ij = NegativeInf;
                 // NOTE: The 'continue' statement can improve mapping in low complexity regions
                 // (because of numSkippedPredecessors), but makes it slower.
@@ -106,7 +106,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
                 // (because of numSkippedPredecessors), but makes it slower.
                 continue;
             }
-            if (distX > seedJoinDist) {
+            if (distQuery > seedJoinDist) {
                 score_ij = NegativeInf;
                 // NOTE: The 'continue' statement can improve mapping in low complexity regions
                 // (because of numSkippedPredecessors), but makes it slower.
@@ -114,9 +114,9 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
             }
 
             if (score_ij >= newDpVal) {
-                newDpPred = jj;
+                newDpPred = j;
                 newDpVal = score_ij;
-                newDpChain = chainId[jj];
+                newDpChain = chainId[j];
 
                 // This is the main difference to how I previously calculated the scan_depth.
                 numSkippedPredecessors -= 1;
@@ -130,9 +130,9 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
             }
         }
 
-        dp[ii] = newDpVal;
-        pred[ii] = newDpPred;
-        chainId[ii] = newDpChain;
+        dp[i] = newDpVal;
+        pred[i] = newDpPred;
+        chainId[i] = newDpChain;
         if (newDpChain == numChains) {
             numChains += 1;
         }
