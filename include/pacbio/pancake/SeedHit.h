@@ -21,7 +21,7 @@ static const int32_t SEED_HIT_FLAG_LONG_JOIN_BIT_SET = 1 << 1;
 static const int32_t SEED_HIT_FLAG_IGNORE_BIT_UNSET = ~SEED_HIT_FLAG_IGNORE_BIT_SET;
 static const int32_t SEED_HIT_FLAG_LONG_JOIN_BIT_UNSET = ~SEED_HIT_FLAG_LONG_JOIN_BIT_SET;
 
-class SeedHit
+class alignas(sizeof(PacBio::Pancake::Int128t)) SeedHit
 {
 public:
     SeedHit() = default;
@@ -51,6 +51,17 @@ public:
               ((static_cast<PacBio::Pancake::Int128t>(flags) & MASK128_LOW16bit) << 0);
         return ret;
     }
+    void ParseFrom128(PacBio::Pancake::Int128t vals)
+    {
+        targetId = (vals >> 97) & MASK128_LOW32bit;
+        targetRev = (vals >> 96) & MASK128_LOW1bit;
+        targetPos = (vals >> 64) & MASK128_LOW32bit;
+        queryPos = (vals >> 32) & MASK128_LOW32bit;
+        targetSpan = (vals >> 24) & MASK128_LOW8bit;
+        querySpan = (vals >> 16) & MASK128_LOW8bit;
+        flags = vals & MASK128_LOW16bit;
+    }
+
     bool operator<(const SeedHit& b) const { return this->PackTo128() < b.PackTo128(); }
     bool operator==(const SeedHit& b) const
     {
