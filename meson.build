@@ -27,15 +27,24 @@ foreach cflag: [
   '-Wdouble-promotion',
   '-Wshadow',
   '-fno-new-ttp-matching',
-  '-Wformat=1',
-  '-march=native'
+  '-Wformat=1'
   ]
     if cpp.has_argument(cflag)
       pancake_warning_flags += cflag
     endif
 endforeach
 
-pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC']
+pancake_arch_flags = {
+  # ARM64 (ARMv8-A, Apple M1)
+  'aarch64': [
+    '-march=armv8.2-a',
+  ],
+  'x86_64': [
+    '-msse4.1',
+  ],
+}
+
+pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC'] + pancake_arch_flags.get(host_machine.cpu_family(), [])
 
 opt_tests = get_option('tests')
 opt_cuda = get_option('gpu-cuda')
