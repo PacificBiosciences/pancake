@@ -62,6 +62,12 @@ int32_t ChainHitsForward(const SeedHit* hits, int32_t hitsSize, int32_t chainMax
                          std::vector<int32_t>& dp, std::vector<int32_t>& pred,
                          std::vector<int32_t>& chainId);
 
+std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, int32_t hitsSize,
+                                            const int32_t* dp, const int32_t* pred,
+                                            const int32_t* chainId, const int32_t numChains,
+                                            int32_t minNumSeeds, int32_t minCovBases,
+                                            int32_t minDPScore);
+
 std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hits_size, int32_t chain_max_skip,
                                    int32_t chain_max_predecessors, int32_t seed_join_dist,
                                    int32_t diag_margin, int32_t min_num_seeds,
