@@ -14,6 +14,7 @@
 #include <sstream>
 
 // #define DPCHAIN_DEBUG
+// #define DPCHAIN_SISD_DEBUG
 
 namespace PacBio {
 namespace Pancake {
@@ -145,6 +146,134 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
     return numChains;
 }
 
+int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
+                                 const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
+                                 const int32_t seedJoinDist, const int32_t diagMargin,
+                                 std::vector<int32_t>& dp, std::vector<int32_t>& pred,
+                                 std::vector<int32_t>& chainId)
+{
+    dp.clear();
+    pred.clear();
+    chainId.clear();
+
+    if (hitsSize == 0) {
+        return 0;
+    }
+
+    dp.resize(hitsSize, 0);
+    pred.resize(hitsSize, -1);
+    chainId.resize(hitsSize, -1);
+
+    // Compute the average seed span and the linear factor for DP score computation.
+    float avgQuerySpan = 0.0;
+    for (int32_t i = 0; i < hitsSize; i++) {
+        avgQuerySpan += static_cast<float>(hits[i].querySpan);
+    }
+    avgQuerySpan = (hitsSize > 0) ? avgQuerySpan / static_cast<float>(hitsSize) : 0.0;
+    const float linFactor = 0.01f * avgQuerySpan;
+
+    const int32_t finalChainMaxPredecessors =
+        (chainMaxPredecessors > 0) ? chainMaxPredecessors : std::numeric_limits<int32_t>::max();
+    int32_t numChains = 0;
+    int32_t minJ = 0;
+
+    for (int32_t i = 0; i < hitsSize; ++i) {
+        const auto& hi = hits[i];
+        int32_t newDpVal = hi.querySpan;
+        int32_t newDpPred = -1;
+        int32_t numSkippedPredecessors = 0;
+        int32_t numProcessed = 0;
+
+        // Move the furthest allowed predecessor.
+        while ((minJ < i) && (hits[i].targetId != hits[minJ].targetId ||
+                              hits[i].targetRev != hits[minJ].targetRev ||
+                              (hits[i].targetPos - hits[minJ].targetPos) > seedJoinDist ||
+                              (i - minJ) > finalChainMaxPredecessors)) {
+            ++minJ;
+        }
+
+#ifdef DPCHAIN_SISD_DEBUG
+        std::cerr << "[i = " << i << "] minJ = " << minJ << "; Hit: {" << hi << "}"
+                  << "\n";
+#endif
+
+        for (int32_t j = i - 1; j >= minJ && numSkippedPredecessors <= chainMaxSkip; --j) {
+            const auto& hj = hits[j];
+
+            const int32_t hjSeedQuerySpan = hj.querySpan;
+            const int32_t distQuery = hi.queryPos - hj.queryPos;  // If < 0, it's not a predecessor.
+            const int32_t distTarget = hi.targetPos - hj.targetPos;
+            const int32_t distDiag = std::abs(distTarget - distQuery);
+
+            // Compute the new score.
+            const int32_t linPart = (distDiag * linFactor);
+            const int32_t logPart = ilog2_32_clz_special_zero(distDiag) >> 1;
+            const int32_t edge_score = linPart + logPart;
+            const int32_t matchScore = std::min(hjSeedQuerySpan, std::min(distQuery, distTarget));
+            int32_t score = dp[j] + matchScore - edge_score;
+
+            // Check any of the boundary criteria.
+            // Instead of branching, use clever numerical tricks. SisdCompareLte returns 0xFFFFFFFF if true.
+            const int32_t c1 = SisdCompareLte(hi.queryPos, hj.queryPos);
+            const int32_t c2 = SisdCompareLte(hi.targetPos, hj.targetPos);
+            const int32_t c3 = SisdCompareLte(diagMargin, distDiag);
+            const int32_t c4 = SisdCompareLte(seedJoinDist, distQuery);
+            const int32_t c = c1 | c2 | c3 | c4;
+            score |= c;  // Either unchanged, or 0xFFFFFFFF (-1).
+
+            // Update the maximum score and the DP values without branching.
+            const int32_t isBetter = SisdCompareGte(score, newDpVal);
+            const int32_t isBetterInv = ~isBetter;
+            newDpPred = (isBetterInv & newDpPred) | (isBetter & j);
+            newDpVal = (isBetterInv & newDpVal) | (isBetter & score);
+
+            // Update the skipped predecessors heuristic.
+            numSkippedPredecessors += ((-1) & isBetter);
+            numSkippedPredecessors += ((+1) & isBetterInv & (~c));  // Legacy.
+            // numSkippedPredecessors += ((+1) & isBetterInv);      // Faster in low complexity regions, but less accurate. Like Minimap2.
+            const int32_t numSkippedSignMask = ~(numSkippedPredecessors >> 31);
+            numSkippedPredecessors &= numSkippedSignMask;  // -> max(0, numSkippedPredecessors)
+
+#ifdef DPCHAIN_SISD_DEBUG
+            std::cerr << "    [i = " << i << ", j = " << j << "] score = " << score
+                      << ", isBetter = " << isBetter << ", c = " << c
+                      << ", bestDpScore = " << newDpVal << ", bestDpPred = " << newDpPred
+                      << ", logPart = " << logPart << ", linPart = " << linPart
+                      << ", matchScore = " << matchScore << "\n";
+#endif
+
+            ++numProcessed;
+        }
+
+#ifdef DPCHAIN_SISD_DEBUG
+        std::cerr << "\n";
+        std::cerr << "    - DP: [";
+        for (size_t j = 0; j < dp.size(); ++j) {
+            if (j > 0) {
+                std::cerr << ", ";
+            }
+            std::cerr << dp[j];
+        }
+        std::cerr << "]\n";
+        std::cerr << "    - PR: [";
+        for (size_t j = 0; j < pred.size(); ++j) {
+            if (j > 0) {
+                std::cerr << ", ";
+            }
+            std::cerr << pred[j];
+        }
+        std::cerr << "]\n";
+        std::cerr << "\n";
+#endif
+
+        dp[i] = newDpVal;
+        pred[i] = newDpPred;
+        chainId[i] = (newDpPred >= 0) ? chainId[newDpPred] : numChains++;
+    }
+
+    return numChains;
+}
+
 std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, int32_t hitsSize,
                                             const int32_t* dp, const int32_t* pred,
                                             const int32_t* chainId, const int32_t numChains,
@@ -251,8 +380,9 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
     std::vector<int32_t> pred;
     std::vector<int32_t> chainId;
 
-    const int32_t numChains = ChainHitsForward(hits, hitsSize, chainMaxSkip, chainMaxPredecessors,
-                                               seedJoinDist, diagMargin, dp, pred, chainId);
+    const int32_t numChains =
+        ChainHitsForwardFastSisd(hits, hitsSize, chainMaxSkip, chainMaxPredecessors, seedJoinDist,
+                                 diagMargin, dp, pred, chainId);
 
 #ifdef PANCAKE_ENABLE_TIMINGS
     ttPartial.Stop();

@@ -57,10 +57,57 @@ inline std::ostream& operator<<(std::ostream& os, const ChainedHits& b)
     return os;
 }
 
+inline int32_t SisdCompareLte(int32_t a, int32_t b)
+{
+    /**
+     * Returns 0xFFFFFFFF if a <= b, 0x00000000 otherwise.
+    */
+    return (a - b - 1) >> 31;  // a <= b
+}
+inline int32_t SisdCompareLt(int32_t a, int32_t b)
+{
+    /**
+     * Returns 0xFFFFFFFF if a < b, 0x00000000 otherwise.
+    */
+    return (a - b) >> 31;  // a < b
+}
+inline int32_t SisdCompareGte(int32_t a, int32_t b)
+{
+    /**
+     * Returns 0xFFFFFFFF if a >= b, 0x00000000 otherwise.
+    */
+    return (b - a - 1) >> 31;  // a >= b
+}
+inline int32_t SisdCompareGt(int32_t a, int32_t b)
+{
+    /**
+     * Returns 0xFFFFFFFF if a > b, 0x00000000 otherwise.
+    */
+    return (b - a) >> 31;  // a > b
+}
+
+inline uint32_t ilog2_32_clz_special_zero(int32_t v)
+{
+    /**
+     * \brief This is a modified integer log2 function, it returns 0 when v == 0.
+     *          Of course, a proper mathematical log2 would return -inf, but this
+     *          special case is required for chaining.
+    */
+    // If v <= 0, then lt == 0x0, otherwise lt == 0xFFFFFFFF.
+    const int32_t lt = (0 - v) >> 31;
+    return (31 - __builtin_clz(v)) & lt;
+}
+
 int32_t ChainHitsForward(const SeedHit* hits, int32_t hitsSize, int32_t chainMaxSkip,
                          int32_t chainMaxPredecessors, int32_t seedJoinDist, int32_t diagMargin,
                          std::vector<int32_t>& dp, std::vector<int32_t>& pred,
                          std::vector<int32_t>& chainId);
+
+int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
+                                 const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
+                                 const int32_t seedJoinDist, const int32_t diagMargin,
+                                 std::vector<int32_t>& dp, std::vector<int32_t>& pred,
+                                 std::vector<int32_t>& chainId);
 
 std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, int32_t hitsSize,
                                             const int32_t* dp, const int32_t* pred,
