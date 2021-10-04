@@ -354,7 +354,7 @@ std::vector<ChainedHits> ChainHitsSimd(
      *      target_id, target_rev, target_pos, query_pos
     */
 
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     TicToc ttPartial;
 #endif
 
@@ -395,7 +395,7 @@ std::vector<ChainedHits> ChainHitsSimd(
         ChainHitsForwardFastSimd(hits, hitsSize, chainMaxSkip, chainMaxPredecessors, seedJoinDist,
                                  diagMargin, dp, pred, chainId);
 
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     ttPartial.Stop();
     timeChaining = ttPartial.GetMicrosecs();
     ttPartial.Start();
@@ -419,7 +419,7 @@ std::vector<ChainedHits> ChainHitsSimd(
     }
 #endif
 
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     ttPartial.Stop();
     timeBacktrack = ttPartial.GetMicrosecs();
     ttPartial.Start();
