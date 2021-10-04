@@ -11,40 +11,32 @@
 namespace PacBio {
 namespace Pancake {
 
-#ifdef DEBUG_LOG_TIMINGS
-inline void LogTicToc(const std::string& label, TicToc& tt,
-                      std::unordered_map<std::string, double>& timings)
+inline void LogTicToc([[maybe_unused]] const std::string& label, [[maybe_unused]] TicToc& tt,
+                      [[maybe_unused]] std::unordered_map<std::string, double>& timings)
 {
+#ifdef DEBUG_LOG_TIMINGS
     tt.Stop();
     timings[label] = tt.GetMicrosecs();
     tt.Start();
+#endif
 }
-inline void LogTicTocAdd(const std::string& label, TicToc& tt,
-                         std::unordered_map<std::string, double>& timings)
+inline void LogTicTocAdd([[maybe_unused]] const std::string& label, [[maybe_unused]] TicToc& tt,
+                         [[maybe_unused]] std::unordered_map<std::string, double>& timings)
 {
+#ifdef DEBUG_LOG_TIMINGS
     tt.Stop();
     timings[label] += tt.GetMicrosecs();
     tt.Start();
-}
-inline void LogTicTocAdd(const std::string& label, const double timeToAdd,
-                         std::unordered_map<std::string, double>& timings)
-{
-    timings[label] += timeToAdd;
-}
-#else
-inline void LogTicToc(const std::string& /*label*/, TicToc& /*tt*/,
-                      std::unordered_map<std::string, double>& /*timings*/)
-{
-}
-inline void LogTicTocAdd(const std::string& /*label*/, TicToc& /*tt*/,
-                         std::unordered_map<std::string, double>& /*timings*/)
-{
-}
-inline void LogTicTocAdd(const std::string& /*label*/, const double /*timeToAdd*/,
-                         std::unordered_map<std::string, double>& /*timings*/)
-{
-}
 #endif
+}
+inline void LogTicTocAdd([[maybe_unused]] const std::string& label,
+                         [[maybe_unused]] const double timeToAdd,
+                         [[maybe_unused]] std::unordered_map<std::string, double>& timings)
+{
+#ifdef DEBUG_LOG_TIMINGS
+    timings[label] += timeToAdd;
+#endif
+}
 
 }  // namespace Pancake
 }  // namespace PacBio
