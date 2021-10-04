@@ -28,7 +28,7 @@ struct ChainedRegion
     bool isSupplementary = false;
 };
 
-inline bool operator==(const ChainedRegion& lhs, const ChainedRegion& rhs)
+inline bool operator==(const ChainedRegion& lhs, const ChainedRegion& rhs) noexcept
 {
     return true;
     return lhs.chain == rhs.chain && lhs.regionsForAln == rhs.regionsForAln &&
@@ -37,6 +37,7 @@ inline bool operator==(const ChainedRegion& lhs, const ChainedRegion& rhs)
              *(lhs.mapping) == *(rhs.mapping))) &&
            lhs.priority == rhs.priority && lhs.isSupplementary == rhs.isSupplementary;
 }
+
 inline void VerboseChainedRegion(std::ostream& os, const ChainedRegion& b, bool detailed)
 {
     if (b.mapping == nullptr) {
@@ -54,7 +55,8 @@ inline void VerboseChainedRegion(std::ostream& os, const ChainedRegion& b, bool 
         }
     }
 }
-inline std::ostream& operator<<(std::ostream& os, const ChainedRegion& b)
+
+inline std::ostream& operator<<(std::ostream& os, const ChainedRegion& b) noexcept
 {
     VerboseChainedRegion(os, b, false);
     return os;
@@ -66,7 +68,8 @@ public:
     std::vector<std::unique_ptr<ChainedRegion>> mappings;
     std::unordered_map<std::string, double> time;
 };
-inline bool operator==(const MapperBaseResult& lhs, const MapperBaseResult& rhs)
+
+inline bool operator==(const MapperBaseResult& lhs, const MapperBaseResult& rhs) noexcept
 {
     if (lhs.mappings.size() != rhs.mappings.size()) {
         return false;
@@ -81,6 +84,7 @@ inline bool operator==(const MapperBaseResult& lhs, const MapperBaseResult& rhs)
     }
     return true;
 }
+
 inline void VerboseMapperBaseResult(std::ostream& os, const MapperBaseResult& b, bool detailed)
 {
     for (size_t i = 0; i < b.mappings.size(); ++i) {
@@ -93,7 +97,8 @@ inline void VerboseMapperBaseResult(std::ostream& os, const MapperBaseResult& b,
         }
     }
 }
-inline std::ostream& operator<<(std::ostream& os, const MapperBaseResult& b)
+
+inline std::ostream& operator<<(std::ostream& os, const MapperBaseResult& b) noexcept
 {
     VerboseMapperBaseResult(os, b, false);
     return os;
