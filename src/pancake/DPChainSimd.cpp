@@ -262,6 +262,8 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
             // Horizontal add to update the numSkippedPredecessors, and limit lower value to 0.
             skipDiff = _mm_blendv_epi8(M128_EPI32_ALL_POSITIVE_1, M128_EPI32_ALL_NEGATIVE_1, isBetter);
+            // NOTE: The following line would re-enable the "continue" behaviour (where coordinates out of order
+            // would not be counted in numSkippedPredecessors: skipDiff = _mm_andnot_si128(c, skipDiff);
             numSkippedPredecessors += *skipDiffPtr_0;
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
             numSkippedPredecessors += *skipDiffPtr_1;
