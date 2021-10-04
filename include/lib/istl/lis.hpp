@@ -14,6 +14,7 @@
 #ifndef ISTL_LIS_H_
 #define ISTL_LIS_H_
 
+#include <cassert>
 #include <cstdint>
 #include <algorithm>
 #include <vector>
@@ -26,8 +27,8 @@ std::vector<T> LIS(const T* points, const int64_t nPoints,
                     const COMP& compLessThan)
 {
     // Sanity check.
+    assert(nPoints >= 0);
     if (nPoints < 0) {
-        assert(false);
         return {};
     }
     if (nPoints == 0) {
@@ -71,9 +72,9 @@ std::vector<T> LIS(const T* points, const int64_t nPoints,
 }
 
 template<class T>
-std::vector<T> LIS(const std::vector<T> &points, int64_t begin, int64_t end) {
+std::vector<T> LIS(const std::vector<T> &points, const int64_t begin, const int64_t end) {
+    assert(end >= begin);
     if (end < begin) {
-        assert(false);
         return {};
     }
 
@@ -81,9 +82,9 @@ std::vector<T> LIS(const std::vector<T> &points, int64_t begin, int64_t end) {
 }
 
 template<class T, class COMP>
-std::vector<T> LIS(const std::vector<T> &points, int64_t begin, int64_t end, const COMP& compLessThan) {
+std::vector<T> LIS(const std::vector<T> &points, const int64_t begin, const int64_t end, const COMP& compLessThan) {
+    assert(end >= begin);
     if (end < begin) {
-        assert(false);
         return {};
     }
 

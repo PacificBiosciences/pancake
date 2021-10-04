@@ -15,7 +15,7 @@ struct Point
     int32_t x = 0;
     int32_t y = 0;
 
-    Point() : x(0), y(0) {}
+    Point() = default;
     Point(int32_t _x, int32_t _y) : x(_x), y(_y) {}
 
     bool operator==(const Point& b) const { return x == b.x && y == b.y; }
