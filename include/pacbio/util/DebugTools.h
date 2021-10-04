@@ -14,7 +14,7 @@ namespace Pancake {
 inline void LogTicToc([[maybe_unused]] const std::string& label, [[maybe_unused]] TicToc& tt,
                       [[maybe_unused]] std::unordered_map<std::string, double>& timings)
 {
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     tt.Stop();
     timings[label] = tt.GetMicrosecs();
     tt.Start();
@@ -23,7 +23,7 @@ inline void LogTicToc([[maybe_unused]] const std::string& label, [[maybe_unused]
 inline void LogTicTocAdd([[maybe_unused]] const std::string& label, [[maybe_unused]] TicToc& tt,
                          [[maybe_unused]] std::unordered_map<std::string, double>& timings)
 {
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     tt.Stop();
     timings[label] += tt.GetMicrosecs();
     tt.Start();
@@ -33,7 +33,7 @@ inline void LogTicTocAdd([[maybe_unused]] const std::string& label,
                          [[maybe_unused]] const double timeToAdd,
                          [[maybe_unused]] std::unordered_map<std::string, double>& timings)
 {
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     timings[label] += timeToAdd;
 #endif
 }

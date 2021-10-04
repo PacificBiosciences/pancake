@@ -146,7 +146,7 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
      *      target_id, target_rev, target_pos, query_pos
     */
 
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     TicToc ttPartial;
 #endif
 
@@ -170,7 +170,7 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
     const int32_t numChains = ChainHitsForward(hits, hitsSize, chainMaxSkip, chainMaxPredecessors,
                                                seedJoinDist, diagMargin, dp, pred, chainId);
 
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     ttPartial.Stop();
     timeChaining = ttPartial.GetMicrosecs();
     ttPartial.Start();
@@ -252,7 +252,7 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_
     }
 #endif
 
-#ifdef DEBUG_LOG_TIMINGS
+#ifdef PANCAKE_ENABLE_TIMINGS
     ttPartial.Stop();
     timeBacktrack = ttPartial.GetMicrosecs();
     ttPartial.Start();

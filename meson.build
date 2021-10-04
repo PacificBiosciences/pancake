@@ -41,7 +41,7 @@ opt_time = get_option('time')
 
 # Enable internal profiling.
 if opt_time
-  pancake_flags += ['-DDEBUG_LOG_TIMINGS']
+  pancake_flags += ['-DPANCAKE_ENABLE_TIMINGS']
 endif
 
 ################
