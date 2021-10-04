@@ -456,12 +456,6 @@ std::vector<OverlapPtr> Mapper::FormAnchors2_(
             return nullptr;
         }
 
-        static std::function<bool(const SeedHit& a, const SeedHit& b)> ComparisonLIS = [](
-            const SeedHit& a, const SeedHit& b) {
-            // This needs to always return the upper-left element as the smaller one.
-            return a.targetPos < b.targetPos && a.queryPos < b.queryPos;
-        };
-
         // Extract the subset so we can sort it.
         std::vector<SeedHit> groupHits(_sortedHits.begin() + beginId, _sortedHits.begin() + endId);
 
@@ -470,8 +464,11 @@ std::vector<OverlapPtr> Mapper::FormAnchors2_(
         });
 
         // Longest Increasing Subsequence of the diagonal bin.
+        // The comparison function needs to always return the upper-left element as the smaller one.
         std::vector<PacBio::Pancake::SeedHit> lisHits =
-            istl::LIS(groupHits, 0, groupHits.size(), ComparisonLIS);
+            istl::LIS(groupHits, [](const SeedHit& a, const SeedHit& b) {
+                return a.targetPos < b.targetPos && a.queryPos < b.queryPos;
+            });
 
         int32_t finalFirst = 0;
         int32_t finalLast = 0;

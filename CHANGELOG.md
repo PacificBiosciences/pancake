@@ -3,6 +3,9 @@
 ## Active version in development
 ### Changes
 
+## v1.?.?
+- LIS performance improvements.
+
 ## v1.4.1
 - Added a time profiling feature. Turned off by default. Enable by specifying the `-Dtime=true` Meson option, or the `PANCAKE_ENABLE_TIMINGS` macro.
 

@@ -862,13 +862,6 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
         return std::pair(a.targetPos, a.queryPos) < std::pair(b.targetPos, b.queryPos);
     };
 
-    // Comparison function to compute the LIS.
-    // IMPORTANT: This needs to always return the upper-left element as the smaller one.
-    std::function<bool(const SeedHit& a, const SeedHit& b)> ComparisonLIS = [](const SeedHit& a,
-                                                                               const SeedHit& b) {
-        return (a.queryPos < b.queryPos && a.targetPos < b.targetPos);
-    };
-
     // Process each diagonal bin to get the final chains.
     std::vector<std::unique_ptr<ChainedRegion>> allChainedRegions;
     for (const auto& range : hitGroups) {
@@ -898,9 +891,20 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 
         if (useLIS) {
             // Longest Increasing Subsequence.
+            /**
+             * Difference between the sort comparison and the LIS comparison:
+             *  - When sorting 2D points we need to restrict ourselves to 1 dimension. In this case, we only sort on A.x < B.x, except in case when A.x == B.x.
+             *  - LIS comparison returns true if and only if A is in the upper left corner from B. Meaning, both A.x and A.y need to be smaller.
+             * For example:
+             *  Point{6, 7} and Point{9, 3} would result in:
+             *      - Sort Comparison == true
+             *      - LIS Comparison == false
+             *      - Packed into uint64_t and using the standard operator< == true (same as the Sort Comparison).
+            */
             std::vector<PacBio::Pancake::SeedHit> lisHits =
-                istl::LIS(groupHits, 0, groupHits.size(), ComparisonLIS);
-
+                istl::LIS(groupHits, [](const SeedHit& a, const SeedHit& b) {
+                    return (a.queryPos < b.queryPos && a.targetPos < b.targetPos);
+                });
             LogTicTocAdd("map-L2-chain-02-lis", ttPartial, retTimings);
 
             // DP Chaining of the filtered hits to remove outliers.

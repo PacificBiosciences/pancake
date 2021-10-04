@@ -15,6 +15,7 @@ struct Point
     int32_t x = 0;
     int32_t y = 0;
 
+    Point() = default;
     Point(int32_t _x, int32_t _y) : x(_x), y(_y) {}
 
     bool operator==(const Point& b) const { return x == b.x && y == b.y; }
@@ -60,6 +61,17 @@ TEST(LIS, SimpleTest1D)
     std::vector<int32_t> result = istl::LIS<int32_t>(data, 0, data.size());
 
     std::vector<int32_t> expected = {10, 22, 33, 41, 60};
+
+    ASSERT_EQ(expected, result);
+}
+
+TEST(LIS, SimpleTest1D_2)
+{
+    std::vector<int32_t> data = {3, 7, 5};
+
+    std::vector<int32_t> result = istl::LIS<int32_t>(data, 0, data.size());
+
+    std::vector<int32_t> expected = {3, 5};
 
     ASSERT_EQ(expected, result);
 }
