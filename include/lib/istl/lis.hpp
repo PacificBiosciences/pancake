@@ -14,9 +14,10 @@
 #ifndef ISTL_LIS_H_
 #define ISTL_LIS_H_
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
-#include <algorithm>
+#include <functional>
 #include <vector>
 #include <functional>
 
@@ -78,7 +79,7 @@ std::vector<T> LIS(const std::vector<T> &points, const int64_t begin, const int6
         return {};
     }
 
-    return LIS(points.data() + begin, (end - begin), [](const T& a, const T& b) { return a < b; } );
+    return LIS(points.data() + begin, (end - begin), std::less<T>{});
 }
 
 template<class T, class COMP>
