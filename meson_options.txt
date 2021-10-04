@@ -1,2 +1,3 @@
 option('tests', type : 'boolean', value : true,  description : 'Enable dependencies required for testing')
 option('gpu-cuda', type : 'boolean', value : false,  description : 'Compile the CUDA code.')
+option('time', type : 'boolean', value : false,  description : 'Compile with the time profiling feature for the mappers.')

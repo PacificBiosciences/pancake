@@ -1,7 +1,7 @@
 project(
   'pancake',
   ['cpp', 'c'],
-  version : '1.4.0',
+  version : '1.4.1',
   default_options : [
     'buildtype=release',
     'warning_level=3',
@@ -37,6 +37,12 @@ pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC']
 
 opt_tests = get_option('tests')
 opt_cuda = get_option('gpu-cuda')
+opt_time = get_option('time')
+
+# Enable internal profiling.
+if opt_time
+  pancake_flags += ['-DPANCAKE_ENABLE_TIMINGS']
+endif
 
 ################
 # dependencies #

@@ -325,7 +325,8 @@ private:
         const FastaSequenceCachedStore& targetSeqs, const std::vector<SeedHit>& hits,
         const std::vector<PacBio::Pancake::Range>& hitGroups, int32_t queryId, int32_t queryLen,
         int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
-        int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore, bool useLIS);
+        int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore, bool useLIS,
+        std::unordered_map<std::string, double>& retTimings);
 
     /*
      * \brief Takes previously chained regions, collects all remaining seed hits from those regions into
@@ -336,7 +337,8 @@ private:
         const std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
         const FastaSequenceCachedStore& targetSeqs, int32_t queryId, int32_t queryLen,
         int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
-        int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore);
+        int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
+        std::unordered_map<std::string, double>& retTimings);
 
     /*
      * \brief Merges the neighboring chains if they are not overlaping in neither the query nor

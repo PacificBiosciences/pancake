@@ -855,10 +855,12 @@ TEST(DPChain, ChainHits_ArrayOfTests)
         SCOPED_TRACE(data.testName);
 
         // Run unit under test.
-        const std::vector<ChainedHits> results =
-            ChainHits(data.seedHits.data(), data.seedHits.size(), data.chainMaxSkip,
-                      data.chainMaxPredecessors, data.chainMaxGap, data.chainBandwidth,
-                      data.minNumSeeds, data.minCovBases, data.minDpScore);
+        double timeChaining = 0.0;
+        double timeBacktrack = 0.0;
+        const std::vector<ChainedHits> results = ChainHits(
+            data.seedHits.data(), data.seedHits.size(), data.chainMaxSkip,
+            data.chainMaxPredecessors, data.chainMaxGap, data.chainBandwidth, data.minNumSeeds,
+            data.minCovBases, data.minDpScore, timeChaining, timeBacktrack);
 
         // Evaluate.
         EXPECT_EQ(data.expected, results);
