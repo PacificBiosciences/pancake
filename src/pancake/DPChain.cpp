@@ -301,7 +301,7 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
 
         std::vector<int32_t> nodes;
         while (node_id >= 0) {
-            nodes.emplace_back(node_id);  // The "- 1" is because of the DP offset.
+            nodes.emplace_back(node_id);
             node_id = pred[node_id];
         }
         // Reverse the backtracked nodes.
