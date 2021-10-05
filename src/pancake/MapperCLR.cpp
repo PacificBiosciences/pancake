@@ -54,6 +54,14 @@ MapperCLR::MapperCLR(const MapperCLRSettings& settings)
 
 MapperCLR::~MapperCLR() = default;
 
+void MapperCLR::UpdateSettings(const MapperCLRSettings& settings)
+{
+    settings_ = settings;
+    alignerGlobal_ =
+        AlignerFactory(settings.align.alignerTypeGlobal, settings.align.alnParamsGlobal);
+    alignerExt_ = AlignerFactory(settings.align.alignerTypeExt, settings.align.alnParamsExt);
+}
+
 std::vector<MapperBaseResult> MapperCLR::MapAndAlign(const std::vector<std::string>& targetSeqs,
                                                      const std::vector<std::string>& querySeqs)
 {

@@ -196,6 +196,12 @@ public:
     MapperCLR(const MapperCLRSettings& settings);
     ~MapperCLR() override;
 
+    /**
+     * \brief Utility function which allows to update the mapping/alignment settings _after_ the MapperCLR
+     * object was already constructed.
+    */
+    void UpdateSettings(const MapperCLRSettings& settings);
+
     /*
      * \brief Runs mapping and alignment of one or more query sequences to one or more target sequences.
      * This is the basic interface for the most simple usage.
