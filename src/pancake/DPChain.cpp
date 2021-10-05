@@ -153,11 +153,8 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
                                  std::vector<int32_t>& chainId)
 {
     /**
-     * \brief The only functional difference between ChainHitsForward and ChainHitsForwardFastSisd is that the
-     *          original function does not count predecessors (numSkippedPredecessors) which do not have valid
-     *          coordinates (the "c" conditions below). This can be re-enabled (check for the line marked as Legacy).
-     *
-     *          All other differences are just optimizations and should yield identical results as before.
+     * \brief All differences are just optimizations and should yield identical results as the original
+     *          chaining function.
     */
     dp.clear();
     pred.clear();
@@ -237,8 +234,8 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
 
             // Update the skipped predecessors heuristic.
             numSkippedPredecessors += ((-1) & isBetter);
-            // numSkippedPredecessors += ((+1) & isBetterInv & (~c));   // Legacy.
-            numSkippedPredecessors += ((+1) & isBetterInv);             // Faster in low complexity regions, less accurate. Like Minimap2.
+            numSkippedPredecessors += ((+1) & isBetterInv & (~c));          // Legacy.
+            // numSkippedPredecessors += ((+1) & isBetterInv);              // Faster mapping in low complexity regions, less accurate. Like Minimap2. Alignment can potentially be slower.
             const int32_t numSkippedSignMask = ~(numSkippedPredecessors >> 31);
             numSkippedPredecessors &= numSkippedSignMask;  // -> max(0, numSkippedPredecessors)
 

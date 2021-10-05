@@ -745,18 +745,21 @@ TEST(DPChain, ChainHits_ArrayOfTests)
             // Results.
             {
                 // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
-                ChainedHits(0, 0, {
-                    {0, 0, 4950, 4950, 15, 15, 0},
-                    {0, 0, 4965, 4965, 15, 15, 0},
-                }, 30, 30, 30),
-                // NOTE: The original DP chaining (which had continue statements in the inner loop) would produce the following chain instead of
-                // the one above. This is because the seed hits with non-valid coordinates (query/target coord is greater than the next seed hit's)
-                // are not processed ('continue') instead of counted in numSkippedPredecessors.
+                // NOTE: Faster DP chaining, which does not "continue" when a predecessor with smaller query or target coordinates is reached, would
+                // would produce the following chain instead of the one below. Because there is no "continue", even predecessors with smaller
+                // coordinates will be counted in numSkippedPredecessors, and the inner loop would end earlier.
                 // ChainedHits(0, 0, {
                 //     {0, 0, 4950, 4950, 15, 15, 0},
                 //     {0, 0, 4965, 4965, 15, 15, 0},
-                //     {0, 0, 5000, 5000, 15, 15, 0},
-                // }, 45, 45, 45),
+                // }, 30, 30, 30),
+                // NOTE: The original DP chaining (which had continue statements in the inner loop) would produce the following chain instead of
+                // the one above. This is because the seed hits with non-valid coordinates (query/target coord is greater than the next seed hit's)
+                // are not processed ('continue') instead of counted in numSkippedPredecessors.
+                ChainedHits(0, 0, {
+                    {0, 0, 4950, 4950, 15, 15, 0},
+                    {0, 0, 4965, 4965, 15, 15, 0},
+                    {0, 0, 5000, 5000, 15, 15, 0},
+                }, 45, 45, 45),
                 ChainedHits(0, 0, {
                     {0, 0, 15100, 15100, 15, 15, 0},
                     {0, 0, 15150, 15150, 15, 15, 0},
