@@ -121,12 +121,11 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
                                             const int32_t minNumSeeds, const int32_t minCovBases,
                                             const int32_t minDPScore);
 
-std::vector<ChainedHits> ChainHits(const SeedHit* hits, const int32_t hits_size,
-                                   const int32_t chain_max_skip,
-                                   const int32_t chain_max_predecessors,
-                                   const int32_t seed_join_dist, const int32_t diag_margin,
-                                   const int32_t min_num_seeds, const int32_t min_cov_bases,
-                                   const int32_t min_dp_score, double& timeChaining,
+std::vector<ChainedHits> ChainHits(const SeedHit* hits, const int32_t hitsSize,
+                                   const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
+                                   const int32_t seedJoinDist, const int32_t diagMargin,
+                                   const int32_t minNumSeeds, const int32_t minCovBases,
+                                   const int32_t minDPScore, double& timeChaining,
                                    double& timeBacktrack);
 
 double ComputeChainDivergence(const std::vector<SeedHit>& hits);
