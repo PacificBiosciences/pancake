@@ -21,6 +21,8 @@
 
 // #define PANCAKE_DPCHAIN_SIMD_DEBUG
 
+#define PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
+
 namespace PacBio {
 namespace Pancake {
 
@@ -173,10 +175,14 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         bestDpScore = _mm_set1_epi32(hi.querySpan);
         bestDpPred = _mm_set1_epi32(-1);
 
+#ifdef PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
+        const int32_t currChainMaxSkip = chainMaxSkip;
+#elif
         // The position "i" can begin in any of the NUM_REGISTERS registers in the current SIMD vector. Any
         // register which begins at position "i" or later in that vector will not be valid. The maxSkip needs to be
         // increased to alow for that, or the heuristic will terminate early.
         const int32_t currChainMaxSkip = chainMaxSkip + (NUM_REGISTERS - (i % NUM_REGISTERS));
+#endif
 
         // Loop "j" boundaries.
         const int32_t startJ4 = i / NUM_REGISTERS;
@@ -262,8 +268,11 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
             // Horizontal add to update the numSkippedPredecessors, and limit lower value to 0.
             skipDiff = _mm_blendv_epi8(M128_EPI32_ALL_POSITIVE_1, M128_EPI32_ALL_NEGATIVE_1, isBetter);
+#ifdef PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
             // NOTE: The following line would re-enable the "continue" behaviour (where coordinates out of order
-            // would not be counted in numSkippedPredecessors: skipDiff = _mm_andnot_si128(c, skipDiff);
+            // would not be counted in numSkippedPredecessors:
+            skipDiff = _mm_andnot_si128(c, skipDiff);
+#endif
             numSkippedPredecessors += *skipDiffPtr_0;
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
             numSkippedPredecessors += *skipDiffPtr_1;
