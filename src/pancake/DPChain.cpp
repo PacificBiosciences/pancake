@@ -169,7 +169,7 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
     for (int32_t i = 0; i < hitsSize; i++) {
         avgQuerySpan += static_cast<float>(hits[i].querySpan);
     }
-    avgQuerySpan = (hitsSize > 0) ? avgQuerySpan / static_cast<float>(hitsSize) : 0.0;
+    avgQuerySpan = (hitsSize > 0) ? avgQuerySpan / static_cast<float>(hitsSize) : 0.0f;
     const float linFactor = 0.01f * avgQuerySpan;
 
     const int32_t finalChainMaxPredecessors =
