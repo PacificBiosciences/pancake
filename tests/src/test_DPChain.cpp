@@ -717,37 +717,49 @@ TEST(DPChain, ChainHits_ArrayOfTests)
             // Seed hits.
             {
                 // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
-                {0, 0, 4950, 4950, 15, 15, 0},    // 0
+                {0, 0, 4950, 4950, 15, 15, 0},  // 0
+                {0, 0, 4965, 4965, 15, 15, 0},  // 1
 
-                {0, 0, 5000, 4200, 15, 15, 0},  // 1
-                {0, 0, 5000, 4300, 15, 15, 0},  // 2
-                {0, 0, 5000, 4400, 15, 15, 0},  // 3
-                {0, 0, 5000, 4500, 15, 15, 0},  // 4
-                {0, 0, 5000, 4600, 15, 15, 0},  // 5
-                {0, 0, 5000, 4700, 15, 15, 0},  // 6
-                {0, 0, 5000, 4800, 15, 15, 0},  // 7
-                {0, 0, 5000, 4900, 15, 15, 0},  // 8
+                {0, 0, 5000, 4200, 15, 15, 0},  // 2
+                {0, 0, 5000, 4300, 15, 15, 0},  // 3
+                {0, 0, 5000, 4400, 15, 15, 0},  // 4
+                {0, 0, 5000, 4500, 15, 15, 0},  // 5
+                {0, 0, 5000, 4600, 15, 15, 0},  // 6
+                {0, 0, 5000, 4700, 15, 15, 0},  // 7
+                {0, 0, 5000, 4800, 15, 15, 0},  // 8
+                {0, 0, 5000, 4900, 15, 15, 0},  // 9
                 {0, 0, 5000, 5000, 15, 15, 0},  // -> This is the correct minimizer to fit in the linear chain, but it's drowned in neighboring hits (8 above and 8 below),
                 {0, 0, 5000, 5100, 15, 15, 0},  // and none of those hits provide a better DP score. Because chainMaxSkip == 5 (<= 8), chaining stops at this seed.
-                {0, 0, 5000, 5200, 15, 15, 0},  // 11
-                {0, 0, 5000, 5300, 15, 15, 0},  // 12
-                {0, 0, 5000, 5400, 15, 15, 0},  // 13
-                {0, 0, 5000, 5500, 15, 15, 0},  // 14
-                {0, 0, 5000, 5600, 15, 15, 0},  // 15
-                {0, 0, 5000, 5700, 15, 15, 0},  // 16
-                {0, 0, 5000, 5800, 15, 15, 0},  // 17
+                {0, 0, 5000, 5200, 15, 15, 0},  // 12
+                {0, 0, 5000, 5300, 15, 15, 0},  // 13
+                {0, 0, 5000, 5400, 15, 15, 0},  // 14
+                {0, 0, 5000, 5500, 15, 15, 0},  // 15
+                {0, 0, 5000, 5600, 15, 15, 0},  // 16
+                {0, 0, 5000, 5700, 15, 15, 0},  // 17
+                {0, 0, 5000, 5800, 15, 15, 0},  // 18
 
-                {0, 0, 15100, 15100, 15, 15, 0},    // 18
-                {0, 0, 15150, 15150, 15, 15, 0},    // 19
-                {0, 0, 15200, 15200, 15, 15, 0},    // 20
+                {0, 0, 15100, 15100, 15, 15, 0},    // 19
+                {0, 0, 15150, 15150, 15, 15, 0},    // 20
+                {0, 0, 15200, 15200, 15, 15, 0},    // 21
             },
             // Results.
             {
                 // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
+                // NOTE: Faster DP chaining, which does not "continue" when a predecessor with smaller query or target coordinates is reached, would
+                // would produce the following chain instead of the one below. Because there is no "continue", even predecessors with smaller
+                // coordinates will be counted in numSkippedPredecessors, and the inner loop would end earlier.
+                // ChainedHits(0, 0, {
+                //     {0, 0, 4950, 4950, 15, 15, 0},
+                //     {0, 0, 4965, 4965, 15, 15, 0},
+                // }, 30, 30, 30),
+                // NOTE: The original DP chaining (which had continue statements in the inner loop) would produce the following chain instead of
+                // the one above. This is because the seed hits with non-valid coordinates (query/target coord is greater than the next seed hit's)
+                // are not processed ('continue') instead of counted in numSkippedPredecessors.
                 ChainedHits(0, 0, {
                     {0, 0, 4950, 4950, 15, 15, 0},
+                    {0, 0, 4965, 4965, 15, 15, 0},
                     {0, 0, 5000, 5000, 15, 15, 0},
-                }, 30, 30, 30),
+                }, 45, 45, 45),
                 ChainedHits(0, 0, {
                     {0, 0, 15100, 15100, 15, 15, 0},
                     {0, 0, 15150, 15150, 15, 15, 0},
@@ -761,40 +773,42 @@ TEST(DPChain, ChainHits_ArrayOfTests)
             // Seed hits.
             {
                 // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
-                {0, 0, 4950, 4950, 15, 15, 0},    // 0
+                {0, 0, 4950, 4950, 15, 15, 0},  // 0
+                {0, 0, 4965, 4965, 15, 15, 0},  // 1
 
-                {0, 0, 5000, 4200, 15, 15, 0},  // 1
-                {0, 0, 5000, 4300, 15, 15, 0},  // 2
-                {0, 0, 5000, 4400, 15, 15, 0},  // 3
-                {0, 0, 5000, 4500, 15, 15, 0},  // 4
-                {0, 0, 5000, 4600, 15, 15, 0},  // 5
-                {0, 0, 5000, 4700, 15, 15, 0},  // 6
-                {0, 0, 5000, 4800, 15, 15, 0},  // 7
-                {0, 0, 5000, 4900, 15, 15, 0},  // 8
+                {0, 0, 5000, 4200, 15, 15, 0},  // 2
+                {0, 0, 5000, 4300, 15, 15, 0},  // 3
+                {0, 0, 5000, 4400, 15, 15, 0},  // 4
+                {0, 0, 5000, 4500, 15, 15, 0},  // 5
+                {0, 0, 5000, 4600, 15, 15, 0},  // 6
+                {0, 0, 5000, 4700, 15, 15, 0},  // 7
+                {0, 0, 5000, 4800, 15, 15, 0},  // 8
+                {0, 0, 5000, 4900, 15, 15, 0},  // 9
                 {0, 0, 5000, 5000, 15, 15, 0},  // -> This is the correct minimizer to fit in the linear chain, but it's drowned in neighboring hits (8 above and 8 below),
                 {0, 0, 5000, 5100, 15, 15, 0},  // and none of those hits provide a better DP score. Because chainMaxSkip == 5 (<= 8), chaining stops at this seed.
-                {0, 0, 5000, 5200, 15, 15, 0},  // 11
-                {0, 0, 5000, 5300, 15, 15, 0},  // 12
-                {0, 0, 5000, 5400, 15, 15, 0},  // 13
-                {0, 0, 5000, 5500, 15, 15, 0},  // 14
-                {0, 0, 5000, 5600, 15, 15, 0},  // 15
-                {0, 0, 5000, 5700, 15, 15, 0},  // 16
-                {0, 0, 5000, 5800, 15, 15, 0},  // 17
+                {0, 0, 5000, 5200, 15, 15, 0},  // 12
+                {0, 0, 5000, 5300, 15, 15, 0},  // 13
+                {0, 0, 5000, 5400, 15, 15, 0},  // 14
+                {0, 0, 5000, 5500, 15, 15, 0},  // 15
+                {0, 0, 5000, 5600, 15, 15, 0},  // 16
+                {0, 0, 5000, 5700, 15, 15, 0},  // 17
+                {0, 0, 5000, 5800, 15, 15, 0},  // 18
 
-                {0, 0, 15100, 15100, 15, 15, 0},    // 18
-                {0, 0, 15150, 15150, 15, 15, 0},    // 19
-                {0, 0, 15200, 15200, 15, 15, 0},    // 20
+                {0, 0, 15100, 15100, 15, 15, 0},    // 19
+                {0, 0, 15150, 15150, 15, 15, 0},    // 20
+                {0, 0, 15200, 15200, 15, 15, 0},    // 21
             },
             // Results.
             {
                 // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
                 ChainedHits(0, 0, {
                     {0, 0, 4950, 4950, 15, 15, 0},
+                    {0, 0, 4965, 4965, 15, 15, 0},
                     {0, 0, 5000, 5000, 15, 15, 0},
                     {0, 0, 15100, 15100, 15, 15, 0},
                     {0, 0, 15150, 15150, 15, 15, 0},
                     {0, 0, 15200, 15200, 15, 15, 0},
-                }, 75, 75, 75),
+                }, 90, 90, 90),
             },
         },
         {
@@ -846,13 +860,12 @@ TEST(DPChain, ChainHits_ArrayOfTests)
         },
 
     };
-
-                // {targetId, false, 0, 0, span, span, 0},
     // clang-format on
 
     for (const auto& data : allTests) {
         // Name the test.
         SCOPED_TRACE(data.testName);
+        std::cerr << "testName = " << data.testName << "\n";
 
         // Run unit under test.
         double timeChaining = 0.0;
