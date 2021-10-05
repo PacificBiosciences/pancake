@@ -274,11 +274,11 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
     return numChains;
 }
 
-std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, int32_t hitsSize,
+std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t hitsSize,
                                             const int32_t* dp, const int32_t* pred,
                                             const int32_t* chainId, const int32_t numChains,
-                                            int32_t minNumSeeds, int32_t minCovBases,
-                                            int32_t minDPScore)
+                                            const int32_t minNumSeeds, const int32_t minCovBases,
+                                            const int32_t minDPScore)
 {
     std::vector<ChainedHits> chains;
 
@@ -351,10 +351,12 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, int32_t hitsSiz
     return chains;
 }
 
-std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hitsSize, int32_t chainMaxSkip,
-                                   int32_t chainMaxPredecessors, int32_t seedJoinDist,
-                                   int32_t diagMargin, int32_t minNumSeeds, int32_t minCovBases,
-                                   int32_t minDPScore, double& timeChaining, double& timeBacktrack)
+std::vector<ChainedHits> ChainHits(const SeedHit* hits, const int32_t hitsSize,
+                                   const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
+                                   const int32_t seedJoinDist, const int32_t diagMargin,
+                                   const int32_t minNumSeeds, const int32_t minCovBases,
+                                   const int32_t minDPScore, double& timeChaining,
+                                   double& timeBacktrack)
 {
 /**
      * Hits need to be sorted in this order of priority:
@@ -438,7 +440,7 @@ double ComputeChainDivergence(const std::vector<SeedHit>& hits)
     return divergence;
 }
 
-std::vector<int32_t> CollectLongGaps(const std::vector<SeedHit>& hits, int32_t minGap)
+std::vector<int32_t> CollectLongGaps(const std::vector<SeedHit>& hits, const int32_t minGap)
 {
     /*
         * Finds hits which have a gap > minGap from the previous hit.
@@ -453,8 +455,9 @@ std::vector<int32_t> CollectLongGaps(const std::vector<SeedHit>& hits, int32_t m
     return breakpoints;
 }
 
-ChainedHits RefineChainedHits(const ChainedHits& chain, int32_t minGap, int32_t diffThreshold,
-                              int32_t maxForwardSeedDist, int32_t maxForwardSeedCount)
+ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
+                              const int32_t diffThreshold, const int32_t maxForwardSeedDist,
+                              const int32_t maxForwardSeedCount)
 {
     /*
      * \param minGap Minimum gap distsance between two seeds to mark it as a breakpoint.
@@ -540,7 +543,8 @@ ChainedHits RefineChainedHits(const ChainedHits& chain, int32_t minGap, int32_t 
     return ret;
 }
 
-ChainedHits RefineChainedHits2(const ChainedHits& chain, int32_t minGap, int32_t maxForwardSeedDist)
+ChainedHits RefineChainedHits2(const ChainedHits& chain, const int32_t minGap,
+                               const int32_t maxForwardSeedDist)
 {
     /*
     * This filters more extreme outliers.
@@ -619,7 +623,7 @@ ChainedHits RefineChainedHits2(const ChainedHits& chain, int32_t minGap, int32_t
     return ret;
 }
 
-ChainedHits RefineBadEnds(const ChainedHits& chain, int32_t bandwidth, int32_t minMatch)
+ChainedHits RefineBadEnds(const ChainedHits& chain, const int32_t bandwidth, const int32_t minMatch)
 {
     if (chain.hits.size() < 3) {
         return chain;
@@ -713,8 +717,8 @@ std::vector<Range> GroupByTargetAndStrand(const std::vector<SeedHit>& sortedHits
     return groups;
 }
 
-std::vector<Range> DiagonalGroup(const std::vector<SeedHit>& sortedHits, int32_t chainBandwidth,
-                                 bool overlappingWindows)
+std::vector<Range> DiagonalGroup(const std::vector<SeedHit>& sortedHits,
+                                 const int32_t chainBandwidth, const bool overlappingWindows)
 {
     /*
      * Groups seed hits by:
