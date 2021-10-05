@@ -196,6 +196,12 @@ public:
     MapperCLR(const MapperCLRSettings& settings);
     ~MapperCLR() override;
 
+    /**
+     * \brief Utility function which allows to update the mapping/alignment settings _after_ the MapperCLR
+     * object was already constructed.
+    */
+    void UpdateSettings(const MapperCLRSettings& settings);
+
     /*
      * \brief Runs mapping and alignment of one or more query sequences to one or more target sequences.
      * This is the basic interface for the most simple usage.
@@ -247,7 +253,7 @@ public:
     MapperBaseResult Map(const FastaSequenceCachedStore& targetSeqs,
                          const PacBio::Pancake::SeedIndex& index,
                          const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                         const int32_t queryLen, const int32_t queryId, int64_t freqCutoff) const;
+                         const int32_t queryLen, const int32_t queryId, int64_t freqCutoff);
 
     /*
      * \brief Aligns a precomputed mapping result.
@@ -260,6 +266,8 @@ private:
     MapperCLRSettings settings_;
     AlignerBasePtr alignerGlobal_;
     AlignerBasePtr alignerExt_;
+    std::shared_ptr<ChainingScratchSpace> ssChain_;
+    std::vector<SeedHit> ssSeedHits_;
 
     /*
      * \brief Wraps the entire mapping and alignment process.
@@ -271,8 +279,9 @@ private:
         const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
         const FastaSequenceCached& querySeq,
         const std::vector<PacBio::Pancake::Int128t>& querySeeds, const int32_t queryId,
-        int64_t freqCutoff, const MapperCLRSettings& settings, AlignerBasePtr& alignerGlobal,
-        AlignerBasePtr& alignerExt);
+        int64_t freqCutoff, const MapperCLRSettings& settings,
+        std::shared_ptr<ChainingScratchSpace> ssChain, std::vector<SeedHit>& ssSeedHits,
+        AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt);
 
     /*
      * This function starts from plain sequences, and constructs the seeds (minimizers),
@@ -285,7 +294,8 @@ private:
     */
     static std::vector<MapperBaseResult> WrapBuildIndexMapAndAlignWithFallback_(
         const FastaSequenceCachedStore& targetSeqs, const FastaSequenceCachedStore& querySeqs,
-        const MapperCLRSettings& settings, AlignerBasePtr& alignerGlobal,
+        const MapperCLRSettings& settings, std::shared_ptr<ChainingScratchSpace> ssChain,
+        std::vector<SeedHit>& ssSeedHits, AlignerBasePtr& alignerGlobal,
         AlignerBasePtr& alignerExt);
 
     /*
@@ -295,7 +305,9 @@ private:
                                  const PacBio::Pancake::SeedIndex& index,
                                  const std::vector<PacBio::Pancake::Int128t>& querySeeds,
                                  const int32_t queryLen, const int32_t queryId,
-                                 const MapperCLRSettings& settings, int64_t freqCutoff);
+                                 const MapperCLRSettings& settings, int64_t freqCutoff,
+                                 std::shared_ptr<ChainingScratchSpace> ssChain,
+                                 std::vector<SeedHit>& ssSeedHits);
 
     /*
      * \brief Aligns the query sequence to one or more target sequences, based on the mappings and
@@ -326,6 +338,7 @@ private:
         const std::vector<PacBio::Pancake::Range>& hitGroups, int32_t queryId, int32_t queryLen,
         int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
         int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore, bool useLIS,
+        std::shared_ptr<ChainingScratchSpace> ssChain,
         std::unordered_map<std::string, double>& retTimings);
 
     /*
@@ -338,6 +351,7 @@ private:
         const FastaSequenceCachedStore& targetSeqs, int32_t queryId, int32_t queryLen,
         int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
         int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
+        std::shared_ptr<ChainingScratchSpace> ssChain,
         std::unordered_map<std::string, double>& retTimings);
 
     /*

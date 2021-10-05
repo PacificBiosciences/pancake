@@ -201,13 +201,18 @@ void MapperBatchGPU::WorkerMapper_(const std::vector<MapperBatchChunk>& batchChu
                                    int32_t startId, int32_t endId,
                                    std::vector<std::vector<MapperBaseResult>>& results)
 {
+
+    // Create one mapper for this thread so we can reuse the memory.
+    MapperCLRSettings settingsCopy;
+    MapperCLR mapper(settingsCopy);
+
     for (int32_t i = startId; i < endId; ++i) {
         const auto& chunk = batchChunks[i];
 
         // Create a copy of the settings so that we can turn off the alignment.
-        MapperCLRSettings settingsCopy;
         settingsCopy.map = chunk.mapSettings;
         settingsCopy.align.align = false;
+        mapper.UpdateSettings(settingsCopy);
 
         // Create the mapper.
         MapperCLR mapper(settingsCopy);

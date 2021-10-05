@@ -362,7 +362,7 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, const int32_t hitsSize,
                                    const int32_t seedJoinDist, const int32_t diagMargin,
                                    const int32_t minNumSeeds, const int32_t minCovBases,
                                    const int32_t minDPScore, double& timeChaining,
-                                   double& timeBacktrack)
+                                   double& timeBacktrack, std::shared_ptr<ChainingScratchSpace> ss)
 {
 /**
      * Hits need to be sorted in this order of priority:
@@ -384,9 +384,13 @@ std::vector<ChainedHits> ChainHits(const SeedHit* hits, const int32_t hitsSize,
         return {};
     }
 
-    std::vector<int32_t> dp;
-    std::vector<int32_t> pred;
-    std::vector<int32_t> chainId;
+    if (ss == nullptr) {
+        ss = std::make_shared<ChainingScratchSpace>();
+    }
+
+    std::vector<int32_t>& dp = ss->dp;
+    std::vector<int32_t>& pred = ss->pred;
+    std::vector<int32_t>& chainId = ss->chainId;
 
     const int32_t numChains =
         ChainHitsForwardFastSisd(hits, hitsSize, chainMaxSkip, chainMaxPredecessors, seedJoinDist,
