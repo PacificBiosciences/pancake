@@ -47,9 +47,10 @@ struct ChainedHits
 
 inline bool operator==(const ChainedHits& lhs, const ChainedHits& rhs)
 {
-    return lhs.targetId == rhs.targetId && lhs.targetRev == rhs.targetRev && lhs.hits == rhs.hits &&
-           lhs.score == rhs.score && lhs.coveredBasesQuery == rhs.coveredBasesQuery &&
-           lhs.coveredBasesTarget == rhs.coveredBasesTarget;
+    return std::tie(lhs.targetId, lhs.targetRev, lhs.hits, lhs.score, lhs.coveredBasesQuery,
+                    lhs.coveredBasesTarget) == std::tie(rhs.targetId, rhs.targetRev, rhs.hits,
+                                                        rhs.score, rhs.coveredBasesQuery,
+                                                        rhs.coveredBasesTarget);
 }
 
 inline std::ostream& operator<<(std::ostream& os, const ChainedHits& b)

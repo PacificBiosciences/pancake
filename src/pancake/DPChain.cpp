@@ -85,7 +85,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
             const int32_t gapDist =
                 (distQuery < distTarget) ? (distTarget - distQuery) : (distQuery - distTarget);
 
-            if (hjTargetId != hiTargetId || hjTargetRev != hiTargetRev) {
+            if ((hjTargetId != hiTargetId) || (hjTargetRev != hiTargetRev)) {
                 break;
             }
             if (distTarget > seedJoinDist) {
@@ -99,7 +99,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
                 std::min(hjQuerySpan, std::min<int32_t>(abs(distQuery), abs(distTarget)));
             int32_t score = dp[j] + matchScore - edge_score;
 
-            if (hiQueryPos <= hjQueryPos || hiTargetPos <= hjTargetPos) {
+            if ((hiQueryPos <= hjQueryPos) || (hiTargetPos <= hjTargetPos)) {
                 score = NegativeInf;
                 // NOTE: The 'continue' statement can improve mapping in low complexity regions
                 // (because of numSkippedPredecessors), but makes it slower.
