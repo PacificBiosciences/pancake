@@ -5,6 +5,7 @@
 
 ## v1.?.?
 - LIS performance improvements.
+- Streamlined the DP chaining procedure. Removed all but one branching in the inner loop.
 
 ## v1.4.1
 - Added a time profiling feature. Turned off by default. Enable by specifying the `-Dtime=true` Meson option, or the `PANCAKE_ENABLE_TIMINGS` macro.
