@@ -26,11 +26,13 @@ struct ChainingScratchSpace
     std::vector<int32_t> pred;
     std::vector<int32_t> chainId;
 
+#ifdef PANCAKE_USE_SSE41
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
     std::vector<__m128i> dpSimd;
     std::vector<__m128i> predSimd;
 #pragma GCC diagnostic pop
+#endif
 };
 
 struct ChainedHits
