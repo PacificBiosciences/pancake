@@ -214,9 +214,6 @@ void MapperBatchGPU::WorkerMapper_(const std::vector<MapperBatchChunk>& batchChu
         settingsCopy.align.align = false;
         mapper.UpdateSettings(settingsCopy);
 
-        // Create the mapper.
-        MapperCLR mapper(settingsCopy);
-
         try {
             results[i] = mapper.MapAndAlign(chunk.targetSeqs, chunk.querySeqs);
         } catch (const std::exception& e) {
