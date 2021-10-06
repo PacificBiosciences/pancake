@@ -5,6 +5,7 @@
 #include <pacbio/alignment/DiffCounts.h>
 #include <pacbio/alignment/SesDistanceBanded.h>
 #include <pacbio/pancake/AlignmentSeeded.h>
+#include <pacbio/pancake/DPChain.h>
 #include <pacbio/pancake/DPChainSimd.h>
 #include <pacbio/pancake/MapperCLR.h>
 #include <pacbio/pancake/MapperUtility.h>
@@ -38,6 +39,12 @@
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
 #include <pbcopper/utility/MemoryConsumption.h>
 #include <iomanip>
+#endif
+
+#ifdef PANCAKE_USE_SSE41
+#define ChainHits ChainHitsSimd
+#else
+#define ChainHits ChainHitsSisd
 #endif
 
 namespace PacBio {
@@ -816,9 +823,9 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
         // DP Chaining of the filtered hits to remove outliers.
         double timeChaining = 0.0, timeBacktrack = 0.0;
         std::vector<ChainedHits> chains =
-            ChainHitsSimd(&hits2[group.start], group.end - group.start, chainMaxSkip,
-                          chainMaxPredecessors, maxGap, chainBandwidth, minNumSeeds,
-                          minCoveredBases, minDPScore, timeChaining, timeBacktrack, ssChain);
+            ChainHits(&hits2[group.start], group.end - group.start, chainMaxSkip,
+                      chainMaxPredecessors, maxGap, chainBandwidth, minNumSeeds, minCoveredBases,
+                      minDPScore, timeChaining, timeBacktrack, ssChain);
 
         double timeChainHits = ttPartial.GetMicrosecs(true);
         LogTicTocAdd("map-L2-rechain-03-chainhits", ttPartial, retTimings);
@@ -929,9 +936,9 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 
             // DP Chaining of the filtered hits to remove outliers.
             double timeChaining = 0.0, timeBacktrack = 0.0;
-            chains = ChainHitsSimd(&lisHits[0], lisHits.size(), chainMaxSkip, chainMaxPredecessors,
-                                   maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
-                                   timeChaining, timeBacktrack, ssChain);
+            chains = ChainHits(&lisHits[0], lisHits.size(), chainMaxSkip, chainMaxPredecessors,
+                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
+                               timeChaining, timeBacktrack, ssChain);
 
             const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
