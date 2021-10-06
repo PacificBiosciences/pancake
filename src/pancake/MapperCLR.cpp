@@ -415,10 +415,39 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
 #endif
 
     // Sort the seed hits.
-    pdqsort(hits.begin(), hits.end(), [](const auto& a, const auto& b) {
-        return PackSeedHitWithDiagonalToTuple(a) < PackSeedHitWithDiagonalToTuple(b);
-    });
-    LogTicToc("map-L1-05-sortseeds", ttPartial, result.time);
+    {  // NOTE: This generates a slightly different result for the "MapperCLR.SeedOccurrenceThresholds_LoadFromFile" test.
+        std::vector<Int128t> seedHitsPacked(hits.size());
+        for (size_t i = 0; i < hits.size(); ++i) {
+            // target ID, target rev, diagonal, target pos, query pos
+            // target ID and rev, diagonal, ID.
+            const int32_t diag = hits[i].targetPos - hits[i].queryPos;
+            seedHitsPacked[i] =
+                (static_cast<PacBio::Pancake::Int128t>(hits[i].targetId) << 97) |
+                ((static_cast<PacBio::Pancake::Int128t>(hits[i].targetRev) & MASK128_LOW1bit)
+                 << 96) |
+                ((static_cast<PacBio::Pancake::Int128t>(diag) & MASK128_LOW32bit) << 64) |
+                ((static_cast<PacBio::Pancake::Int128t>(i) & MASK128_LOW32bit));
+        }
+        const double timeSortPrepare = ttPartial.GetMicrosecs(true);
+        LogTicTocAdd("map-L3-total-sort", timeSortPrepare, result.time);
+        LogTicToc("map-L1-05-sort-prepare", ttPartial, result.time);
+
+        pdqsort(seedHitsPacked.begin(), seedHitsPacked.end());
+        std::vector<PacBio::Pancake::SeedHit> sortedHits(hits.size());
+        for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
+            sortedHits[i] = hits[seedHitsPacked[i] & MASK128_LOW32bit];
+        }
+        std::swap(hits, sortedHits);
+        const double timeSort = ttPartial.GetMicrosecs(true);
+        LogTicTocAdd("map-L3-total-sort", timeSort, result.time);
+        LogTicToc("map-L1-05-sort", ttPartial, result.time);
+    }
+
+    // // Sort the seed hits.
+    // pdqsort(hits.begin(), hits.end(), [](const auto& a, const auto& b) {
+    //     return PackSeedHitWithDiagonalToTuple(a) < PackSeedHitWithDiagonalToTuple(b);
+    // });
+    // LogTicToc("map-L1-05-sortseeds", ttPartial, result.time);
 
     // Group seed hits by diagonal.
     auto groups = DiagonalGroup(hits, settings.map.chainBandwidth, true);
@@ -786,24 +815,68 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
 
     std::vector<std::unique_ptr<ChainedRegion>> newChainedRegions;
 
-    // Merge all remaining seed hits.
-    std::vector<SeedHit> hits2;
+    // // Merge all remaining seed hits.
+    // std::vector<SeedHit> hits2;
+    // for (size_t i = 0; i < chainedRegions.size(); ++i) {
+    //     auto& region = chainedRegions[i];
+    //     if (region->priority > 1) {
+    //         continue;
+    //     }
+    //     hits2.insert(hits2.end(), region->chain.hits.begin(), region->chain.hits.end());
+    // }
+    // LogTicToc("map-L2-rechain-00-merge", ttPartial, retTimings);
+
+    ///////////////////////////////////////////
+    // TODO: Experimental for sorting. It turns out to be faster to copy and convert data
+    // than to use a custom comparison operator to compare tuples.
+    // Also, Pdqsort is more efficient than std::sort.
+    ///////////////////////////////////////////
+    // Sort the hits by coordinates.
+    size_t newSize = 0;
     for (size_t i = 0; i < chainedRegions.size(); ++i) {
         auto& region = chainedRegions[i];
         if (region->priority > 1) {
             continue;
         }
-        hits2.insert(hits2.end(), region->chain.hits.begin(), region->chain.hits.end());
+        newSize += region->chain.hits.size();
     }
+    std::vector<Int128t> seedHitsPacked(newSize);
+    for (size_t i = 0, newId = 0; i < chainedRegions.size(); ++i) {
+        auto& region = chainedRegions[i];
+        if (region->priority > 1) {
+            continue;
+        }
+        for (size_t j = 0; j < region->chain.hits.size(); ++j) {
+            seedHitsPacked[newId] = region->chain.hits[j].PackTo128();
+            ++newId;
+        }
+    }
+    const double timeSortPrepare = ttPartial.GetMicrosecs(true);
+    LogTicTocAdd("map-L3-total-sort", timeSortPrepare, retTimings);
+    LogTicToc("map-L2-rechain-01-sort-prepare", ttPartial, retTimings);
 
-    // Sort the hits by coordinates.
-    // IMPORTANT: This needs to sort by target, and if target coords are identical then by query.
-    pdqsort(hits2.begin(), hits2.end(), [](const SeedHit& a, const SeedHit& b) {
-        return std::tuple(a.targetId, a.targetRev, a.targetPos, a.queryPos) <
-               std::tuple(b.targetId, b.targetRev, b.targetPos, b.queryPos);
-    });
+    pdqsort(seedHitsPacked.begin(), seedHitsPacked.end());
+    const double timeSort = ttPartial.GetMicrosecs(true);
+    LogTicTocAdd("map-L3-total-sort", timeSort, retTimings);
+    LogTicToc("map-L2-rechain-01-sort", ttPartial, retTimings);
 
-    LogTicToc("map-L2-rechain-01-mergeandsort", ttPartial, retTimings);
+    std::vector<SeedHit> hits2(newSize);
+    for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
+        hits2[i].ParseFrom128(seedHitsPacked[i]);
+    }
+    const double timeSortPost = ttPartial.GetMicrosecs(true);
+    LogTicTocAdd("map-L3-total-sort", timeSortPost, retTimings);
+    LogTicToc("map-L2-rechain-01-sort-post", ttPartial, retTimings);
+
+    ///////////////////////////////////////////
+    // // Sort the hits by coordinates.
+    // // IMPORTANT: This needs to sort by target, and if target coords are identical then by query.
+    // pdqsort(hits2.begin(), hits2.end(), [](const SeedHit& a, const SeedHit& b) {
+    //     return std::tuple(a.targetId, a.targetRev, a.targetPos, a.queryPos) <
+    //            std::tuple(b.targetId, b.targetRev, b.targetPos, b.queryPos);
+    // });
+
+    // LogTicToc("map-L2-rechain-01-mergeandsort", ttPartial, retTimings);
 
     auto groups = GroupByTargetAndStrand(hits2);
 
@@ -884,11 +957,11 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 {
     TicToc ttPartial;
 
-    // Comparison function to sort the seed hits for LIS.
-    // IMPORTANT: This needs to sort by target, and if target coords are identical then by query.
-    auto ComparisonSort = [](const SeedHit& a, const SeedHit& b) -> bool {
-        return std::pair(a.targetPos, a.queryPos) < std::pair(b.targetPos, b.queryPos);
-    };
+    // // Comparison function to sort the seed hits for LIS.
+    // // IMPORTANT: This needs to sort by target, and if target coords are identical then by query.
+    // auto ComparisonSort = [](const SeedHit& a, const SeedHit& b) -> bool {
+    //     return std::pair(a.targetPos, a.queryPos) < std::pair(b.targetPos, b.queryPos);
+    // };
 
     // Process each diagonal bin to get the final chains.
     std::vector<std::unique_ptr<ChainedRegion>> allChainedRegions;
@@ -905,14 +978,50 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             continue;
         }
 
-        // Get a copy of the seed hits so that we can sort without touching the input.
-        std::vector<SeedHit> groupHits(hits.begin() + range.start, hits.begin() + range.end);
+        // // Get a copy of the seed hits so that we can sort without touching the input.
+        // std::vector<SeedHit> groupHits(hits.begin() + range.start, hits.begin() + range.end);
 
-        // Groups are already groupped by target ID and strand, so only sorting by coordinates is enough.
-        // Hits have previously been sorted by diagonals, and not by coordinates, so we need to sort again
-        // to get them in proper order.
-        pdqsort(groupHits.begin(), groupHits.end(), ComparisonSort);
-        LogTicTocAdd("map-L2-chain-01-sort", ttPartial, retTimings);
+        // // Groups are already groupped by target ID and strand, so only sorting by coordinates is enough.
+        // // Hits have previously been sorted by diagonals, and not by coordinates, so we need to sort again
+        // // to get them in proper order.
+        // pdqsort(groupHits.begin(), groupHits.end(), ComparisonSort);
+        // LogTicTocAdd("map-L2-chain-01-sort", ttPartial, retTimings);
+
+        std::vector<SeedHit> groupHits(range.Span());
+        {
+            ///////////////////////////////////////////
+            // TODO: Experimental for sorting. It turns out to be faster to copy and convert data
+            // than to use a custom comparison operator to compare tuples.
+            // Also, Pdqsort is more efficient than std::sort.
+            ///////////////////////////////////////////
+            // TODO: This approach is just for testing. It converts the SeedHit objects to int128_t, and then
+            // sorts without using the custom comparison operator.
+            std::vector<Int128t> seedHitsPacked(range.Span());
+            for (int32_t i = range.start, hitId = 0; i < range.end; ++i, ++hitId) {
+                seedHitsPacked[hitId] = hits[i].PackTo128();
+            }
+            ttPartial.Stop();
+            const double timeSortPrepare = ttPartial.GetMicrosecs(true);
+            LogTicTocAdd("map-L3-total-sort", timeSortPrepare, retTimings);
+            LogTicTocAdd("map-L2-chain-01-sort-prepare", timeSortPrepare, retTimings);
+            ttPartial.Start();
+
+            pdqsort(seedHitsPacked.begin(), seedHitsPacked.end());
+            ttPartial.Stop();
+            const double timeSort = ttPartial.GetMicrosecs(true);
+            LogTicTocAdd("map-L3-total-sort", timeSort, retTimings);
+            LogTicTocAdd("map-L2-chain-01-sort", timeSort, retTimings);
+            ttPartial.Start();
+
+            for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
+                groupHits[i].ParseFrom128(seedHitsPacked[i]);
+            }
+            ttPartial.Stop();
+            const double timeSortPost = ttPartial.GetMicrosecs(true);
+            LogTicTocAdd("map-L3-total-sort", timeSortPost, retTimings);
+            LogTicTocAdd("map-L2-chain-01-sort-post", timeSortPost, retTimings);
+            ttPartial.Start();
+        }
 
         // Perform chaining.
         std::vector<ChainedHits> chains;
