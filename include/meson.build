@@ -119,7 +119,6 @@ if not meson.is_subproject()
       'pacbio/pancake/CompressedSequence.h',
       'pacbio/pancake/ContiguousFilePart.h',
       'pacbio/pancake/DPChain.h',
-      'pacbio/pancake/DPChainSimd.h',
       'pacbio/pancake/FastaSequenceCached.h',
       'pacbio/pancake/FastaSequenceCachedStore.h',
       'pacbio/pancake/FastaSequenceId.h',
@@ -186,6 +185,13 @@ if not meson.is_subproject()
         files([
           'pacbio/pancake/AlignerBatchGPU.h',
           'pacbio/pancake/MapperBatchGPU.h',
+          ]),
+          subdir : 'pacbio/pancake')
+  endif
+  if opt_sse41
+      install_headers(
+        files([
+            'pacbio/pancake/DPChainSimd.h',
           ]),
           subdir : 'pacbio/pancake')
   endif

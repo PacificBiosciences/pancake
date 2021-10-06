@@ -3,7 +3,6 @@ pancake_test_cpp_sources = files([
   'src/test_AlignmentSeeded.cpp',
   'src/test_AlignmentTools.cpp',
   'src/test_DPChain.cpp',
-  'src/test_DPChainSimd.cpp',
   'src/test_FastaSequenceCachedStore.cpp',
   'src/test_FileIO.cpp',
   'src/test_LIS.cpp',
@@ -38,6 +37,11 @@ if opt_cuda
     pancake_test_cpp_sources += files([
       'src/test_AlignerBatchGPU.cpp',
       'src/test_MapperBatchGPU.cpp',
+    ])
+endif
+if opt_sse41
+    pancake_test_cpp_sources += files([
+        'src/test_DPChainSimd.cpp',
     ])
 endif
 

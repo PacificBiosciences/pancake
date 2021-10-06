@@ -62,7 +62,6 @@ pancake_cpp_sources = files([
     'pancake/AlignmentSeeded.cpp',
     'pancake/CompressedSequence.cpp',
     'pancake/DPChain.cpp',
-    'pancake/DPChainSimd.cpp',
     'pancake/FastaSequenceId.cpp',
     'pancake/MapperBatchCPU.cpp',
     'pancake/MapperBatchUtility.cpp',
@@ -117,6 +116,12 @@ if opt_cuda
         'pancake/AlignerBatchGPUGenomeWorksInterface.cu',
     ])
     pancake_cpp_sources += pancake_cu_sources
+endif
+
+if opt_sse41
+    pancake_cpp_sources += files([
+    'pancake/DPChainSimd.cpp',
+    ])
 endif
 
 pancake_cpp_sources += pancake_version_sources
