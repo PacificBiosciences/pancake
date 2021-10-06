@@ -23,6 +23,10 @@
 
 #define PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
 
+// disable all the warnings in this file
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+
 namespace PacBio {
 namespace Pancake {
 
@@ -235,6 +239,8 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             __m128i logPart = _mm_set_epi32(logPart3, logPart2, logPart1, logPart0);
             logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
 
+
+
             // // Version 2: Use SSE instructions for simple math operations inside ilog2_32_clz_special_zero.
             // const int32_t logPart0 = __builtin_clz(*distDiagPtr_0);
             // const int32_t logPart1 = __builtin_clz(*distDiagPtr_1);
@@ -441,3 +447,5 @@ std::vector<ChainedHits> ChainHitsSimd(
 
 }  // namespace Pancake
 }  // namespace PacBio
+
+#pragma GCC diagnostic pop
