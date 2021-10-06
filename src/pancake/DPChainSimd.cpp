@@ -32,10 +32,10 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                                  std::vector<__m128i>& dp, std::vector<__m128i>& pred,
                                  std::vector<int32_t>& chainId)
 {
-    const int32_t VECTOR_SIZE = 128;
-    const int32_t REGISTER_SIZE = 32;
-    constexpr int32_t NUM_REGISTERS = VECTOR_SIZE / REGISTER_SIZE;
-    const int32_t MAX_INT32 = std::numeric_limits<int32_t>::max();
+    constexpr int32_t VECTOR_SIZE = 128;
+    constexpr int32_t REGISTER_SIZE = 32;
+    constexpr uint32_t NUM_REGISTERS = VECTOR_SIZE / REGISTER_SIZE;
+    constexpr int32_t MAX_INT32 = std::numeric_limits<int32_t>::max();
 
     dp.clear();
     pred.clear();
@@ -66,18 +66,18 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     std::vector<__m128i> qs(dpPaddedSize);  // Query span.
 
     // Used to allow direct access to data, instead through operator[].
-    __m128i* dpPtr = &dp[0];
-    __m128i* qpPtr = &qp[0];
-    __m128i* tpPtr = &tp[0];
-    __m128i* qsPtr = &qs[0];
+    __m128i* dpPtr = dp.data();
+    __m128i* qpPtr = qp.data();
+    __m128i* tpPtr = tp.data();
+    __m128i* qsPtr = qs.data();
 
     // Helper pointers for direct data access, without using operator[].
-    int32_t* dpInt32 = reinterpret_cast<int32_t*>(&dp[0]);
-    int32_t* predInt32 = reinterpret_cast<int32_t*>(&pred[0]);
-    int32_t* chainIdInt32 = &chainId[0];
-    int32_t* qpInt32 = reinterpret_cast<int32_t*>(&qp[0]);
-    int32_t* tpInt32 = reinterpret_cast<int32_t*>(&tp[0]);
-    int32_t* qsInt32 = reinterpret_cast<int32_t*>(&qs[0]);
+    int32_t* dpInt32 = reinterpret_cast<int32_t*>(dpPtr);
+    int32_t* predInt32 = reinterpret_cast<int32_t*>(pred.data());
+    int32_t* chainIdInt32 = chainId.data();
+    int32_t* qpInt32 = reinterpret_cast<int32_t*>(qpPtr);
+    int32_t* tpInt32 = reinterpret_cast<int32_t*>(tpPtr);
+    int32_t* qsInt32 = reinterpret_cast<int32_t*>(qsPtr);
 
     // Initialize the values needed for DP computation.
     for (int32_t i = 0; i < hitsSize; ++i) {
@@ -87,7 +87,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         tpInt32[i] = hits[i].targetPos;
         qsInt32[i] = hits[i].querySpan;
     }
-    for (int32_t i = hitsSize; i < dpPaddedSize * NUM_REGISTERS; ++i) {
+    for (uint32_t i = hitsSize; i < dpPaddedSize * NUM_REGISTERS; ++i) {
         dpInt32[i] = 0;
         predInt32[i] = -1;
         qpInt32[i] = MAX_INT32;
@@ -196,7 +196,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 #endif
 
         // clang-format off
-        for (int32_t j = startJ4, numSkippedPredecessors = 0; j >= minJ4 && numSkippedPredecessors <= currChainMaxSkip; --j) {
+        for (int32_t j = startJ4, numSkippedPredecessors = 0; (j >= minJ4) && numSkippedPredecessors <= currChainMaxSkip; --j) {
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
             std::cerr << "    [i = " << i << ", i&0x03 = " << (i & 0x03)
