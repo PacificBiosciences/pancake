@@ -72,3 +72,8 @@ source scripts/ci/racon.modules.sh
 set -vx
 rm -rf racon-v1.4.13/build-meson # TEMP fix for my mistake
 make -C scripts/ci all
+
+# Run ASAN and UBSAN.
+export CURRENT_DEBUG_BUILD_DIR_SANITIZE=build-debug-sanitize
+bash -vex scripts/ci/configure_debug_sanitize_fallback.sh ${CURRENT_DEBUG_BUILD_DIR_SANITIZE}
+ninja -C "${CURRENT_DEBUG_BUILD_DIR_SANITIZE}" -v
