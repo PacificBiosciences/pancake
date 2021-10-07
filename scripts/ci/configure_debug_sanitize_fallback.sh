@@ -12,6 +12,6 @@ meson \
   --unity "${ENABLED_UNITY_BUILD:-off}" \
   --prefix "${PREFIX_ARG:-/usr/local}" \
   --buildtype=debugoptimized \
-  -Db_sanitize=address \
+  -Db_sanitize=address,undefined \
   -Dtests="${ENABLED_TESTS:-false}" \
   "${BUILD_DIR}" .
