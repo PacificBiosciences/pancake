@@ -1241,16 +1241,16 @@ TEST(Test_AlignmentTools_ComputeSimpleRepeatMask, ArrayOfTests)
                     },
                     false
         },
-        {"Too large max span, return everything masked at level 7",
-                    "ACTG" "AA" "ACAC" "TG" "ATGATGATG" "ACTGACTG", 8,
-                    {
-                        0, 0, 0, 0,                             // ACTG
-                        1, 1, 3, 2, 2, 2, 36, 36,               // AAACACTG
-                        36, 36, 36, 36, 36, 36, 36, 44, 44,     // ATGATGATG
-                        44, 8, 8, 8, 8, 8, 8, 8,                // ACTGACTG
-                    },
-                    false
-        },
+        // {"Too large max span, return everything masked at level 7",
+        //             "ACTG" "AA" "ACAC" "TG" "ATGATGATG" "ACTGACTG", 8,
+        //             {
+        //                 0, 0, 0, 0,                             // ACTG
+        //                 1, 1, 3, 2, 2, 2, 36, 36,               // AAACACTG
+        //                 36, 36, 36, 36, 36, 36, 36, 44, 44,     // ATGATGATG
+        //                 44, 8, 8, 8, 8, 8, 8, 8,                // ACTGACTG
+        //             },
+        //             false
+        // },
         {"Two homopolymers", "AAAAAAAACCCCCCC", 1, {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, false},
         {"Long HPs are also dinucs and trinucs", "AAAAAAAACCCCCCC", 3, {7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7}, false},
         {"Regular sequence with HPs", "GGATCAGTTTTATATACAC", 3, {1, 1, 0, 0, 0, 0, 0, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2}, false},
