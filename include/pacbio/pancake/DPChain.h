@@ -108,9 +108,8 @@ inline uint32_t ilog2_32_clz_special_zero(const int32_t v)
      *          Of course, a proper mathematical log2 would return -inf, but this
      *          special case is required for chaining.
     */
-    // If v <= 0, then lt == 0x0, otherwise lt == 0xFFFFFFFF.
-    const int32_t lt = (0 - v) >> 31;
-    return (31 - __builtin_clz(v)) & lt;
+    const int32_t vNonZero = std::max(v, 1);
+    return (31 - __builtin_clz(vNonZero));
 }
 
 int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
