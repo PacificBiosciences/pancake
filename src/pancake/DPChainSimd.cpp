@@ -242,7 +242,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
             // Pick the best score.
             const __m128i jVec = _mm_set1_epi32(j);
-            const __m128i isBetter = _mm_cmpgt_epi32(score, bestDpScore);
+            const __m128i isBetter = _mm_cmplt_epi32(bestDpScore, score);
             bestDpScore = _mm_blendv_epi8(bestDpScore, score, isBetter);
             bestDpPred = _mm_blendv_epi8(bestDpPred, jVec, isBetter);
 
@@ -265,7 +265,9 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
             {
                 std::cerr << "        range = [" << (j * NUM_REGISTERS) << ", " << ((j + 1) * NUM_REGISTERS) << "]\n";
-                std::cerr << "        score = [";
+                std::cerr << "        dp = [";
+                PrintVectorInt32(std::cerr, dp[j]);
+                std::cerr << "], score = [";
                 PrintVectorInt32(std::cerr, score);
                 std::cerr << "], isBetter = [";
                 PrintVectorInt32(std::cerr, isBetter);
@@ -279,10 +281,17 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                 std::cerr << "\n";
                 std::cerr << "        logPart = [";
                 PrintVectorInt32(std::cerr, logPart);
-                std::cerr << "], linPart [";
+                std::cerr << "], linPart = [";
                 PrintVectorInt32(std::cerr, linPart);
-                std::cerr << "], matchScore [";
+                std::cerr << "], matchScore = [";
                 PrintVectorInt32(std::cerr, matchScore);
+                std::cerr << "]\n";
+                std::cerr << "        distQuery = [";
+                PrintVectorInt32(std::cerr, distQuery);
+                std::cerr << "], distTarget = [";
+                PrintVectorInt32(std::cerr, distTarget);
+                std::cerr << "], qs[j] = [";
+                PrintVectorInt32(std::cerr, qs[j]);
                 std::cerr << "]\n";
                 std::cerr << "        distDiagFloat = [";
                 PrintVectorFloat(std::cerr, distDiagFloat);
