@@ -861,6 +861,51 @@ TEST(DPChainSimd, ChainHits_ArrayOfTests)
                 }, 60, 60, 60),
             },
         },
+
+        //////////////////////////////////////////
+        /// Edge cases                         ///
+        //////////////////////////////////////////
+        {
+            "Edge case which can happen if the chaining DP loop compares 'newScore >= bestScore' instead of 'newScore > bestScore'."
+            "If there are multiple predecessors with the identical score, then potentially the most distant one from the current position"
+            "will be selected because of the sorting order. In reality, the closest one should be chosen so that the"
+            "chain produces the highest possible coverage. This may be especially important for HiFi reads."
+            "This can happen when there are multiple seed hits which are <= seedSpan apart."
+            "So, if the window size is <= seedSpan, then this can cause potential loss of seeds in chaining."
+            "The fix is trivial - use '>' instead of '>=' to track the maximum score.",
+            25, 500, 10000, 500, 3, 0, 40,
+            // Seed hits.
+            {
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                {0, 1, 220, 220, 15, 15, 0},    // 0
+                {0, 1, 250, 250, 15, 15, 0},    // 1
+                {0, 1, 300, 300, 15, 15, 0},    // 2
+                {0, 1, 350, 350, 15, 15, 0},    // 3
+                {0, 1, 400, 400, 15, 15, 0},    // 4
+
+                {1, 1, 370, 370, 15, 15, 0},    // 5
+                {1, 1, 380, 380, 15, 15, 0},    // 6
+                {1, 1, 390, 390, 15, 15, 0},    // 7
+                {1, 1, 395, 395, 15, 15, 0},    // 8    -> Identical score for transitions between 8->7 and 8->6. Backtracking can pick 8->6 because of the sort order, but it would be better to have 8->7->6.
+            },
+            // Results.
+            {
+                // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
+                ChainedHits(0, 1, {
+                    {0, 1, 220, 220, 15, 15, 0},    // 0
+                    {0, 1, 250, 250, 15, 15, 0},    // 1
+                    {0, 1, 300, 300, 15, 15, 0},    // 2
+                    {0, 1, 350, 350, 15, 15, 0},    // 3
+                    {0, 1, 400, 400, 15, 15, 0},    // 4
+                }, 75, 75, 75),
+                ChainedHits(1, 1, {
+                    {1, 1, 370, 370, 15, 15, 0},    // 5
+                    {1, 1, 380, 380, 15, 15, 0},    // 6
+                    {1, 1, 390, 390, 15, 15, 0},    // 7
+                    {1, 1, 395, 395, 15, 15, 0},    // 8
+                }, 40, 40, 40),
+            },
+        },
     };
 
                 // {targetId, false, 0, 0, span, span, 0},
