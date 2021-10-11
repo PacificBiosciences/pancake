@@ -866,6 +866,94 @@ TEST(DPChainSimd, ChainHits_ArrayOfTests)
         /// Edge cases                         ///
         //////////////////////////////////////////
         {
+            "Edge case in the FIRST vector. Two chains on different strands, but coordinates only appear to be monotonically rising. This tests if the chaining"
+            "method will take care of the edge case in the first vector (where minJ is), where seed hits may be mixed.",
+            25, 500, 10000, 500, 3, 0, 40,
+            // Seed hits.
+            {
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                {0, 0, 0, 0, 15, 15, 0},
+                {0, 0, 50, 50, 15, 15, 0},
+                {0, 0, 100, 100, 15, 15, 0},
+                {0, 0, 150, 150, 15, 15, 0},
+                {0, 0, 200, 200, 15, 15, 0},
+
+                {0, 1, 220, 220, 15, 15, 0},
+                {0, 1, 250, 250, 15, 15, 0},
+                {0, 1, 300, 300, 15, 15, 0},
+                {0, 1, 350, 350, 15, 15, 0},
+                {0, 1, 400, 400, 15, 15, 0},
+            },
+            // Results.
+            {
+                // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
+                ChainedHits(0, 0, {
+                    {0, 0, 0, 0, 15, 15, 0},
+                    {0, 0, 50, 50, 15, 15, 0},
+                    {0, 0, 100, 100, 15, 15, 0},
+                    {0, 0, 150, 150, 15, 15, 0},
+                    {0, 0, 200, 200, 15, 15, 0},
+                }, 75, 75, 75),
+                ChainedHits(0, 1, {
+                    {0, 1, 220, 220, 15, 15, 0},
+                    {0, 1, 250, 250, 15, 15, 0},
+                    {0, 1, 300, 300, 15, 15, 0},
+                    {0, 1, 350, 350, 15, 15, 0},
+                    {0, 1, 400, 400, 15, 15, 0},
+                }, 75, 75, 75),
+            },
+        },
+        {
+            "Edge case in the LAST vector of the second chain. Three chains on different target IDs/strands. This tests if the chaining"
+            "method will take care of the edge case in the last vector (concretely, of the second chain here), where the starting pivot"
+            "is located ('i' coordinate), where seed hits may be mixed.",
+            25, 500, 10000, 500, 3, 0, 40,
+            // Seed hits.
+            {
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                {0, 0, 0, 0, 15, 15, 0},
+                {0, 0, 50, 50, 15, 15, 0},
+                {0, 0, 100, 100, 15, 15, 0},
+                {0, 0, 150, 150, 15, 15, 0},
+                {0, 0, 200, 200, 15, 15, 0},
+
+                {0, 1, 220, 220, 15, 15, 0},
+                {0, 1, 250, 250, 15, 15, 0},
+                {0, 1, 300, 300, 15, 15, 0},
+                {0, 1, 350, 350, 15, 15, 0},
+                {0, 1, 400, 400, 15, 15, 0},
+
+                {1, 0, 370, 370, 15, 15, 0},
+                {1, 0, 380, 380, 15, 15, 0},
+                {1, 0, 390, 390, 15, 15, 0},
+                {1, 0, 395, 395, 15, 15, 0},
+            },
+            // Results.
+            {
+                // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
+                ChainedHits(0, 0, {
+                    {0, 0, 0, 0, 15, 15, 0},
+                    {0, 0, 50, 50, 15, 15, 0},
+                    {0, 0, 100, 100, 15, 15, 0},
+                    {0, 0, 150, 150, 15, 15, 0},
+                    {0, 0, 200, 200, 15, 15, 0},
+                }, 75, 75, 75),
+                ChainedHits(0, 1, {
+                    {0, 1, 220, 220, 15, 15, 0},
+                    {0, 1, 250, 250, 15, 15, 0},
+                    {0, 1, 300, 300, 15, 15, 0},
+                    {0, 1, 350, 350, 15, 15, 0},
+                    {0, 1, 400, 400, 15, 15, 0},
+                }, 75, 75, 75),
+                ChainedHits(1, 0, {
+                    {1, 1, 370, 370, 15, 15, 0},
+                    {1, 1, 380, 380, 15, 15, 0},
+                    {1, 1, 390, 390, 15, 15, 0},
+                    {1, 1, 395, 395, 15, 15, 0},
+                }, 75, 75, 75),
+            },
+        },
+        {
             "Edge case which can happen if the chaining DP loop compares 'newScore >= bestScore' instead of 'newScore > bestScore'."
             "If there are multiple predecessors with the identical score, then potentially the most distant one from the current position"
             "will be selected because of the sorting order. In reality, the closest one should be chosen so that the"
