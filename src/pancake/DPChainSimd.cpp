@@ -208,18 +208,14 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                       << "] numSkippedPredecessors = " << numSkippedPredecessors << "\n";
 #endif
 
-            // Compute X and Y distsances, and the diagonal distance.
-            const __m128i dpj = _mm_load_si128(&dpPtr[j]);
-            const __m128i qsj = _mm_load_si128(&qsPtr[j]);
-            const __m128i qpj = _mm_load_si128(&qpPtr[j]);
-            const __m128i tpj = _mm_load_si128(&tpPtr[j]);
-            const __m128i distQuery = _mm_sub_epi32(qpi, qpj);
-            const __m128i distTarget = _mm_sub_epi32(tpi, tpj);
+            // Compute X and Y distances, and the diagonal distance.
+            const __m128i distQuery = _mm_sub_epi32(qpi, qpPtr[j]);
+            const __m128i distTarget = _mm_sub_epi32(tpi, tpPtr[j]);
             distDiag = _mm_abs_epi32(_mm_sub_epi32(distTarget, distQuery));
 
             // Check any of the boundary criteria.
-            const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpj);
-            const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpj);
+            const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpPtr[j]);
+            const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]);
             const __m128i c2 = _mm_cmplt_epi32(diagMarginVec, distDiag);
             const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVec, distQuery);
             const __m128i c = _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3)));
@@ -239,32 +235,10 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             __m128i logPart = _mm_set_epi32(logPart3, logPart2, logPart1, logPart0);
             logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
 
-
-
-            // // Version 2: Use SSE instructions for simple math operations inside ilog2_32_clz_special_zero.
-            // const int32_t logPart0 = __builtin_clz(*distDiagPtr_0);
-            // const int32_t logPart1 = __builtin_clz(*distDiagPtr_1);
-            // const int32_t logPart2 = __builtin_clz(*distDiagPtr_2);
-            // const int32_t logPart3 = __builtin_clz(*distDiagPtr_3);
-            // __m128i logPart = _mm_set_epi32(logPart3, logPart2, logPart1, logPart0);
-            // logPart = _mm_sub_epi32(M128_MASK_31, logPart);
-            // logPart = _mm_and_si128(logPart, _mm_cmpgt_epi32(distDiag, M128_MASK_ZERO));
-            // logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
-
-            // // Version 3: Reuse the distDiag variable.
-            // const __m128i tmp = _mm_cmpgt_epi32(distDiag, M128_MASK_ZERO);
-            // distDiagPtr_0[0] = __builtin_clz(distDiagPtr_0[0]);
-            // distDiagPtr_0[1] = __builtin_clz(distDiagPtr_0[1]);
-            // distDiagPtr_0[2] = __builtin_clz(distDiagPtr_0[2]);
-            // distDiagPtr_0[3] = __builtin_clz(distDiagPtr_0[3]);
-            // __m128i logPart = _mm_sub_epi32(M128_MASK_31, distDiag);
-            // logPart = _mm_and_si128(logPart, tmp);
-            // logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
-
             // Compute the new score. Invalidate the values which are out of bounds (defined by c).
             const __m128i edgeScore = _mm_add_epi32(linPart, logPart);
-            const __m128i matchScore = _mm_min_epi32(qsj, _mm_min_epi32(distQuery, distTarget));
-            const __m128i score = _mm_or_si128(_mm_add_epi32(dpj, _mm_sub_epi32(matchScore, edgeScore)), c);
+            const __m128i matchScore = _mm_min_epi32(qsPtr[j], _mm_min_epi32(distQuery, distTarget));
+            const __m128i score = _mm_or_si128(_mm_add_epi32(dpPtr[j], _mm_sub_epi32(matchScore, edgeScore)), c);
 
             // Pick the best score.
             const __m128i jVec = _mm_set1_epi32(j);
