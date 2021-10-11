@@ -118,7 +118,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
                 continue;
             }
 
-            if (score >= newDpVal) {
+            if (score > newDpVal) {
                 newDpPred = j;
                 newDpVal = score;
                 newDpChain = chainId[j];
@@ -227,7 +227,7 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
             score |= c;  // Either unchanged, or 0xFFFFFFFF (-1).
 
             // Update the maximum score and the DP values without branching.
-            const int32_t isBetter = SisdCompareGte(score, newDpVal);
+            const int32_t isBetter = SisdCompareGt(score, newDpVal);
             const int32_t isBetterInv = ~isBetter;
             newDpPred = (isBetterInv & newDpPred) | (isBetter & j);
             newDpVal = (isBetterInv & newDpVal) | (isBetter & score);
