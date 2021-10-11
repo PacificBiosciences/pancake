@@ -994,6 +994,41 @@ TEST(DPChainSimd, ChainHits_ArrayOfTests)
                 }, 40, 40, 40),
             },
         },
+        {
+            "Edge case. When several seed hits are processed at once (i.e. SIMD), the last vector (where pivot 'i' for the current node is located) will contain "
+            "nodes which are not predecessors of 'i' (at most 3 extra successor nodes for SSE4)."
+            "There are two cases:"
+            "1) In case when queryPos[i+1] > queryPos[i] or targetPos[i+1] > targetPos[i], the explicit boundary condition checking will invalidate this case. This is FINE."
+            "2) In case when queryPos[i+1] < queryPos[i] or targetPos[i+1] < targetPos[i], then THIS CAN CAUSE THE ISSUE COVERED BY THIS TEST. In this case, the"
+            "    dp[i+1] can turn out to be > dp[i], but only if querySpan[i+1] > querySpan[i] (e.g. HPC seeds). The chaining code could pick a successor as the"
+            "    'predecessor' which can crash the program. Also, this can most likely occur only when the analyzed vector is the first one, because otherwise"
+            "    the actual predecessors dp[j] for j < i will likely have a better score."
+            "    This needs to be handled as a special case.",
+            25, 500, 10000, 500, 1, 0, 0,
+            // Seed hits.
+            {
+                // targetId, targetRev, targetPos, queryPos, targetSpan, querySpan, flags
+                {0, 1, 400, 400, 15, 15, 0},    // 0
+
+                {1, 1, 270, 270, 17, 17, 0},    // 1
+                {1, 1, 280, 280, 17, 17, 0},    // 2
+                {1, 1, 290, 290, 17, 17, 0},    // 3
+                {1, 1, 295, 295, 17, 17, 0},    // 4
+            },
+            // Results.
+            {
+                // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
+                ChainedHits(0, 1, {
+                    {0, 1, 400, 400, 15, 15, 0},
+                }, 15, 15, 15),
+                ChainedHits(1, 1, {
+                    {1, 1, 270, 270, 17, 17, 0},
+                    {1, 1, 280, 280, 17, 17, 0},
+                    {1, 1, 290, 290, 17, 17, 0},
+                    {1, 1, 295, 295, 17, 17, 0},
+                }, 42, 42, 42),
+            },
+        },
     };
 
                 // {targetId, false, 0, 0, span, span, 0},
