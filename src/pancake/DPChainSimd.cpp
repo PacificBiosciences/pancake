@@ -65,15 +65,17 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     dp.resize(dpPaddedSize);
     pred.resize(dpPaddedSize);
     chainId.resize(hitsSize, -1);
-    std::vector<__m128i> qp(dpPaddedSize);  // Query pos.
-    std::vector<__m128i> tp(dpPaddedSize);  // Target pos.
-    std::vector<__m128i> qs(dpPaddedSize);  // Query span.
+    std::vector<__m128i> qp(dpPaddedSize);   // Query pos.
+    std::vector<__m128i> tp(dpPaddedSize);   // Target pos.
+    std::vector<__m128i> qs(dpPaddedSize);   // Query span.
+    std::vector<__m128i> tid(dpPaddedSize);  // Target ID and strand.
 
     // Used to allow direct access to data, instead through operator[].
     __m128i* dpPtr = dp.data();
     __m128i* qpPtr = qp.data();
     __m128i* tpPtr = tp.data();
     __m128i* qsPtr = qs.data();
+    __m128i* tidPtr = tid.data();
 
     // Helper pointers for direct data access, without using operator[].
     int32_t* dpInt32 = reinterpret_cast<int32_t*>(dpPtr);
@@ -82,6 +84,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     int32_t* qpInt32 = reinterpret_cast<int32_t*>(qpPtr);
     int32_t* tpInt32 = reinterpret_cast<int32_t*>(tpPtr);
     int32_t* qsInt32 = reinterpret_cast<int32_t*>(qsPtr);
+    int32_t* tidInt32 = reinterpret_cast<int32_t*>(tidPtr);
 
     // Initialize the values needed for DP computation.
     for (int32_t i = 0; i < hitsSize; ++i) {
@@ -90,6 +93,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         qpInt32[i] = hits[i].queryPos;
         tpInt32[i] = hits[i].targetPos;
         qsInt32[i] = hits[i].querySpan;
+        tidInt32[i] = (hits[i].targetId << 1) | (hits[i].targetRev & 0x01);
     }
     for (uint32_t i = hitsSize; i < dpPaddedSize * NUM_REGISTERS; ++i) {
         dpInt32[i] = 0;
@@ -97,6 +101,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         qpInt32[i] = MAX_INT32;
         tpInt32[i] = MAX_INT32;
         qsInt32[i] = MAX_INT32;
+        tidInt32[i] = MAX_INT32;
     }
 
     // The distDiag values will have to be used to compute the log2.
@@ -123,7 +128,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     const __m128i M128_MASK_1BIT = _mm_set_epi32(0, 0, 0, 1);
     const __m128i M128_EPI32_ALL_POSITIVE_1 = _mm_set_epi32(1, 1, 1, 1);
     const __m128i M128_EPI32_ALL_NEGATIVE_1 = _mm_set_epi32(-1, -1, -1, -1);
-    // const __m128i M128_MASK_FULL = _mm_set1_epi32(0xFFFFFFFF);
+    const __m128i M128_MASK_FULL = _mm_set1_epi32(0xFFFFFFFF);
     // const __m128i M128_MASK_ZERO = _mm_set1_epi32(0);
     // const __m128i M128_MASK_31 = _mm_set1_epi32(31);
 
@@ -175,6 +180,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         const __m128i tpi = _mm_set1_epi32(hi.targetPos);
         const __m128i qpiMinusOne = _mm_sub_epi32(qpi, M128_EPI32_ALL_POSITIVE_1);
         const __m128i tpiMinusOne = _mm_sub_epi32(tpi, M128_EPI32_ALL_POSITIVE_1);
+        const __m128i tidi = _mm_set1_epi32(tidInt32[i]);
 
         bestDpScore = _mm_set1_epi32(hi.querySpan);
         bestDpPred = _mm_set1_epi32(-1);
@@ -213,12 +219,14 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             const __m128i distTarget = _mm_sub_epi32(tpi, tpPtr[j]);
             distDiag = _mm_abs_epi32(_mm_sub_epi32(distTarget, distQuery));
 
-            // Check any of the boundary criteria.
+            // Check any of the boundary criteria. If not valid, c == 0xFFFFFFFF for that element.
             const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpPtr[j]);
             const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]);
             const __m128i c2 = _mm_cmplt_epi32(diagMarginVec, distDiag);
             const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVec, distQuery);
-            const __m128i c = _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3)));
+            // const __m128i c = _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3)));
+            const __m128i c4 = _mm_xor_si128(_mm_cmpeq_epi32(tidi, tidPtr[j]), M128_MASK_FULL);
+            const __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3))));
 
             // Compute the linear part of the score.
             const __m128 distDiagFloat = _mm_cvtepi32_ps(distDiag);
@@ -298,6 +306,11 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                 std::cerr << "], linPartFloat [";
                 PrintVectorFloat(std::cerr, linPartFloat);
                 std::cerr << "]\n";
+                std::cerr << "        tidPtr[j] = [";
+                PrintVectorInt32(std::cerr, tidPtr[j]);
+                std::cerr << "], tidi [";
+                PrintVectorInt32(std::cerr, tidi);
+                std::cerr << "]\n";
                 std::cerr << "        numSkippedPredecessors = " << numSkippedPredecessors
                           << ", currChainMaxSkip = " << currChainMaxSkip << "\n";
                 std::cerr << "\n";
@@ -311,7 +324,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         predInt32[i] = -1;
         for (size_t j = 0; j < bestDpScorePtr.size(); ++j) {
             const int32_t predIndex = (*bestDpPredPtr[j]) * NUM_REGISTERS + j;
-            if (predIndex < i && *bestDpScorePtr[j] >= dpInt32[i]) {
+            if (predIndex < i && *bestDpScorePtr[j] >= dpInt32[i] && predIndex > predInt32[i]) {
                 dpInt32[i] = *bestDpScorePtr[j];
                 predInt32[i] = predIndex;
             }
