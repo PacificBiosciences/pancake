@@ -65,10 +65,11 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     dp.resize(dpPaddedSize);
     pred.resize(dpPaddedSize);
     chainId.resize(hitsSize, -1);
-    std::vector<__m128i> qp(dpPaddedSize);   // Query pos.
-    std::vector<__m128i> tp(dpPaddedSize);   // Target pos.
-    std::vector<__m128i> qs(dpPaddedSize);   // Query span.
-    std::vector<__m128i> tid(dpPaddedSize);  // Target ID and strand.
+    std::vector<__m128i> qp(dpPaddedSize);             // Query pos.
+    std::vector<__m128i> tp(dpPaddedSize);             // Target pos.
+    std::vector<__m128i> qs(dpPaddedSize);             // Query span.
+    std::vector<__m128i> tid(dpPaddedSize);            // Target ID and strand.
+    std::vector<__m128i> vectorIndices(dpPaddedSize);  // Target ID and strand.
 
     // Used to allow direct access to data, instead through operator[].
     __m128i* dpPtr = dp.data();
@@ -76,6 +77,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     __m128i* tpPtr = tp.data();
     __m128i* qsPtr = qs.data();
     __m128i* tidPtr = tid.data();
+    __m128i* vectorIndicesPtr = vectorIndices.data();
 
     // Helper pointers for direct data access, without using operator[].
     int32_t* dpInt32 = reinterpret_cast<int32_t*>(dpPtr);
@@ -102,6 +104,10 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         tpInt32[i] = MAX_INT32;
         qsInt32[i] = MAX_INT32;
         tidInt32[i] = MAX_INT32;
+    }
+    // The vectorIndices stores the ordinal number of a vector, aka
+    for (int32_t i = 0; i < static_cast<int32_t>(vectorIndices.size()); ++i) {
+        vectorIndices[i] = _mm_set1_epi32(i);
     }
 
     // The distDiag values will have to be used to compute the log2.
@@ -255,10 +261,9 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             const __m128i score = _mm_or_si128(_mm_add_epi32(dpPtr[j], _mm_sub_epi32(matchScore, edgeScore)), c);
 
             // Pick the best score.
-            const __m128i jVec = _mm_set1_epi32(j);
             const __m128i isBetter = _mm_cmplt_epi32(bestDpScore, score);
             bestDpScore = _mm_blendv_epi8(bestDpScore, score, isBetter);
-            bestDpPred = _mm_blendv_epi8(bestDpPred, jVec, isBetter);
+            bestDpPred = _mm_blendv_epi8(bestDpPred, vectorIndicesPtr[j], isBetter);
 
             // Horizontal add to update the numSkippedPredecessors, and limit lower value to 0.
             skipDiff = _mm_blendv_epi8(M128_EPI32_ALL_POSITIVE_1, M128_EPI32_ALL_NEGATIVE_1, isBetter);
