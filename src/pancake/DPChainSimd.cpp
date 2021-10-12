@@ -310,9 +310,10 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         dpInt32[i] = hi.querySpan;
         predInt32[i] = -1;
         for (size_t j = 0; j < bestDpScorePtr.size(); ++j) {
-            if (*bestDpScorePtr[j] >= dpInt32[i]) {
+            const int32_t predIndex = (*bestDpPredPtr[j]) * NUM_REGISTERS + j;
+            if (predIndex < i && *bestDpScorePtr[j] >= dpInt32[i]) {
                 dpInt32[i] = *bestDpScorePtr[j];
-                predInt32[i] = (*bestDpPredPtr[j]) * NUM_REGISTERS + j;
+                predInt32[i] = predIndex;
             }
         }
         chainIdInt32[i] = (predInt32[i] >= 0) ? chainIdInt32[predInt32[i]] : numChains++;
