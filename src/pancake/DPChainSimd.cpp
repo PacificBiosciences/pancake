@@ -136,7 +136,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     const __m128i M128_EPI32_ALL_NEGATIVE_1 = _mm_set_epi32(-1, -1, -1, -1);
     const __m128i M128_MASK_FULL = _mm_set1_epi32(0xFFFFFFFF);
     // const __m128i M128_MASK_ZERO = _mm_set1_epi32(0);
-    // const __m128i M128_MASK_31 = _mm_set1_epi32(31);
+    const __m128i M128_MASK_31 = _mm_set1_epi32(31);
 
     // clang-format off
     // Compute addresses before the loops. Needed to compute the maximum score.
@@ -245,15 +245,27 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             // IMPORTANT: _mm_cvtps_epi32 rounds to the closest int, and not down.
             const __m128i linPart = _mm_cvtps_epi32(_mm_floor_ps(linPartFloat));
 
+
             // Compute the log part of the score. Not using SIMD because there are no
             // SSE alternatives to the __builtin_clz.
             // Note: _mm_srl_epi32 applies the same count to all elements of the vector.
-            const int32_t logPart0 = ilog2_32_clz_special_zero(*distDiagPtr_0);
-            const int32_t logPart1 = ilog2_32_clz_special_zero(*distDiagPtr_1);
-            const int32_t logPart2 = ilog2_32_clz_special_zero(*distDiagPtr_2);
-            const int32_t logPart3 = ilog2_32_clz_special_zero(*distDiagPtr_3);
-            __m128i logPart = _mm_set_epi32(logPart3, logPart2, logPart1, logPart0);
+            distDiag = _mm_max_epi32(distDiag, M128_EPI32_ALL_POSITIVE_1);
+            distDiagPtr_0[0] = __builtin_clz(distDiagPtr_0[0]);
+            distDiagPtr_0[1] = __builtin_clz(distDiagPtr_0[1]);
+            distDiagPtr_0[2] = __builtin_clz(distDiagPtr_0[2]);
+            distDiagPtr_0[3] = __builtin_clz(distDiagPtr_0[3]);
+            __m128i logPart = _mm_sub_epi32(M128_MASK_31, distDiag);
             logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
+
+            // // Compute the log part of the score. Not using SIMD because there are no
+            // // SSE alternatives to the __builtin_clz.
+            // // Note: _mm_srl_epi32 applies the same count to all elements of the vector.
+            // const int32_t logPart0 = ilog2_32_clz_special_zero(*distDiagPtr_0);
+            // const int32_t logPart1 = ilog2_32_clz_special_zero(*distDiagPtr_1);
+            // const int32_t logPart2 = ilog2_32_clz_special_zero(*distDiagPtr_2);
+            // const int32_t logPart3 = ilog2_32_clz_special_zero(*distDiagPtr_3);
+            // __m128i logPart = _mm_set_epi32(logPart3, logPart2, logPart1, logPart0);
+            // logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
 
             // Compute the new score. Invalidate the values which are out of bounds (defined by c).
             const __m128i edgeScore = _mm_add_epi32(linPart, logPart);
