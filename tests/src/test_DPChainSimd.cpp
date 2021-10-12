@@ -833,8 +833,8 @@ TEST(DPChainSimd, ChainHits_ArrayOfTests)
                 {0, 0, 50, 49, 15, 15, 0},  // 9    // SIMD vector: 2
                 {0, 0, 50, 50, 15, 15, 0},  // 10   // SIMD vector: 2   -> This is the correct minimizer to fit in the linear chain, but it's drowned in neighboring hits (8 above and 8 below),
                 {0, 0, 50, 51, 15, 15, 0},  // 11   // SIMD vector: 2       and none of those hits provide a better DP score. Because chainMaxSkip == 5 (<= 8), chaining stops at this seed.
-                {0, 0, 50, 52, 15, 15, 0},  // 12   // SIMD vector: 3   -> In SIMD, this is the beginning of the second chain because that is the beginning of the furthest reaching vector in the "j" loop. (Vector (19 - 5) / 4 = 3)
-                {0, 0, 50, 53, 15, 15, 0},  // 13   // SIMD vector: 3
+                {0, 0, 50, 52, 15, 15, 0},  // 12   // SIMD vector: 3
+                {0, 0, 50, 53, 15, 15, 0},  // 13   // SIMD vector: 3   -> In SIMD, this is the beginning of the second chain because that is the beginning of the furthest reaching vector in the "j" loop. (Vector (19 - 5) / 4 = 3). Technically, seed hit 12 would be the start of the chain, but both 12 and 13 have the identical score of 30. The closest position to 'i' is preferred, so position 13 is chosen.
                 {0, 0, 50, 54, 15, 15, 0},  // 14   // SIMD vector: 3   -> In SISD, this one would be the beginning of the second chain. This is the furthest reachable because of the chainMaxPredecessor heuristic set to 5.
                 {0, 0, 50, 55, 15, 15, 0},  // 15   // SIMD vector: 3
                 {0, 0, 50, 56, 15, 15, 0},  // 16   // SIMD vector: 4
@@ -854,7 +854,7 @@ TEST(DPChainSimd, ChainHits_ArrayOfTests)
                     {0, 0, 50, 48, 15, 15, 0},
                 }, 45, 45, 45),
                 ChainedHits(0, 0, {
-                    {0, 0, 50, 52, 15, 15, 0},
+                    {0, 0, 50, 53, 15, 15, 0},
                     {0, 0, 100, 100, 15, 15, 0},
                     {0, 0, 150, 150, 15, 15, 0},
                     {0, 0, 200, 200, 15, 15, 0},
