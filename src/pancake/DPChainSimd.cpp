@@ -120,9 +120,9 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
     // Constants for score computation.
     const __m128 linFactorVec = _mm_set1_ps(linFactor);
-    const __m128i diagMarginVec =
+    const __m128i diagMarginVecMinusOne =
         _mm_set_epi32(diagMargin - 1, diagMargin - 1, diagMargin - 1, diagMargin - 1);
-    const __m128i seedJoinDistVec =
+    const __m128i seedJoinDistVecMinusOne =
         _mm_set_epi32(seedJoinDist - 1, seedJoinDist - 1, seedJoinDist - 1, seedJoinDist - 1);
 
     const __m128i M128_MASK_1BIT = _mm_set_epi32(0, 0, 0, 1);
@@ -186,11 +186,16 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         bestDpPred = _mm_set1_epi32(-1);
 
 #ifdef PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
+        // This is used for the "continue" logic, because we need the exact count.
         const int32_t currChainMaxSkip = chainMaxSkip;
 #elif
         // The position "i" can begin in any of the NUM_REGISTERS registers in the current SIMD vector. Any
         // register which begins at position "i" or later in that vector will not be valid. The maxSkip needs to be
         // increased to alow for that, or the heuristic will terminate early.
+        // This needs to be augmented only in case when the "continue" logic is not used (i.e. when the inner
+        // loop encounters an out-of-order seed hit predecessor (target is sorted, but query is larger), the
+        // "continue" logic would continue in the inner loop and the numSkippedPredecessors would not be
+        // incremented).
         const int32_t currChainMaxSkip = chainMaxSkip + (NUM_REGISTERS - (i % NUM_REGISTERS));
 #endif
 
@@ -222,8 +227,8 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             // Check any of the boundary criteria. If not valid, c == 0xFFFFFFFF for that element.
             const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpPtr[j]);
             const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]);
-            const __m128i c2 = _mm_cmplt_epi32(diagMarginVec, distDiag);
-            const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVec, distQuery);
+            const __m128i c2 = _mm_cmplt_epi32(diagMarginVecMinusOne, distDiag);
+            const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVecMinusOne, distQuery);
             // const __m128i c = _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3)));
             const __m128i c4 = _mm_xor_si128(_mm_cmpeq_epi32(tidi, tidPtr[j]), M128_MASK_FULL);
             const __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3))));
@@ -236,6 +241,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
             // Compute the log part of the score. Not using SIMD because there are no
             // SSE alternatives to the __builtin_clz.
+            // Note: _mm_srl_epi32 applies the same count to all elements of the vector.
             const int32_t logPart0 = ilog2_32_clz_special_zero(*distDiagPtr_0);
             const int32_t logPart1 = ilog2_32_clz_special_zero(*distDiagPtr_1);
             const int32_t logPart2 = ilog2_32_clz_special_zero(*distDiagPtr_2);
@@ -324,7 +330,8 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         predInt32[i] = -1;
         for (size_t j = 0; j < bestDpScorePtr.size(); ++j) {
             const int32_t predIndex = (*bestDpPredPtr[j]) * NUM_REGISTERS + j;
-            if (predIndex < i && *bestDpScorePtr[j] >= dpInt32[i] && predIndex > predInt32[i]) {
+            if (predIndex < i &&
+                std::tie((*bestDpScorePtr[j]), predIndex) >= std::tie(dpInt32[i], predInt32[i])) {
                 dpInt32[i] = *bestDpScorePtr[j];
                 predInt32[i] = predIndex;
             }
