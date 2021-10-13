@@ -5,6 +5,8 @@
 #include <pacbio/alignment/DiffCounts.h>
 #include <pacbio/alignment/SesDistanceBanded.h>
 #include <pacbio/pancake/AlignmentSeeded.h>
+#include <pacbio/pancake/DPChain.h>
+#include <pacbio/pancake/DPChainSimd.h>
 #include <pacbio/pancake/MapperCLR.h>
 #include <pacbio/pancake/MapperUtility.h>
 #include <pacbio/pancake/Minimizers.h>
@@ -18,6 +20,7 @@
 #include <util/TicToc.h>
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <lib/istl/lis.hpp>
 #include <sstream>
@@ -36,6 +39,12 @@
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
 #include <pbcopper/utility/MemoryConsumption.h>
 #include <iomanip>
+#endif
+
+#ifdef PANCAKE_USE_SSE41
+#define ChainHits ChainHitsSimd
+#else
+#define ChainHits ChainHitsSisd
 #endif
 
 namespace PacBio {
@@ -822,7 +831,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
         LogTicTocAdd("map-L2-rechain-03-chainhits", ttPartial, retTimings);
         LogTicTocAdd("map-L3-rechain-01-chaining", timeChaining, retTimings);
         LogTicTocAdd("map-L3-rechain-02-backtrack", timeBacktrack, retTimings);
-        LogTicTocAdd("map-L2-total-chainhits", timeChainHits, retTimings);
+        LogTicTocAdd("map-L2-total-chainhits-simd", timeChainHits, retTimings);
         LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
         LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 
@@ -935,7 +944,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
             LogTicTocAdd("map-L3-chain-01-chaining", timeChaining, retTimings);
             LogTicTocAdd("map-L3-chain-02-backtrack", timeBacktrack, retTimings);
-            LogTicTocAdd("map-L2-total-chainhits", timeChainHits, retTimings);
+            LogTicTocAdd("map-L2-total-chainhits-simd", timeChainHits, retTimings);
             LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
             LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 

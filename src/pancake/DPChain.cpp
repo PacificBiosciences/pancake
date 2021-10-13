@@ -9,6 +9,7 @@
 
 #include <pacbio/pancake/DPChain.h>
 #include <pacbio/util/TicToc.h>
+#include <cassert>
 #include <iostream>
 #include <lib/math.hpp>
 #include <sstream>
@@ -118,7 +119,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
                 continue;
             }
 
-            if (score >= newDpVal) {
+            if (score > newDpVal) {
                 newDpPred = j;
                 newDpVal = score;
                 newDpChain = chainId[j];
@@ -227,7 +228,7 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
             score |= c;  // Either unchanged, or 0xFFFFFFFF (-1).
 
             // Update the maximum score and the DP values without branching.
-            const int32_t isBetter = SisdCompareGte(score, newDpVal);
+            const int32_t isBetter = SisdCompareGt(score, newDpVal);
             const int32_t isBetterInv = ~isBetter;
             newDpPred = (isBetterInv & newDpPred) | (isBetter & j);
             newDpVal = (isBetterInv & newDpVal) | (isBetter & score);
@@ -291,24 +292,42 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
     // Find the maximum of every chain for backtracking.
     std::vector<int32_t> chainMaxima(numChains, -PlusInf);
     for (int32_t i = 0; i < hitsSize; i++) {
-        if (chainMaxima[chainId[i]] == -PlusInf || dp[i] >= dp[chainMaxima[chainId[i]]]) {
+        // Sanity check.
+        assert((chainId[i] >= 0) && (chainId[i] < numChains));
+        if ((chainId[i] < 0) || (chainId[i] >= numChains)) {
+            return {};
+        }
+
+        if ((chainMaxima[chainId[i]] == -PlusInf) || (dp[i] >= dp[chainMaxima[chainId[i]]])) {
             chainMaxima[chainId[i]] = i;
         }
     }
 
     for (int32_t i = 0; i < static_cast<int32_t>(chainMaxima.size()); i++) {
         // Trace back from the maxima.
-        int32_t node_id = chainMaxima[i];
-        const int32_t score = dp[node_id];
+        int32_t nodeId = chainMaxima[i];
+        // Sanity check.
+        assert((nodeId >= 0) && (nodeId < hitsSize));
+        if ((nodeId < 0) || (nodeId >= hitsSize)) {
+            return {};
+        }
+
+        const int32_t score = dp[nodeId];
 
         if (score < minDPScore) {
             continue;
         }
 
         std::vector<int32_t> nodes;
-        while (node_id >= 0) {
-            nodes.emplace_back(node_id);
-            node_id = pred[node_id];
+        while (nodeId >= 0) {
+            // Sanity check.
+            assert((nodeId >= 0) && (nodeId < hitsSize));
+            if ((nodeId < 0) || (nodeId >= hitsSize)) {
+                return {};
+            }
+            // Backtrack.
+            nodes.emplace_back(nodeId);
+            nodeId = pred[nodeId];
         }
         // Reverse the backtracked nodes.
         std::reverse(nodes.begin(), nodes.end());
@@ -357,12 +376,11 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
     return chains;
 }
 
-std::vector<ChainedHits> ChainHits(const SeedHit* hits, const int32_t hitsSize,
-                                   const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
-                                   const int32_t seedJoinDist, const int32_t diagMargin,
-                                   const int32_t minNumSeeds, const int32_t minCovBases,
-                                   const int32_t minDPScore, double& timeChaining,
-                                   double& timeBacktrack, std::shared_ptr<ChainingScratchSpace> ss)
+std::vector<ChainedHits> ChainHitsSisd(
+    const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
+    const int32_t chainMaxPredecessors, const int32_t seedJoinDist, const int32_t diagMargin,
+    const int32_t minNumSeeds, const int32_t minCovBases, const int32_t minDPScore,
+    double& timeChaining, double& timeBacktrack, std::shared_ptr<ChainingScratchSpace> ss)
 {
 /**
      * Hits need to be sorted in this order of priority:

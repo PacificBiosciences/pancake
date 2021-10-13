@@ -121,8 +121,9 @@ public:
 inline std::ostream& operator<<(std::ostream& os, const SeedHit& a)
 {
     os << "tid = " << a.targetId << ", trev = " << a.targetRev << ", tpos = " << a.targetPos
-       << ", qpos = " << a.queryPos << ", tspan = " << a.targetSpan << ", qspan = " << a.querySpan
-       << ", flags = " << a.flags << ", diag = " << (a.targetPos - a.queryPos);
+       << ", qpos = " << a.queryPos << ", tspan = " << static_cast<int32_t>(a.targetSpan)
+       << ", qspan = " << static_cast<int32_t>(a.querySpan) << ", flags = " << a.flags
+       << ", diag = " << (a.targetPos - a.queryPos);
     return os;
 }
 

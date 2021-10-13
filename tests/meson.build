@@ -39,6 +39,11 @@ if opt_cuda
       'src/test_MapperBatchGPU.cpp',
     ])
 endif
+if opt_sse41
+    pancake_test_cpp_sources += files([
+        'src/test_DPChainSimd.cpp',
+    ])
+endif
 
 pancake_test_cram_sources = files([
   'cram/test_bugfixes.t',
@@ -75,7 +80,7 @@ pancake_test = executable(
   dependencies : [pancake_gtest_dep] + pancake_lib_deps,
   include_directories : [pancake_include_directories, include_directories('include')],
   link_with : [pancake_lib],
-  cpp_args : pancake_warning_flags,
+  cpp_args : pancake_warning_flags + pancake_flags,
   install : false)
 
 #########

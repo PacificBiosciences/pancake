@@ -188,6 +188,13 @@ if not meson.is_subproject()
           ]),
           subdir : 'pacbio/pancake')
   endif
+  if opt_sse41
+      install_headers(
+        files([
+            'pacbio/pancake/DPChainSimd.h',
+          ]),
+          subdir : 'pacbio/pancake')
+  endif
 endif
 
 pancake_include_directories = include_directories(['.', 'pacbio', 'lib/sparsehash'])

@@ -10,6 +10,7 @@
 #ifndef PANCAKE_DP_CHAIN_H
 #define PANCAKE_DP_CHAIN_H
 
+#include <emmintrin.h>
 #include <pacbio/pancake/Range.h>
 #include <pacbio/pancake/SeedHit.h>
 #include <cstdint>
@@ -24,6 +25,14 @@ struct ChainingScratchSpace
     std::vector<int32_t> dp;
     std::vector<int32_t> pred;
     std::vector<int32_t> chainId;
+
+#ifdef PANCAKE_USE_SSE41
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+    std::vector<__m128i> dpSimd;
+    std::vector<__m128i> predSimd;
+#pragma GCC diagnostic pop
+#endif
 };
 
 struct ChainedHits
@@ -129,13 +138,14 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
                                             const int32_t minNumSeeds, const int32_t minCovBases,
                                             const int32_t minDPScore);
 
-std::vector<ChainedHits> ChainHits(const SeedHit* hits, const int32_t hitsSize,
-                                   const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
-                                   const int32_t seedJoinDist, const int32_t diagMargin,
-                                   const int32_t minNumSeeds, const int32_t minCovBases,
-                                   const int32_t minDPScore, double& timeChaining,
-                                   double& timeBacktrack,
-                                   std::shared_ptr<ChainingScratchSpace> ss = nullptr);
+std::vector<ChainedHits> ChainHitsSisd(const SeedHit* hits, const int32_t hitsSize,
+                                       const int32_t chainMaxSkip,
+                                       const int32_t chainMaxPredecessors,
+                                       const int32_t seedJoinDist, const int32_t diagMargin,
+                                       const int32_t minNumSeeds, const int32_t minCovBases,
+                                       const int32_t minDPScore, double& timeChaining,
+                                       double& timeBacktrack,
+                                       std::shared_ptr<ChainingScratchSpace> ss = nullptr);
 
 double ComputeChainDivergence(const std::vector<SeedHit>& hits);
 

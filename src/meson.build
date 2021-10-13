@@ -118,6 +118,12 @@ if opt_cuda
     pancake_cpp_sources += pancake_cu_sources
 endif
 
+if opt_sse41
+    pancake_cpp_sources += files([
+    'pancake/DPChainSimd.cpp',
+    ])
+endif
+
 pancake_cpp_sources += pancake_version_sources
 
 ###########
