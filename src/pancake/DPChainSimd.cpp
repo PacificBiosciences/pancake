@@ -37,8 +37,8 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                                  std::vector<int32_t>& chainId)
 {
     constexpr int32_t VECTOR_SIZE = 128;
-    constexpr int32_t REGISTER_SIZE = 32;
-    constexpr uint32_t NUM_REGISTERS = VECTOR_SIZE / REGISTER_SIZE;
+    constexpr int32_t ELEMENT_SIZE = 32;
+    constexpr uint32_t NUM_ELEMENTS = VECTOR_SIZE / ELEMENT_SIZE;
     constexpr int32_t MAX_INT32 = std::numeric_limits<int32_t>::max();
 
     dp.clear();
@@ -61,7 +61,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     // const double avgQuerySpan = hits[0].querySpan;
 
     // Allocate the vectors.
-    const int32_t dpPaddedSize = std::ceil(static_cast<float>(hitsSize) / NUM_REGISTERS);
+    const int32_t dpPaddedSize = std::ceil(static_cast<float>(hitsSize) / NUM_ELEMENTS);
     dp.resize(dpPaddedSize);
     pred.resize(dpPaddedSize);
     chainId.resize(hitsSize, -1);
@@ -97,7 +97,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         qsInt32[i] = hits[i].querySpan;
         tidInt32[i] = (hits[i].targetId << 1) | (hits[i].targetRev & 0x01);
     }
-    for (uint32_t i = hitsSize; i < dpPaddedSize * NUM_REGISTERS; ++i) {
+    for (uint32_t i = hitsSize; i < dpPaddedSize * NUM_ELEMENTS; ++i) {
         dpInt32[i] = 0;
         predInt32[i] = -1;
         qpInt32[i] = MAX_INT32;
@@ -171,19 +171,19 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         // This is used for the "continue" logic, because we need the exact count.
         const int32_t currChainMaxSkip = chainMaxSkip;
 #elif
-        // The position "i" can begin in any of the NUM_REGISTERS registers in the current SIMD vector. Any
+        // The position "i" can begin in any of the NUM_ELEMENTS registers in the current SIMD vector. Any
         // register which begins at position "i" or later in that vector will not be valid. The maxSkip needs to be
         // increased to alow for that, or the heuristic will terminate early.
         // This needs to be augmented only in case when the "continue" logic is not used (i.e. when the inner
         // loop encounters an out-of-order seed hit predecessor (target is sorted, but query is larger), the
         // "continue" logic would continue in the inner loop and the numSkippedPredecessors would not be
         // incremented).
-        const int32_t currChainMaxSkip = chainMaxSkip + (NUM_REGISTERS - (i % NUM_REGISTERS));
+        const int32_t currChainMaxSkip = chainMaxSkip + (NUM_ELEMENTS - (i % NUM_ELEMENTS));
 #endif
 
         // Loop "j" boundaries.
-        const int32_t startJ4 = i / NUM_REGISTERS;
-        const int32_t minJ4 = minJ / NUM_REGISTERS;
+        const int32_t startJ4 = i / NUM_ELEMENTS;
+        const int32_t minJ4 = minJ / NUM_ELEMENTS;
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
         std::cerr << "[i = " << i << "] startJ4 = " << startJ4 << ", minJ4 = " << minJ4
@@ -260,7 +260,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
             {
-                std::cerr << "        range = [" << (j * NUM_REGISTERS) << ", " << ((j + 1) * NUM_REGISTERS) << "]\n";
+                std::cerr << "        range = [" << (j * NUM_ELEMENTS) << ", " << ((j + 1) * NUM_ELEMENTS) << "]\n";
                 std::cerr << "        dp = [";
                 PrintVectorInt32(std::cerr, dp[j]);
                 std::cerr << "], score = [";
@@ -310,8 +310,8 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         // Find the maximum.
         dpInt32[i] = hi.querySpan;
         predInt32[i] = -1;
-        for (size_t j = 0; j < NUM_REGISTERS; ++j) {
-            const int32_t predIndex = bestDpPredPtr[j] * NUM_REGISTERS + j;
+        for (size_t j = 0; j < NUM_ELEMENTS; ++j) {
+            const int32_t predIndex = bestDpPredPtr[j] * NUM_ELEMENTS + j;
             if (predIndex < i &&
                 std::tie(bestDpScorePtr[j], predIndex) >= std::tie(dpInt32[i], predInt32[i])) {
                 dpInt32[i] = bestDpScorePtr[j];
