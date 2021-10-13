@@ -9,6 +9,7 @@
 
 #include <pacbio/pancake/DPChain.h>
 #include <pacbio/util/TicToc.h>
+#include <cassert>
 #include <iostream>
 #include <lib/math.hpp>
 #include <sstream>
