@@ -293,12 +293,12 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
     std::vector<int32_t> chainMaxima(numChains, -PlusInf);
     for (int32_t i = 0; i < hitsSize; i++) {
         // Sanity check.
-        assert(chainId[i] >= 0 && chainId[i] < numChains);
-        if (chainId[i] < 0 || chainId[i] >= numChains) {
+        assert((chainId[i] >= 0) && (chainId[i] < numChains));
+        if ((chainId[i] < 0) || (chainId[i] >= numChains)) {
             return {};
         }
 
-        if (chainMaxima[chainId[i]] == -PlusInf || dp[i] >= dp[chainMaxima[chainId[i]]]) {
+        if ((chainMaxima[chainId[i]] == -PlusInf) || (dp[i] >= dp[chainMaxima[chainId[i]]])) {
             chainMaxima[chainId[i]] = i;
         }
     }
@@ -307,8 +307,8 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
         // Trace back from the maxima.
         int32_t nodeId = chainMaxima[i];
         // Sanity check.
-        assert(nodeId >= 0 && nodeId < hitsSize);
-        if (nodeId < 0 || nodeId >= hitsSize) {
+        assert((nodeId >= 0) && (nodeId < hitsSize));
+        if ((nodeId < 0) || (nodeId >= hitsSize)) {
             return {};
         }
 
@@ -321,8 +321,8 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
         std::vector<int32_t> nodes;
         while (nodeId >= 0) {
             // Sanity check.
-            assert(nodeId >= 0 && nodeId < hitsSize);
-            if (nodeId < 0 || nodeId >= hitsSize) {
+            assert((nodeId >= 0) && (nodeId < hitsSize));
+            if ((nodeId < 0) || (nodeId >= hitsSize)) {
                 return {};
             }
             // Backtrack.
