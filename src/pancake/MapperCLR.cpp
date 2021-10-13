@@ -25,6 +25,7 @@
 #include <lib/istl/lis.hpp>
 #include <sstream>
 #include <tuple>
+#include "pdqsort.h"
 
 // #define PANCAKE_MAP_CLR_DEBUG
 // #define PANCAKE_MAP_CLR_DEBUG_2
@@ -414,7 +415,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
 #endif
 
     // Sort the seed hits.
-    std::sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) {
+    pdqsort(hits.begin(), hits.end(), [](const auto& a, const auto& b) {
         return PackSeedHitWithDiagonalToTuple(a) < PackSeedHitWithDiagonalToTuple(b);
     });
     LogTicToc("map-L1-05-sortseeds", ttPartial, result.time);
@@ -454,8 +455,8 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     LogTicToc("map-L1-08-rechain", ttPartial, result.time);
 
     // Sort all chains in descending order of the number of hits.
-    std::sort(allChainedRegions.begin(), allChainedRegions.end(),
-              [](const auto& a, const auto& b) { return a->chain.score > b->chain.score; });
+    pdqsort(allChainedRegions.begin(), allChainedRegions.end(),
+            [](const auto& a, const auto& b) { return a->chain.score > b->chain.score; });
     LogTicToc("map-L1-09-sortchained", ttPartial, result.time);
 
     // Secondary/supplementary flagging.
@@ -489,14 +490,14 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     LogTicToc("map-L1-13-secondary", ttPartial, result.time);
 
     // Sort all chains by priority and then score.
-    std::sort(allChainedRegions.begin(), allChainedRegions.end(),
-              [](const std::unique_ptr<ChainedRegion>& a, const std::unique_ptr<ChainedRegion>& b) {
-                  auto at = std::tuple<int32_t, bool, int32_t>(a->priority, a->isSupplementary,
-                                                               a->chain.score);
-                  auto bt = std::tuple<int32_t, bool, int32_t>(b->priority, b->isSupplementary,
-                                                               b->chain.score);
-                  return at < bt;
-              });
+    pdqsort(allChainedRegions.begin(), allChainedRegions.end(),
+            [](const std::unique_ptr<ChainedRegion>& a, const std::unique_ptr<ChainedRegion>& b) {
+                auto at = std::tuple<int32_t, bool, int32_t>(a->priority, a->isSupplementary,
+                                                             a->chain.score);
+                auto bt = std::tuple<int32_t, bool, int32_t>(b->priority, b->isSupplementary,
+                                                             b->chain.score);
+                return at < bt;
+            });
     LogTicToc("map-L1-14-sortchained", ttPartial, result.time);
 
     // Refine seed hits for alignment.
@@ -797,7 +798,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
 
     // Sort the hits by coordinates.
     // IMPORTANT: This needs to sort by target, and if target coords are identical then by query.
-    std::sort(hits2.begin(), hits2.end(), [](const SeedHit& a, const SeedHit& b) {
+    pdqsort(hits2.begin(), hits2.end(), [](const SeedHit& a, const SeedHit& b) {
         return std::tuple(a.targetId, a.targetRev, a.targetPos, a.queryPos) <
                std::tuple(b.targetId, b.targetRev, b.targetPos, b.queryPos);
     });
@@ -910,7 +911,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
         // Groups are already groupped by target ID and strand, so only sorting by coordinates is enough.
         // Hits have previously been sorted by diagonals, and not by coordinates, so we need to sort again
         // to get them in proper order.
-        std::sort(groupHits.begin(), groupHits.end(), ComparisonSort);
+        pdqsort(groupHits.begin(), groupHits.end(), ComparisonSort);
         LogTicTocAdd("map-L2-chain-01-sort", ttPartial, retTimings);
 
         // Perform chaining.
@@ -1036,7 +1037,7 @@ void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& ch
         candidates.emplace_back(i);
     }
 
-    std::sort(candidates.begin(), candidates.end(), [&](const auto& a, const auto& b) {
+    pdqsort(candidates.begin(), candidates.end(), [&](const auto& a, const auto& b) {
         const auto& ar = chainedRegions[a];
         const auto& br = chainedRegions[b];
         return std::tuple(ar->mapping->Bid, ar->mapping->Brev, ar->mapping->Astart,
@@ -1091,7 +1092,7 @@ void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& ch
         if (chainedRegions[i] == nullptr) {
             continue;
         }
-        std::sort(chainedRegions[i]->chain.hits.begin(), chainedRegions[i]->chain.hits.end());
+        pdqsort(chainedRegions[i]->chain.hits.begin(), chainedRegions[i]->chain.hits.end());
     }
 
     // Remove the merged ones.
