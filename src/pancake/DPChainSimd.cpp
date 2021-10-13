@@ -110,19 +110,15 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         vectorIndices[i] = _mm_set1_epi32(i);
     }
 
-    // The distDiag values will have to be used to compute the log2.
+    // Declare reusable variables.
     __m128i distDiag = _mm_set1_epi32(0);
-    int32_t* distDiagPtr_0 = reinterpret_cast<int32_t*>(&distDiag);
-    int32_t* distDiagPtr_1 = distDiagPtr_0 + 1;
-    int32_t* distDiagPtr_2 = distDiagPtr_0 + 2;
-    int32_t* distDiagPtr_3 = distDiagPtr_0 + 3;
-
-    // Compute the addresses here, instead of the inner loop. Needed to compute numSkippedPredecessors.
     __m128i skipDiff = _mm_set1_epi32(0);
-    int32_t* skipDiffPtr_0 = reinterpret_cast<int32_t*>(&skipDiff);
-    int32_t* skipDiffPtr_1 = skipDiffPtr_0 + 1;
-    int32_t* skipDiffPtr_2 = skipDiffPtr_0 + 2;
-    int32_t* skipDiffPtr_3 = skipDiffPtr_0 + 3;
+    __m128i bestDpScore = _mm_set1_epi32(0);
+    __m128i bestDpPred = _mm_set1_epi32(-1);
+    int32_t* distDiagPtr = reinterpret_cast<int32_t*>(&distDiag);
+    int32_t* skipDiffPtr = reinterpret_cast<int32_t*>(&skipDiff);
+    int32_t* bestDpScorePtr = reinterpret_cast<int32_t*>(&bestDpScore);
+    int32_t* bestDpPredPtr = reinterpret_cast<int32_t*>(&bestDpPred);
 
     // Constants for score computation.
     const __m128 linFactorVec = _mm_set1_ps(linFactor);
@@ -135,27 +131,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     const __m128i M128_EPI32_ALL_POSITIVE_1 = _mm_set_epi32(1, 1, 1, 1);
     const __m128i M128_EPI32_ALL_NEGATIVE_1 = _mm_set_epi32(-1, -1, -1, -1);
     const __m128i M128_MASK_FULL = _mm_set1_epi32(0xFFFFFFFF);
-    // const __m128i M128_MASK_ZERO = _mm_set1_epi32(0);
     const __m128i M128_MASK_31 = _mm_set1_epi32(31);
-
-    // clang-format off
-    // Compute addresses before the loops. Needed to compute the maximum score.
-    __m128i bestDpScore = _mm_set1_epi32(0);
-    std::array<int32_t*, 4> bestDpScorePtr = {
-        reinterpret_cast<int32_t *>(&bestDpScore),
-        reinterpret_cast<int32_t *>(&bestDpScore) + 1,
-        reinterpret_cast<int32_t *>(&bestDpScore) + 2,
-        reinterpret_cast<int32_t *>(&bestDpScore) + 3,
-    };
-
-    __m128i bestDpPred = _mm_set1_epi32(-1);
-    std::array<int32_t*, 4> bestDpPredPtr = {
-        reinterpret_cast<int32_t *>(&bestDpPred),
-        reinterpret_cast<int32_t *>(&bestDpPred) + 1,
-        reinterpret_cast<int32_t *>(&bestDpPred) + 2,
-        reinterpret_cast<int32_t *>(&bestDpPred) + 3,
-    };
-// clang-format on
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
     auto PrintVectorInt32 = [](std::ostream& os, __m128i vals) {
@@ -189,7 +165,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         const __m128i tidi = _mm_set1_epi32(tidInt32[i]);
 
         bestDpScore = _mm_set1_epi32(hi.querySpan);
-        bestDpPred = _mm_set1_epi32(-1);
+        bestDpPred = M128_EPI32_ALL_NEGATIVE_1;
 
 #ifdef PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
         // This is used for the "continue" logic, because we need the exact count.
@@ -245,27 +221,16 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             // IMPORTANT: _mm_cvtps_epi32 rounds to the closest int, and not down.
             const __m128i linPart = _mm_cvtps_epi32(_mm_floor_ps(linPartFloat));
 
-
             // Compute the log part of the score. Not using SIMD because there are no
             // SSE alternatives to the __builtin_clz.
             // Note: _mm_srl_epi32 applies the same count to all elements of the vector.
             distDiag = _mm_max_epi32(distDiag, M128_EPI32_ALL_POSITIVE_1);
-            distDiagPtr_0[0] = __builtin_clz(distDiagPtr_0[0]);
-            distDiagPtr_0[1] = __builtin_clz(distDiagPtr_0[1]);
-            distDiagPtr_0[2] = __builtin_clz(distDiagPtr_0[2]);
-            distDiagPtr_0[3] = __builtin_clz(distDiagPtr_0[3]);
+            distDiagPtr[0] = __builtin_clz(distDiagPtr[0]);
+            distDiagPtr[1] = __builtin_clz(distDiagPtr[1]);
+            distDiagPtr[2] = __builtin_clz(distDiagPtr[2]);
+            distDiagPtr[3] = __builtin_clz(distDiagPtr[3]);
             __m128i logPart = _mm_sub_epi32(M128_MASK_31, distDiag);
             logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
-
-            // // Compute the log part of the score. Not using SIMD because there are no
-            // // SSE alternatives to the __builtin_clz.
-            // // Note: _mm_srl_epi32 applies the same count to all elements of the vector.
-            // const int32_t logPart0 = ilog2_32_clz_special_zero(*distDiagPtr_0);
-            // const int32_t logPart1 = ilog2_32_clz_special_zero(*distDiagPtr_1);
-            // const int32_t logPart2 = ilog2_32_clz_special_zero(*distDiagPtr_2);
-            // const int32_t logPart3 = ilog2_32_clz_special_zero(*distDiagPtr_3);
-            // __m128i logPart = _mm_set_epi32(logPart3, logPart2, logPart1, logPart0);
-            // logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
 
             // Compute the new score. Invalidate the values which are out of bounds (defined by c).
             const __m128i edgeScore = _mm_add_epi32(linPart, logPart);
@@ -284,13 +249,13 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             // would not be counted in numSkippedPredecessors:
             skipDiff = _mm_andnot_si128(c, skipDiff);
 #endif
-            numSkippedPredecessors += *skipDiffPtr_0;
+            numSkippedPredecessors += skipDiffPtr[0];
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
-            numSkippedPredecessors += *skipDiffPtr_1;
+            numSkippedPredecessors += skipDiffPtr[1];
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
-            numSkippedPredecessors += *skipDiffPtr_2;
+            numSkippedPredecessors += skipDiffPtr[2];
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
-            numSkippedPredecessors += *skipDiffPtr_3;
+            numSkippedPredecessors += skipDiffPtr[3];
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
@@ -345,11 +310,11 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         // Find the maximum.
         dpInt32[i] = hi.querySpan;
         predInt32[i] = -1;
-        for (size_t j = 0; j < bestDpScorePtr.size(); ++j) {
-            const int32_t predIndex = (*bestDpPredPtr[j]) * NUM_REGISTERS + j;
+        for (size_t j = 0; j < NUM_REGISTERS; ++j) {
+            const int32_t predIndex = bestDpPredPtr[j] * NUM_REGISTERS + j;
             if (predIndex < i &&
-                std::tie((*bestDpScorePtr[j]), predIndex) >= std::tie(dpInt32[i], predInt32[i])) {
-                dpInt32[i] = *bestDpScorePtr[j];
+                std::tie(bestDpScorePtr[j], predIndex) >= std::tie(dpInt32[i], predInt32[i])) {
+                dpInt32[i] = bestDpScorePtr[j];
                 predInt32[i] = predIndex;
             }
         }
