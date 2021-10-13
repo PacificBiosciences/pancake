@@ -62,17 +62,17 @@ bash scripts/ci/build.sh
 bash scripts/ci/test.sh
 if [[ -z ${PREFIX_ARG+x} ]]; then
   echo "Not installing anything (branch: ${bamboo_planRepository_branchName}), exiting."
-  exit 0
-fi
-source scripts/ci/install.sh
+else
+    source scripts/ci/install.sh
 
-# Also install racon, since it lacks its own PB repo.
-export PREFIX_ARG="/mnt/software/r/racon/${bamboo_planRepository_branchName}"
-set +vx
-source scripts/ci/racon.modules.sh
-set -vx
-rm -rf racon-v1.4.13/build-meson # TEMP fix for my mistake
-make -C scripts/ci all
+    # Also install racon, since it lacks its own PB repo.
+    export PREFIX_ARG="/mnt/software/r/racon/${bamboo_planRepository_branchName}"
+    set +vx
+    source scripts/ci/racon.modules.sh
+    set -vx
+    rm -rf racon-v1.4.13/build-meson # TEMP fix for my mistake
+    make -C scripts/ci all
+fi
 
 ##########################
 ### Build with SSE4.1. ###
@@ -90,6 +90,12 @@ bash scripts/ci/test.sh
 ##################################
 ### Build with ASAN and UBSAN. ###
 ##################################
-export CURRENT_DEBUG_BUILD_DIR_SANITIZE=build-debug-sanitize
-bash -vex scripts/ci/configure_debug_sanitize_fallback.sh ${CURRENT_DEBUG_BUILD_DIR_SANITIZE}
-ninja -C "${CURRENT_DEBUG_BUILD_DIR_SANITIZE}" -v
+export ENABLED_TESTS="true"
+export ENABLED_SSE41="true"
+export ENABLED_GPU_CUDA="false"
+export ENABLED_INTERNAL_TESTS="${bamboo_ENABLED_INTERNAL_TESTS}"
+export LDFLAGS="-static-libstdc++ -static-libgcc"
+export CURRENT_BUILD_DIR="build-debug-sanitize"
+bash scripts/ci/configure_debug_sanitize_fallback.sh
+bash scripts/ci/build.sh
+bash scripts/ci/test.sh
