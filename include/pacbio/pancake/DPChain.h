@@ -31,6 +31,13 @@ struct ChainingScratchSpace
 #pragma GCC diagnostic ignored "-Wignored-attributes"
     std::vector<__m128i> dpSimd;
     std::vector<__m128i> predSimd;
+
+    std::vector<__m128i> qp;             // Query pos.
+    std::vector<__m128i> tp;             // Target pos.
+    std::vector<__m128i> qs;             // Query span.
+    std::vector<__m128i> tid;            // Target ID and strand.
+    std::vector<__m128i> vectorIndices;  // Target ID and strand.
+
 #pragma GCC diagnostic pop
 #endif
 };

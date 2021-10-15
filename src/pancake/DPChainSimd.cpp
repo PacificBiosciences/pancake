@@ -34,7 +34,11 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                                  const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
                                  const int32_t seedJoinDist, const int32_t diagMargin,
                                  std::vector<__m128i>& dp, std::vector<__m128i>& pred,
-                                 std::vector<int32_t>& chainId)
+                                 std::vector<int32_t>& chainId,
+
+                                 std::vector<__m128i>& qp, std::vector<__m128i>& tp,
+                                 std::vector<__m128i>& qs, std::vector<__m128i>& tid,
+                                 std::vector<__m128i>& vectorIndices)
 {
     constexpr int32_t VECTOR_SIZE = 128;
     constexpr int32_t ELEMENT_SIZE = 32;
@@ -44,6 +48,11 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     dp.clear();
     pred.clear();
     chainId.clear();
+    qp.clear();
+    tp.clear();
+    qs.clear();
+    tid.clear();
+    vectorIndices.clear();
 
     if (hitsSize == 0) {
         return 0;
@@ -65,11 +74,11 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     dp.resize(dpPaddedSize);
     pred.resize(dpPaddedSize);
     chainId.resize(hitsSize, -1);
-    std::vector<__m128i> qp(dpPaddedSize);             // Query pos.
-    std::vector<__m128i> tp(dpPaddedSize);             // Target pos.
-    std::vector<__m128i> qs(dpPaddedSize);             // Query span.
-    std::vector<__m128i> tid(dpPaddedSize);            // Target ID and strand.
-    std::vector<__m128i> vectorIndices(dpPaddedSize);  // Target ID and strand.
+    qp.resize(dpPaddedSize);
+    tp.resize(dpPaddedSize);
+    qs.resize(dpPaddedSize);
+    tid.resize(dpPaddedSize);
+    vectorIndices.resize(dpPaddedSize);
 
     // Used to allow direct access to data, instead through operator[].
     __m128i* dpPtr = dp.data();
@@ -394,9 +403,9 @@ std::vector<ChainedHits> ChainHitsSimd(
     std::vector<__m128i>& pred = ss->predSimd;
     std::vector<int32_t>& chainId = ss->chainId;
 
-    const int32_t numChains =
-        ChainHitsForwardFastSimd(hits, hitsSize, chainMaxSkip, chainMaxPredecessors, seedJoinDist,
-                                 diagMargin, dp, pred, chainId);
+    const int32_t numChains = ChainHitsForwardFastSimd(
+        hits, hitsSize, chainMaxSkip, chainMaxPredecessors, seedJoinDist, diagMargin, dp, pred,
+        chainId, ss->qp, ss->tp, ss->qs, ss->tid, ss->vectorIndices);
 
 #ifdef PANCAKE_ENABLE_TIMINGS
     ttPartial.Stop();
