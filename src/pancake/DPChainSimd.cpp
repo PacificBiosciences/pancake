@@ -30,6 +30,17 @@
 namespace PacBio {
 namespace Pancake {
 
+void PrintVectorInt32(std::ostream& os, __m128i vals)
+{
+    const int32_t* valsInt32 = reinterpret_cast<int32_t*>(&vals);
+    os << valsInt32[0] << ", " << valsInt32[1] << ", " << valsInt32[2] << ", " << valsInt32[3];
+}
+void PrintVectorFloat(std::ostream& os, __m128 vals)
+{
+    const float* valsFloat = reinterpret_cast<float*>(&vals);
+    os << valsFloat[0] << ", " << valsFloat[1] << ", " << valsFloat[2] << ", " << valsFloat[3];
+}
+
 int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                                  const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
                                  const int32_t seedJoinDist, const int32_t diagMargin,
@@ -57,17 +68,6 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     if (hitsSize == 0) {
         return 0;
     }
-
-    // Compute the linear factor for the DP.
-    const int32_t finalChainMaxPredecessors =
-        (chainMaxPredecessors > 0) ? chainMaxPredecessors : std::numeric_limits<int32_t>::max();
-    float avgQuerySpan = 0.0f;
-    for (int32_t i = 0; i < hitsSize; ++i) {
-        avgQuerySpan += static_cast<float>(hits[i].querySpan);
-    }
-    avgQuerySpan = (hitsSize > 0) ? avgQuerySpan / static_cast<float>(hitsSize) : 0.0f;
-    const float linFactor = 0.01f * avgQuerySpan;
-    // const double avgQuerySpan = hits[0].querySpan;
 
     // Allocate the vectors.
     const int32_t dpPaddedSize = std::ceil(static_cast<float>(hitsSize) / NUM_ELEMENTS);
@@ -98,7 +98,9 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     int32_t* tidInt32 = reinterpret_cast<int32_t*>(tidPtr);
 
     // Initialize the values needed for DP computation.
+    float avgQuerySpan = 0.0f;
     for (int32_t i = 0; i < hitsSize; ++i) {
+        avgQuerySpan += static_cast<float>(hits[i].querySpan);
         dpInt32[i] = 0;
         predInt32[i] = -1;
         qpInt32[i] = hits[i].queryPos;
@@ -119,6 +121,13 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         vectorIndices[i] = _mm_set1_epi32(i);
     }
 
+    // Compute the linear factor for the DP.
+    avgQuerySpan = (hitsSize > 0) ? avgQuerySpan / static_cast<float>(hitsSize) : 0.0f;
+    const float linFactor = 0.01f * avgQuerySpan;
+    const int32_t finalChainMaxPredecessors =
+        (chainMaxPredecessors > 0) ? chainMaxPredecessors : std::numeric_limits<int32_t>::max();
+    // const double avgQuerySpan = hits[0].querySpan;
+
     // Declare reusable variables.
     __m128i distDiag = _mm_set1_epi32(0);
     __m128i skipDiff = _mm_set1_epi32(0);
@@ -131,30 +140,20 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
     // Constants for score computation.
     const __m128 linFactorVec = _mm_set1_ps(linFactor);
-    const __m128i diagMarginVecMinusOne =
-        _mm_set_epi32(diagMargin - 1, diagMargin - 1, diagMargin - 1, diagMargin - 1);
-    const __m128i seedJoinDistVecMinusOne =
-        _mm_set_epi32(seedJoinDist - 1, seedJoinDist - 1, seedJoinDist - 1, seedJoinDist - 1);
+    const __m128i diagMarginVecMinusOne = _mm_set1_epi32(diagMargin - 1);
+    const __m128i seedJoinDistVecMinusOne = _mm_set1_epi32(seedJoinDist - 1);
 
     const __m128i M128_MASK_1BIT = _mm_set_epi32(0, 0, 0, 1);
-    const __m128i M128_EPI32_ALL_POSITIVE_1 = _mm_set_epi32(1, 1, 1, 1);
-    const __m128i M128_EPI32_ALL_NEGATIVE_1 = _mm_set_epi32(-1, -1, -1, -1);
+    const __m128i M128_EPI32_ALL_POSITIVE_1 = _mm_set1_epi32(1);
+    const __m128i M128_EPI32_ALL_NEGATIVE_1 = _mm_set1_epi32(-1);
     const __m128i M128_MASK_FULL = _mm_set1_epi32(0xFFFFFFFF);
     const __m128i M128_MASK_31 = _mm_set1_epi32(31);
-
-#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
-    auto PrintVectorInt32 = [](std::ostream& os, __m128i vals) {
-        const int32_t* valsInt32 = reinterpret_cast<int32_t*>(&vals);
-        os << valsInt32[0] << ", " << valsInt32[1] << ", " << valsInt32[2] << ", " << valsInt32[3];
-    };
-    auto PrintVectorFloat = [](std::ostream& os, __m128 vals) {
-        const float* valsFloat = reinterpret_cast<float*>(&vals);
-        os << valsFloat[0] << ", " << valsFloat[1] << ", " << valsFloat[2] << ", " << valsFloat[3];
-    };
-#endif
+    const __m128i M128_NUM_ELEMENTS = _mm_set1_epi32(NUM_ELEMENTS);
+    const __m128i M128_MASK_0123 = _mm_set_epi32(3, 2, 1, 0);
 
     int32_t numChains = 0;
 
+    // clang-format off
     for (int32_t i = 0, minJ = 0; i < hitsSize; ++i) {
         const auto& hi = hits[i];
 
@@ -201,7 +200,6 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                   << "\n";
 #endif
 
-        // clang-format off
         for (int32_t j = startJ4, numSkippedPredecessors = 0; (j >= minJ4) && numSkippedPredecessors <= currChainMaxSkip; --j) {
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
@@ -314,13 +312,14 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             }
 #endif
         }
-        // clang-format on
 
         // Find the maximum.
         dpInt32[i] = hi.querySpan;
         predInt32[i] = -1;
+        bestDpPred = _mm_add_epi32(_mm_mullo_epi32(bestDpPred, M128_NUM_ELEMENTS), M128_MASK_0123);
+        #pragma unroll 4
         for (size_t j = 0; j < NUM_ELEMENTS; ++j) {
-            const int32_t predIndex = bestDpPredPtr[j] * NUM_ELEMENTS + j;
+            const int32_t predIndex = bestDpPredPtr[j];
             if (predIndex < i &&
                 std::tie(bestDpScorePtr[j], predIndex) >= std::tie(dpInt32[i], predInt32[i])) {
                 dpInt32[i] = bestDpScorePtr[j];
@@ -351,6 +350,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         std::cerr << "\n";
 #endif
     }
+    // clang-format on
 
     return numChains;
 }
