@@ -215,12 +215,13 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
             // Check any of the boundary criteria. If not valid, c == 0xFFFFFFFF for that element.
             const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpPtr[j]);
-            const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]);
+            // const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]);
             const __m128i c2 = _mm_cmplt_epi32(diagMarginVecMinusOne, distDiag);
             const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVecMinusOne, distQuery);
             // const __m128i c = _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3)));
             const __m128i c4 = _mm_xor_si128(_mm_cmpeq_epi32(tidi, tidPtr[j]), M128_MASK_FULL);
-            const __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3))));
+            // const __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c1, _mm_or_si128(c2, c3))));
+            const __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c2, c3)));
 
             // Compute the linear part of the score.
             const __m128 distDiagFloat = _mm_cvtepi32_ps(distDiag);
@@ -236,8 +237,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             distDiagPtr[1] = __builtin_clz(distDiagPtr[1]);
             distDiagPtr[2] = __builtin_clz(distDiagPtr[2]);
             distDiagPtr[3] = __builtin_clz(distDiagPtr[3]);
-            __m128i logPart = _mm_sub_epi32(M128_MASK_31, distDiag);
-            logPart = _mm_srl_epi32(logPart, M128_MASK_1BIT);
+            const __m128i logPart = _mm_srl_epi32(_mm_sub_epi32(M128_MASK_31, distDiag), M128_MASK_1BIT);
 
             // Compute the new score. Invalidate the values which are out of bounds (defined by c).
             const __m128i edgeScore = _mm_add_epi32(linPart, logPart);
