@@ -257,11 +257,8 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             skipDiff = _mm_andnot_si128(c, skipDiff);
 #endif
             numSkippedPredecessors += skipDiffPtr[0];
-            numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
             numSkippedPredecessors += skipDiffPtr[1];
-            numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
             numSkippedPredecessors += skipDiffPtr[2];
-            numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
             numSkippedPredecessors += skipDiffPtr[3];
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
 
