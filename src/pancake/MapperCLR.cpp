@@ -429,7 +429,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
             const auto& sh = hits[i];
             seedHitsPacked[i] = std::make_pair(
                 ((sh.targetId << 1) | sh.targetRev),
-                (static_cast<int64_t>(sh.targetPos - sh.queryPos) << 32 | (i & 0x0FFFFFFFF)));
+                (static_cast<uint64_t>(sh.targetPos - sh.queryPos) << 32 | (i & 0x0FFFFFFFF)));
         }
         const double timeSortPrepare = ttPartial.GetMicrosecs(true);
         LogTicTocAdd("map-L3-total-sort", timeSortPrepare, result.time);

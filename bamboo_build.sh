@@ -74,6 +74,11 @@ else
     make -C scripts/ci all
 fi
 
+# The Racon modules script may have reset some modules.
+set +vx
+source scripts/ci/modules.sh
+set -vx
+
 ##########################
 ### Build with SSE4.1. ###
 ##########################
