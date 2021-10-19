@@ -414,28 +414,32 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     }
 #endif
 
-    // Sort the seed hits. First convert them to __int128_t to (1) avoid using custom comparison operators,
-    // and (2) to avoid conversions during the sort (logn less conversions) like before.
+    // Sort the seed hits.
     {
-        // NOTE: This generates a slightly different result for the "MapperCLR.SeedOccurrenceThresholds_LoadFromFile" test.
-        std::vector<Int128t> seedHitsPacked(hits.size());
+        // Unfortunately, we cannot just pack the values into an 128-bit integer in the order
+        // of <targetID, targetRev, diag, targetPos, queryPos>, because the diagonal is internal,
+        // and signedness matters here. In that case, negative diagonals would actually get sorted _after_
+        // the positive ones. So we have to use pairs/tuples to properly compare the values here.
+        // Here, we attempt to optimize the amount of comparisons that need to be performed when sorting:
+        //  - First of the pair is the targetID + targetRev.
+        //  - Second of the pair stores the diagonal first, then packs the ID of the current seed hit. This way
+        //      the diagonal's sign can validly be compared.
+        std::vector<std::pair<int32_t, int64_t>> seedHitsPacked(hits.size());
         for (size_t i = 0; i < hits.size(); ++i) {
-            // Fields: target ID and rev, diagonal, ID.
-            const int32_t diag = hits[i].targetPos - hits[i].queryPos;
-            seedHitsPacked[i] =
-                (static_cast<Int128t>(hits[i].targetId) << 97) |
-                ((static_cast<Int128t>(hits[i].targetRev) & MASK128_LOW1bit) << 96) |
-                ((static_cast<Int128t>(diag) & MASK128_LOW32bit) << 64) |
-                ((Int128t(i) & MASK128_LOW32bit));
+            const auto& sh = hits[i];
+            seedHitsPacked[i] = std::make_pair(
+                ((sh.targetId << 1) | sh.targetRev),
+                (static_cast<int64_t>(sh.targetPos - sh.queryPos) << 32 | (i & 0x0FFFFFFFF)));
         }
         const double timeSortPrepare = ttPartial.GetMicrosecs(true);
         LogTicTocAdd("map-L3-total-sort", timeSortPrepare, result.time);
         LogTicToc("map-L1-05-sort-prepare", ttPartial, result.time);
 
         pdqsort(seedHitsPacked.begin(), seedHitsPacked.end());
+
         std::vector<PacBio::Pancake::SeedHit> sortedHits(hits.size());
         for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
-            sortedHits[i] = hits[seedHitsPacked[i] & MASK128_LOW32bit];
+            sortedHits[i] = hits[seedHitsPacked[i].second & 0x0FFFFFFFF];
         }
         std::swap(hits, sortedHits);
         const double timeSort = ttPartial.GetMicrosecs(true);
