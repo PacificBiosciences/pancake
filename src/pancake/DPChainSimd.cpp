@@ -110,6 +110,12 @@ inline __attribute__((always_inline)) void SimdDPBlock(
     numSkippedPredecessors += skipDiffPtr[3];
     numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
 
+    // if constexpr (COMPARE_TARGET_POS == true) {
+    //     DebugVerboseInnerLoop(i, j, minJ4, maxJ4, score, isBetter, c, logPart, linPart, matchScore, distQuery, distTarget,
+    //                         distDiagFloat, linPartFloat, tidi,
+    //                         numSkippedPredecessors, currChainMaxSkip);
+    // }
+
     // clang-format on
 }
 
@@ -287,148 +293,6 @@ int32_t ChainHitsForwardFastSimd(
     /// code is reused to unroll the inner loop for the special   ///
     /// cases of the first/last vectors.                          ///
     /////////////////////////////////////////////////////////////////
-//     auto SimdDPBlock1_DistDiag = []() __attribute__((always_inline)) {
-//             /* Compute X and Y distances, and the diagonal distance. */
-//             const __m128i distQuery = _mm_sub_epi32(qpi, qpPtr[j]);
-//             const __m128i distTarget = _mm_sub_epi32(tpi, tpPtr[j]);
-//             distDiag = _mm_abs_epi32(_mm_sub_epi32(distTarget, distQuery));
-//     };
-
-//     auto SimdDPBlock2a_ConditionalsWithTargetId = []() __attribute__((always_inline)) {
-//         /* Check any of the boundary criteria. If not valid, c == 0xFFFFFFFF for that element. */
-//         const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpPtr[j]);
-//         const __m128i c2 = _mm_cmplt_epi32(diagMarginVecMinusOne, distDiag);
-//         const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVecMinusOne, distQuery);
-//         const __m128i c4 = _mm_xor_si128(_mm_cmpeq_epi32(tidi, tidPtr[j]), M128_MASK_FULL);
-//         const __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c2, c3)));
-//         /* const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]); */
-//         /* c = _mm_or_si128(c, c1); */
-//     };
-
-//     auto SimdDPBlock3_LinLogScore = []() __attribute__((always_inline)) {
-//             /* Compute the linear part of the score. */
-//             const __m128 distDiagFloat = _mm_cvtepi32_ps(distDiag);
-//             const __m128 linPartFloat = _mm_mul_ps(linFactorVec, distDiagFloat);
-//             /* IMPORTANT: _mm_cvtps_epi32 rounds to the closest int, and not down. */
-//             const __m128i linPart = _mm_cvtps_epi32(_mm_floor_ps(linPartFloat));
-//             /* Compute the log part of the score. Not using SIMD because there are no */
-//             /* SSE alternatives to the __builtin_clz. */
-//             /* Note: _mm_srl_epi32 applies the same count to all elements of the vector. */
-//             distDiag = _mm_max_epi32(distDiag, M128_EPI32_ALL_POSITIVE_1);
-//             distDiagPtr[0] = __builtin_clz(distDiagPtr[0]);
-//             distDiagPtr[1] = __builtin_clz(distDiagPtr[1]);
-//             distDiagPtr[2] = __builtin_clz(distDiagPtr[2]);
-//             distDiagPtr[3] = __builtin_clz(distDiagPtr[3]);
-//             const __m128i logPart = _mm_srl_epi32(_mm_sub_epi32(M128_MASK_31, distDiag), M128_MASK_1BIT);
-
-//             /* Compute the new score. Invalidate the values which are out of bounds (defined by c). */
-//             const __m128i edgeScore = _mm_add_epi32(linPart, logPart);
-//             const __m128i matchScore = _mm_min_epi32(qsPtr[j], _mm_min_epi32(distQuery, distTarget));
-//             const __m128i score = _mm_or_si128(_mm_add_epi32(dpPtr[j], _mm_sub_epi32(matchScore, edgeScore)), c);
-//             /* Pick the best score. */
-//             const __m128i isBetter = _mm_cmplt_epi32(bestDpScore, score);
-//             bestDpScore = _mm_blendv_epi8(bestDpScore, score, isBetter);
-//             bestDpPred = _mm_blendv_epi8(bestDpPred, vectorIndicesPtr[j], isBetter);
-
-// #ifdef PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
-//             /* Horizontal add to update the numSkippedPredecessors, and limit lower value to 0. */
-//             skipDiff = _mm_blendv_epi8(M128_EPI32_ALL_POSITIVE_1, M128_EPI32_ALL_NEGATIVE_1, isBetter);
-//             /* NOTE: The following line would re-enable the "continue" behaviour (where coordinates out of order */
-//             /* would not be counted in numSkippedPredecessors: */
-//             skipDiff = _mm_andnot_si128(c, skipDiff);
-//             numSkippedPredecessors += skipDiffPtr[0];
-//             numSkippedPredecessors += skipDiffPtr[1];
-//             numSkippedPredecessors += skipDiffPtr[2];
-//             numSkippedPredecessors += skipDiffPtr[3];
-//             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
-// #else
-//             /* Horizontal add to update the numSkippedPredecessors, and limit lower value to 0. */ \
-//             skipDiff = _mm_blendv_epi8(M128_EPI32_ALL_POSITIVE_1, M128_EPI32_ALL_NEGATIVE_1, isBetter);
-//             numSkippedPredecessors += skipDiffPtr[0];
-//             numSkippedPredecessors += skipDiffPtr[1];
-//             numSkippedPredecessors += skipDiffPtr[2];
-//             numSkippedPredecessors += skipDiffPtr[3];
-//             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
-// #endif
-
-//     };
-
-    // auto SimdDPBlock3_LinLog = []() __attribute__((always_inline)) {
-    // };
-
-#define SIMD_DP_BLOCK_1_DIST_DIAG \
-            /* Compute X and Y distances, and the diagonal distance. */ \
-            const __m128i distQuery = _mm_sub_epi32(qpi, qpPtr[j]); \
-            const __m128i distTarget = _mm_sub_epi32(tpi, tpPtr[j]); \
-            distDiag = _mm_abs_epi32(_mm_sub_epi32(distTarget, distQuery));
-
-#define SIMD_DP_BLOCK_2a_C_WITH_TID \
-                    /* Check any of the boundary criteria. If not valid, c == 0xFFFFFFFF for that element. */ \
-                    const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpPtr[j]); \
-                    const __m128i c2 = _mm_cmplt_epi32(diagMarginVecMinusOne, distDiag); \
-                    const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVecMinusOne, distQuery); \
-                    const __m128i c4 = _mm_xor_si128(_mm_cmpeq_epi32(tidi, tidPtr[j]), M128_MASK_FULL); \
-                    const __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c2, c3))); \
-                    /* const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]); */ \
-                    /* c = _mm_or_si128(c, c1); */
-
-#define SIMD_DP_BLOCK_2b_NO_TID \
-                    /* Check any of the boundary criteria. If not valid, c == 0xFFFFFFFF for that element. */ \
-                    const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpPtr[j]); \
-                    /* const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]); */ \
-                    const __m128i c2 = _mm_cmplt_epi32(diagMarginVecMinusOne, distDiag); \
-                    const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVecMinusOne, distQuery); \
-                    const __m128i c = _mm_or_si128(c0, _mm_or_si128(c2, c3));
-
-#define SIMD_DP_BLOCK_3_LIN_LOG \
-            /* Compute the linear part of the score. */ \
-            const __m128 distDiagFloat = _mm_cvtepi32_ps(distDiag); \
-            const __m128 linPartFloat = _mm_mul_ps(linFactorVec, distDiagFloat); \
-            /* IMPORTANT: _mm_cvtps_epi32 rounds to the closest int, and not down. */ \
-            const __m128i linPart = _mm_cvtps_epi32(_mm_floor_ps(linPartFloat)); \
-            /* Compute the log part of the score. Not using SIMD because there are no */ \
-            /* SSE alternatives to the __builtin_clz. */ \
-            /* Note: _mm_srl_epi32 applies the same count to all elements of the vector. */ \
-            distDiag = _mm_max_epi32(distDiag, M128_EPI32_ALL_POSITIVE_1); \
-            distDiagPtr[0] = __builtin_clz(distDiagPtr[0]); \
-            distDiagPtr[1] = __builtin_clz(distDiagPtr[1]); \
-            distDiagPtr[2] = __builtin_clz(distDiagPtr[2]); \
-            distDiagPtr[3] = __builtin_clz(distDiagPtr[3]); \
-            const __m128i logPart = _mm_srl_epi32(_mm_sub_epi32(M128_MASK_31, distDiag), M128_MASK_1BIT);
-
-#define SIMD_DP_BLOCK_4_SCORE \
-            /* Compute the new score. Invalidate the values which are out of bounds (defined by c). */ \
-            const __m128i edgeScore = _mm_add_epi32(linPart, logPart); \
-            const __m128i matchScore = _mm_min_epi32(qsPtr[j], _mm_min_epi32(distQuery, distTarget)); \
-            const __m128i score = _mm_or_si128(_mm_add_epi32(dpPtr[j], _mm_sub_epi32(matchScore, edgeScore)), c); \
-            /* Pick the best score. */ \
-            const __m128i isBetter = _mm_cmplt_epi32(bestDpScore, score); \
-            bestDpScore = _mm_blendv_epi8(bestDpScore, score, isBetter); \
-            bestDpPred = _mm_blendv_epi8(bestDpPred, vectorIndicesPtr[j], isBetter); \
-
-#ifdef PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
-#define SIMD_DP_BLOCK_5_NUM_SKIPPED \
-            /* Horizontal add to update the numSkippedPredecessors, and limit lower value to 0. */ \
-            skipDiff = _mm_blendv_epi8(M128_EPI32_ALL_POSITIVE_1, M128_EPI32_ALL_NEGATIVE_1, isBetter); \
-            /* NOTE: The following line would re-enable the "continue" behaviour (where coordinates out of order */ \
-            /* would not be counted in numSkippedPredecessors: */ \
-            skipDiff = _mm_andnot_si128(c, skipDiff);\
-            numSkippedPredecessors += skipDiffPtr[0]; \
-            numSkippedPredecessors += skipDiffPtr[1]; \
-            numSkippedPredecessors += skipDiffPtr[2]; \
-            numSkippedPredecessors += skipDiffPtr[3]; \
-            numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
-#else
-#define SIMD_DP_BLOCK_5_NUM_SKIPPED \
-            /* Horizontal add to update the numSkippedPredecessors, and limit lower value to 0. */ \
-            skipDiff = _mm_blendv_epi8(M128_EPI32_ALL_POSITIVE_1, M128_EPI32_ALL_NEGATIVE_1, isBetter); \
-            numSkippedPredecessors += skipDiffPtr[0]; \
-            numSkippedPredecessors += skipDiffPtr[1]; \
-            numSkippedPredecessors += skipDiffPtr[2]; \
-            numSkippedPredecessors += skipDiffPtr[3]; \
-            numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
-#endif
-
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
 #define SIMD_DP_BLOCK_6_DEBUG_VERBOSE \
             DebugVerboseInnerLoop(i, j, minJ4, maxJ4, score, isBetter, c, logPart, linPart, matchScore, distQuery, distTarget, \
@@ -493,13 +357,6 @@ int32_t ChainHitsForwardFastSimd(
         // Case for the starting vector. There can be a mix of target IDs/strands.
         {
             const int32_t j = maxJ4;
-            // SIMD_DP_BLOCK_1_DIST_DIAG
-            // SIMD_DP_BLOCK_2a_C_WITH_TID
-            // SIMD_DP_BLOCK_3_LIN_LOG
-            // SIMD_DP_BLOCK_4_SCORE
-            // SIMD_DP_BLOCK_5_NUM_SKIPPED
-            // SIMD_DP_BLOCK_6_DEBUG_VERBOSE
-
             SimdDPBlock<true, false>(j,
                     qpi, tpi, tidi,
                     dpPtr, qpPtr, tpPtr, qsPtr, tidPtr, vectorIndicesPtr,
@@ -510,16 +367,10 @@ int32_t ChainHitsForwardFastSimd(
                     bestDpScore, bestDpPred,
                     skipDiff, skipDiffPtr,
                     numSkippedPredecessors);
-
+            // SIMD_DP_BLOCK_6_DEBUG_VERBOSE
         }
         // Internal vectors.
         for (int32_t j = (maxJ4 - 1); (j > minJ4) && numSkippedPredecessors <= currChainMaxSkip; --j) {
-            // SIMD_DP_BLOCK_1_DIST_DIAG
-            // SIMD_DP_BLOCK_2b_NO_TID
-            // SIMD_DP_BLOCK_3_LIN_LOG
-            // SIMD_DP_BLOCK_4_SCORE
-            // SIMD_DP_BLOCK_5_NUM_SKIPPED
-            // SIMD_DP_BLOCK_6_DEBUG_VERBOSE
             SimdDPBlock<false, false>(j,
                     qpi, tpi, tidi,
                     dpPtr, qpPtr, tpPtr, qsPtr, tidPtr, vectorIndicesPtr,
@@ -530,16 +381,11 @@ int32_t ChainHitsForwardFastSimd(
                     bestDpScore, bestDpPred,
                     skipDiff, skipDiffPtr,
                     numSkippedPredecessors);
+            // SIMD_DP_BLOCK_6_DEBUG_VERBOSE
         }
         // Case for the end vector. There can be a mix of target IDs/strands.
         if (minJ4 < maxJ4 && numSkippedPredecessors <= currChainMaxSkip) {
             const int32_t j = minJ4;
-            // SIMD_DP_BLOCK_1_DIST_DIAG
-            // SIMD_DP_BLOCK_2a_C_WITH_TID
-            // SIMD_DP_BLOCK_3_LIN_LOG
-            // SIMD_DP_BLOCK_4_SCORE
-            // SIMD_DP_BLOCK_5_NUM_SKIPPED
-            // SIMD_DP_BLOCK_6_DEBUG_VERBOSE
             SimdDPBlock<true, false>(j,
                     qpi, tpi, tidi,
                     dpPtr, qpPtr, tpPtr, qsPtr, tidPtr, vectorIndicesPtr,
@@ -550,6 +396,7 @@ int32_t ChainHitsForwardFastSimd(
                     bestDpScore, bestDpPred,
                     skipDiff, skipDiffPtr,
                     numSkippedPredecessors);
+            // SIMD_DP_BLOCK_6_DEBUG_VERBOSE
         }
         //////////////////////
 
