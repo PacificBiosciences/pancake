@@ -211,54 +211,12 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
     };
 #endif
 
-    // clang-format off
-    for (int32_t i = 0, minJ = 0; i < hitsSize; ++i) {
-        const auto& hi = hits[i];
-
-        // Move the furthest allowed predecessor.
-        while ((minJ < i) && (hits[i].targetId != hits[minJ].targetId ||
-                              hits[i].targetRev != hits[minJ].targetRev ||
-                              (hits[i].targetPos - hits[minJ].targetPos) > seedJoinDist ||
-                              (i - minJ) > finalChainMaxPredecessors)) {
-            ++minJ;
-        }
-
-        // Current positions.
-        const __m128i qpi = _mm_set1_epi32(hi.queryPos);
-        const __m128i tpi = _mm_set1_epi32(hi.targetPos);
-        const __m128i qpiMinusOne = _mm_sub_epi32(qpi, M128_EPI32_ALL_POSITIVE_1);
-        const __m128i tpiMinusOne = _mm_sub_epi32(tpi, M128_EPI32_ALL_POSITIVE_1);
-        const __m128i tidi = _mm_set1_epi32(tidInt32[i]);
-
-        bestDpScore = _mm_set1_epi32(hi.querySpan);
-        bestDpPred = M128_EPI32_ALL_NEGATIVE_1;
-
-#ifdef PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
-        // This is used for the "continue" logic, because we need the exact count.
-        const int32_t currChainMaxSkip = chainMaxSkip;
-#elif
-        // The position "i" can begin in any of the NUM_ELEMENTS registers in the current SIMD vector. Any
-        // register which begins at position "i" or later in that vector will not be valid. The maxSkip needs to be
-        // increased to alow for that, or the heuristic will terminate early.
-        // This needs to be augmented only in case when the "continue" logic is not used (i.e. when the inner
-        // loop encounters an out-of-order seed hit predecessor (target is sorted, but query is larger), the
-        // "continue" logic would continue in the inner loop and the numSkippedPredecessors would not be
-        // incremented).
-        const int32_t currChainMaxSkip = chainMaxSkip + (NUM_ELEMENTS - (i % NUM_ELEMENTS));
-#endif
-
-        // Loop "j" boundaries.
-        const int32_t maxJ4 = i / NUM_ELEMENTS;
-        const int32_t minJ4 = minJ / NUM_ELEMENTS;
-
-#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
-        std::cerr << "[i = " << i << "] maxJ4 = " << maxJ4 << ", minJ4 = " << minJ4
-                  << ", minJ = " << minJ << ", currChainMaxSkip = " << currChainMaxSkip
-                  << "; hit = {" << hi << "}"
-                  << "\n";
-#endif
-
-
+// clang-format off
+    /////////////////////////////////////////////////////////////////
+    /// Macros defining the inner loop DP code. This              ///
+    /// code is reused to unroll the inner loop for the special   ///
+    /// cases of the first/last vectors.                          ///
+    /////////////////////////////////////////////////////////////////
 #define SIMD_DP_BLOCK_1_DIST_DIAG \
             /* Compute X and Y distances, and the diagonal distance. */ \
             const __m128i distQuery = _mm_sub_epi32(qpi, qpPtr[j]); \
@@ -271,10 +229,9 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
                     const __m128i c2 = _mm_cmplt_epi32(diagMarginVecMinusOne, distDiag); \
                     const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVecMinusOne, distQuery); \
                     const __m128i c4 = _mm_xor_si128(_mm_cmpeq_epi32(tidi, tidPtr[j]), M128_MASK_FULL); \
-                    __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c2, c3))); \
+                    const __m128i c = _mm_or_si128(c4, _mm_or_si128(c0, _mm_or_si128(c2, c3))); \
                     /* const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]); */ \
-                    // const __m128i c1 = _mm_cmplt_epi32(tpiMinusOne, tpPtr[j]); \
-                    // c = _mm_or_si128(c, c1);
+                    /* c = _mm_or_si128(c, c1); */
 
 #define SIMD_DP_BLOCK_2b_NO_TID \
                     /* Check any of the boundary criteria. If not valid, c == 0xFFFFFFFF for that element. */ \
@@ -333,20 +290,97 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
 #endif
 
-        for (int32_t j = maxJ4, numSkippedPredecessors = 0; (j >= minJ4) && numSkippedPredecessors <= currChainMaxSkip; --j) {
+#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
+#define SIMD_DP_BLOCK_6_DEBUG_VERBOSE \
+            DebugVerboseInnerLoop(i, j, minJ4, maxJ4, score, isBetter, c, logPart, linPart, matchScore, distQuery, distTarget, \
+                                 distDiagFloat, linPartFloat, tidi, \
+                                 numSkippedPredecessors, currChainMaxSkip);
+#else
+#define SIMD_DP_BLOCK_6_DEBUG_VERBOSE
+#endif
+    /////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+
+    for (int32_t i = 0, minJ = 0; i < hitsSize; ++i) {
+        const auto& hi = hits[i];
+
+        // Move the furthest allowed predecessor.
+        while ((minJ < i) && (hits[i].targetId != hits[minJ].targetId ||
+                              hits[i].targetRev != hits[minJ].targetRev ||
+                              (hits[i].targetPos - hits[minJ].targetPos) > seedJoinDist ||
+                              (i - minJ) > finalChainMaxPredecessors)) {
+            ++minJ;
+        }
+
+        // Current positions.
+        const __m128i qpi = _mm_set1_epi32(hi.queryPos);
+        const __m128i tpi = _mm_set1_epi32(hi.targetPos);
+        const __m128i qpiMinusOne = _mm_sub_epi32(qpi, M128_EPI32_ALL_POSITIVE_1);
+        // const __m128i tpiMinusOne = _mm_sub_epi32(tpi, M128_EPI32_ALL_POSITIVE_1);
+        const __m128i tidi = _mm_set1_epi32(tidInt32[i]);
+
+        bestDpScore = _mm_set1_epi32(hi.querySpan);
+        bestDpPred = M128_EPI32_ALL_NEGATIVE_1;
+
+#ifdef PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
+        // This is used for the "continue" logic, because we need the exact count.
+        const int32_t currChainMaxSkip = chainMaxSkip;
+#elif
+        // The position "i" can begin in any of the NUM_ELEMENTS registers in the current SIMD vector. Any
+        // register which begins at position "i" or later in that vector will not be valid. The maxSkip needs to be
+        // increased to alow for that, or the heuristic will terminate early.
+        // This needs to be augmented only in case when the "continue" logic is not used (i.e. when the inner
+        // loop encounters an out-of-order seed hit predecessor (target is sorted, but query is larger), the
+        // "continue" logic would continue in the inner loop and the numSkippedPredecessors would not be
+        // incremented).
+        const int32_t currChainMaxSkip = chainMaxSkip + (NUM_ELEMENTS - (i % NUM_ELEMENTS));
+#endif
+
+        // Loop "j" boundaries.
+        const int32_t maxJ4 = i / NUM_ELEMENTS;
+        const int32_t minJ4 = minJ / NUM_ELEMENTS;
+
+#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
+        std::cerr << "[i = " << i << "] maxJ4 = " << maxJ4 << ", minJ4 = " << minJ4
+                  << ", minJ = " << minJ << ", currChainMaxSkip = " << currChainMaxSkip
+                  << "; hit = {" << hi << "}"
+                  << "\n";
+#endif
+
+        //////////////////////
+        /// Inner DP loop. ///
+        //////////////////////
+        int32_t numSkippedPredecessors = 0;
+        // Case for the starting vector. There can be a mix of target IDs/strands.
+        {
+            const int32_t j = maxJ4;
             SIMD_DP_BLOCK_1_DIST_DIAG
             SIMD_DP_BLOCK_2a_C_WITH_TID
             SIMD_DP_BLOCK_3_LIN_LOG
             SIMD_DP_BLOCK_4_SCORE
             SIMD_DP_BLOCK_5_NUM_SKIPPED
-
-#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
-    DebugVerboseInnerLoop(i, j, minJ4, maxJ4, score, isBetter, c, logPart, linPart, matchScore, distQuery, distTarget,
-                                        distDiagFloat, linPartFloat, tidi,
-                                        numSkippedPredecessors, currChainMaxSkip);
-
-#endif
+            SIMD_DP_BLOCK_6_DEBUG_VERBOSE
         }
+        // Internal vectors.
+        for (int32_t j = (maxJ4 - 1); (j > minJ4) && numSkippedPredecessors <= currChainMaxSkip; --j) {
+            SIMD_DP_BLOCK_1_DIST_DIAG
+            SIMD_DP_BLOCK_2b_NO_TID
+            SIMD_DP_BLOCK_3_LIN_LOG
+            SIMD_DP_BLOCK_4_SCORE
+            SIMD_DP_BLOCK_5_NUM_SKIPPED
+            SIMD_DP_BLOCK_6_DEBUG_VERBOSE
+        }
+        // Case for the end vector. There can be a mix of target IDs/strands.
+        if (minJ4 < maxJ4 && numSkippedPredecessors <= currChainMaxSkip) {
+            const int32_t j = minJ4;
+            SIMD_DP_BLOCK_1_DIST_DIAG
+            SIMD_DP_BLOCK_2a_C_WITH_TID
+            SIMD_DP_BLOCK_3_LIN_LOG
+            SIMD_DP_BLOCK_4_SCORE
+            SIMD_DP_BLOCK_5_NUM_SKIPPED
+            SIMD_DP_BLOCK_6_DEBUG_VERBOSE
+        }
+        //////////////////////
 
         // Find the maximum.
         dpInt32[i] = hi.querySpan;
