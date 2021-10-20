@@ -155,14 +155,14 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
     auto DebugVerboseInnerLoop = [&](
-        const int32_t i, const int32_t j, const int32_t startJ4, const __m128i score,
-        const __m128i isBetter, const __m128 c, const __m128i logPart, const __m128i linPart,
-        const __m128i matchScore, const __m128i distQuery, const __m128i distTarget,
-        const __m128 distDiagFloat, const __m128 linPartFloat, const __m128i tidi,
-        const int32_t numSkippedPredecessors, const int32_t currChainMaxSkip) {
+        const int32_t i, const int32_t j, const int32_t minJ4, const int32_t maxJ4,
+        const __m128i score, const __m128i isBetter, const __m128 c, const __m128i logPart,
+        const __m128i linPart, const __m128i matchScore, const __m128i distQuery,
+        const __m128i distTarget, const __m128 distDiagFloat, const __m128 linPartFloat,
+        const __m128i tidi, const int32_t numSkippedPredecessors, const int32_t currChainMaxSkip) {
         {
-            std::cerr << "    [i = " << i << ", i&0x03 = " << (i & 0x03)
-                      << ", startJ4 = " << startJ4 << ", j = " << j << "]\n";
+            std::cerr << "    [i = " << i << ", i&0x03 = " << (i & 0x03) << ", minJ4 = " << minJ4
+                      << ", maxJ4 = " << maxJ4 << ", j = " << j << "]\n";
 
             std::cerr << "        range = [" << (j * NUM_ELEMENTS) << ", "
                       << ((j + 1) * NUM_ELEMENTS) << "]\n";
@@ -248,17 +248,17 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 #endif
 
         // Loop "j" boundaries.
-        const int32_t startJ4 = i / NUM_ELEMENTS;
+        const int32_t maxJ4 = i / NUM_ELEMENTS;
         const int32_t minJ4 = minJ / NUM_ELEMENTS;
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
-        std::cerr << "[i = " << i << "] startJ4 = " << startJ4 << ", minJ4 = " << minJ4
+        std::cerr << "[i = " << i << "] maxJ4 = " << maxJ4 << ", minJ4 = " << minJ4
                   << ", minJ = " << minJ << ", currChainMaxSkip = " << currChainMaxSkip
                   << "; hit = {" << hi << "}"
                   << "\n";
 #endif
 
-        for (int32_t j = startJ4, numSkippedPredecessors = 0; (j >= minJ4) && numSkippedPredecessors <= currChainMaxSkip; --j) {
+        for (int32_t j = maxJ4, numSkippedPredecessors = 0; (j >= minJ4) && numSkippedPredecessors <= currChainMaxSkip; --j) {
             // Compute X and Y distances, and the diagonal distance.
             const __m128i distQuery = _mm_sub_epi32(qpi, qpPtr[j]);
             const __m128i distTarget = _mm_sub_epi32(tpi, tpPtr[j]);
@@ -314,7 +314,7 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
-    DebugVerboseInnerLoop(i, j, startJ, score, isBetter, c, logPart, linPart, matchScore, distQuery, distTarget,
+    DebugVerboseInnerLoop(i, j, minJ4, maxJ4, score, isBetter, c, logPart, linPart, matchScore, distQuery, distTarget,
                                         distDiagFloat, linPartFloat, tidi,
                                         numSkippedPredecessors, currChainMaxSkip);
 
