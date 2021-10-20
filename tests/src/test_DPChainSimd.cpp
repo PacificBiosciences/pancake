@@ -750,18 +750,20 @@ TEST(DPChainSimd, ChainHits_ArrayOfTests)
                 // NOTE: Faster DP chaining, which does not "continue" when a predecessor with smaller query or target coordinates is reached, would
                 // would produce the following chain instead of the one below. Because there is no "continue", even predecessors with smaller
                 // coordinates will be counted in numSkippedPredecessors, and the inner loop would end earlier.
-                // ChainedHits(0, 0, {
-                //     {0, 0, 4950, 4950, 15, 15, 0},
-                //     {0, 0, 4965, 4965, 15, 15, 0},
-                // }, 30, 30, 30),
-                // NOTE: The original DP chaining (which had continue statements in the inner loop) would produce the following chain instead of
-                // the one above. This is because the seed hits with non-valid coordinates (query/target coord is greater than the next seed hit's)
-                // are not processed ('continue') instead of counted in numSkippedPredecessors.
+                // This also applies if the 'c1' heuristic is not used, i.e. inner loop does not check if targetPos[i] < targetPos[j]. Then, all the
+                // seed hits on the identical target position contribute to the numSkippedPredecessors.
                 ChainedHits(0, 0, {
                     {0, 0, 4950, 4950, 15, 15, 0},
                     {0, 0, 4965, 4965, 15, 15, 0},
-                    {0, 0, 5000, 5000, 15, 15, 0},
-                }, 45, 45, 45),
+                }, 30, 30, 30),
+                // // NOTE: The original DP chaining (which had continue statements in the inner loop) would produce the following chain instead of
+                // // the one above. This is because the seed hits with non-valid coordinates (query/target coord is greater than the next seed hit's)
+                // // are not processed ('continue') instead of counted in numSkippedPredecessors.
+                // ChainedHits(0, 0, {
+                //     {0, 0, 4950, 4950, 15, 15, 0},
+                //     {0, 0, 4965, 4965, 15, 15, 0},
+                //     {0, 0, 5000, 5000, 15, 15, 0},
+                // }, 45, 45, 45),
                 ChainedHits(0, 0, {
                     {0, 0, 15100, 15100, 15, 15, 0},
                     {0, 0, 15150, 15150, 15, 15, 0},
@@ -847,18 +849,45 @@ TEST(DPChainSimd, ChainHits_ArrayOfTests)
             },
             // Results.
             {
+                /////
+                /// These results are the expected behaviour when the inner DP loop checks for targetPos[i] < targetPos[j] and skips those seeds with the 'continue' heuristic.
+                /////
+                // // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
+                // ChainedHits(0, 0, {
+                //     {0, 0, 0, 0, 15, 15, 0},
+                //     {0, 0, 15, 15, 15, 15, 0},
+                //     {0, 0, 50, 48, 15, 15, 0},
+                // }, 45, 45, 45),
+                // ChainedHits(0, 0, {
+                //     {0, 0, 50, 53, 15, 15, 0},
+                //     {0, 0, 100, 100, 15, 15, 0},
+                //     {0, 0, 150, 150, 15, 15, 0},
+                //     {0, 0, 200, 200, 15, 15, 0},
+                // }, 60, 60, 60),
+
+                /////
+                /// These results are the expected behaviour when the inner DP loop DOES NOT check for targetPos[i] < targetPos[j]
+                /// and DOES NOT skip those seeds with the 'continue' heuristic. This may bridge through some low complexity regions, but only if
+                /// they are not too deep, because otherwise the chainMaxSkip heuristic will kick in.
+                /////
                 // targetId, targetRev, hits, score, coveredQueryBases, coveredTargetBases
                 ChainedHits(0, 0, {
                     {0, 0, 0, 0, 15, 15, 0},
                     {0, 0, 15, 15, 15, 15, 0},
+
+                    {0, 0, 50, 47, 15, 15, 0},
                     {0, 0, 50, 48, 15, 15, 0},
-                }, 45, 45, 45),
-                ChainedHits(0, 0, {
+                    {0, 0, 50, 49, 15, 15, 0},
+                    {0, 0, 50, 50, 15, 15, 0},
+                    {0, 0, 50, 51, 15, 15, 0},
+                    {0, 0, 50, 52, 15, 15, 0},
                     {0, 0, 50, 53, 15, 15, 0},
+
                     {0, 0, 100, 100, 15, 15, 0},
                     {0, 0, 150, 150, 15, 15, 0},
                     {0, 0, 200, 200, 15, 15, 0},
-                }, 60, 60, 60),
+                }, 90, 96, 90),
+
             },
         },
 
