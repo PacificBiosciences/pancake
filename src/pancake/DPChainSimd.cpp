@@ -41,13 +41,13 @@ void PrintVectorFloat(std::ostream& os, __m128 vals)
     os << valsFloat[0] << ", " << valsFloat[1] << ", " << valsFloat[2] << ", " << valsFloat[3];
 }
 
-int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
-                                 const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
-                                 const int32_t seedJoinDist, const int32_t diagMargin,
-                                 std::vector<__m128i>& dp, std::vector<__m128i>& pred,
-                                 std::vector<int32_t>& chainId, std::vector<__m128i>& qp,
-                                 std::vector<__m128i>& tp, std::vector<__m128i>& qs,
-                                 std::vector<__m128i>& tid, std::vector<__m128i>& vectorIndices)
+int32_t ChainHitsForwardFastSimd(
+    const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
+    const int32_t chainMaxPredecessors, const int32_t seedJoinDist, const int32_t diagMargin,
+    std::vector<__m128i>& __restrict__ dp, std::vector<__m128i>& __restrict__ pred,
+    std::vector<int32_t>& chainId, std::vector<__m128i>& __restrict__ qp,
+    std::vector<__m128i>& __restrict__ tp, std::vector<__m128i>& __restrict__ qs,
+    std::vector<__m128i>& __restrict__ tid, std::vector<__m128i>& __restrict__ vectorIndices)
 {
     constexpr int32_t VECTOR_SIZE = 128;
     constexpr int32_t ELEMENT_SIZE = 32;
