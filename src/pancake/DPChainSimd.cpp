@@ -386,7 +386,6 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
         dpInt32[i] = hi.querySpan;
         predInt32[i] = -1;
         bestDpPred = _mm_add_epi32(_mm_mullo_epi32(bestDpPred, M128_NUM_ELEMENTS), M128_MASK_0123);
-        #pragma unroll 4
         for (size_t j = 0; j < NUM_ELEMENTS; ++j) {
             const int32_t predIndex = bestDpPredPtr[j];
             if (predIndex < i &&
