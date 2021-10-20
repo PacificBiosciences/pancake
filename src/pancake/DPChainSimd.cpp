@@ -153,6 +153,64 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 
     int32_t numChains = 0;
 
+#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
+    auto DebugVerboseInnerLoop = [&](
+        const int32_t i, const int32_t j, const int32_t startJ4, const __m128i score,
+        const __m128i isBetter, const __m128 c, const __m128i logPart, const __m128i linPart,
+        const __m128i matchScore, const __m128i distQuery, const __m128i distTarget,
+        const __m128 distDiagFloat, const __m128 linPartFloat, const __m128i tidi,
+        const int32_t numSkippedPredecessors, const int32_t currChainMaxSkip) {
+        {
+            std::cerr << "    [i = " << i << ", i&0x03 = " << (i & 0x03)
+                      << ", startJ4 = " << startJ4 << ", j = " << j << "]\n";
+
+            std::cerr << "        range = [" << (j * NUM_ELEMENTS) << ", "
+                      << ((j + 1) * NUM_ELEMENTS) << "]\n";
+            std::cerr << "        dp = [";
+            PrintVectorInt32(std::cerr, dp[j]);
+            std::cerr << "], score = [";
+            PrintVectorInt32(std::cerr, score);
+            std::cerr << "], isBetter = [";
+            PrintVectorInt32(std::cerr, isBetter);
+            std::cerr << "], c = [";
+            PrintVectorInt32(std::cerr, c);
+            std::cerr << "], bestDpScore = [";
+            PrintVectorInt32(std::cerr, bestDpScore);
+            std::cerr << "], bestDpPred = [";
+            PrintVectorInt32(std::cerr, bestDpPred);
+            std::cerr << "]";
+            std::cerr << "\n";
+            std::cerr << "        logPart = [";
+            PrintVectorInt32(std::cerr, logPart);
+            std::cerr << "], linPart = [";
+            PrintVectorInt32(std::cerr, linPart);
+            std::cerr << "], matchScore = [";
+            PrintVectorInt32(std::cerr, matchScore);
+            std::cerr << "]\n";
+            std::cerr << "        distQuery = [";
+            PrintVectorInt32(std::cerr, distQuery);
+            std::cerr << "], distTarget = [";
+            PrintVectorInt32(std::cerr, distTarget);
+            std::cerr << "], qs[j] = [";
+            PrintVectorInt32(std::cerr, qs[j]);
+            std::cerr << "]\n";
+            std::cerr << "        distDiagFloat = [";
+            PrintVectorFloat(std::cerr, distDiagFloat);
+            std::cerr << "], linPartFloat [";
+            PrintVectorFloat(std::cerr, linPartFloat);
+            std::cerr << "]\n";
+            std::cerr << "        tidPtr[j] = [";
+            PrintVectorInt32(std::cerr, tidPtr[j]);
+            std::cerr << "], tidi [";
+            PrintVectorInt32(std::cerr, tidi);
+            std::cerr << "]\n";
+            std::cerr << "        numSkippedPredecessors = " << numSkippedPredecessors
+                      << ", currChainMaxSkip = " << currChainMaxSkip << "\n";
+            std::cerr << "\n";
+        }
+    };
+#endif
+
     // clang-format off
     for (int32_t i = 0, minJ = 0; i < hitsSize; ++i) {
         const auto& hi = hits[i];
@@ -201,13 +259,6 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
 #endif
 
         for (int32_t j = startJ4, numSkippedPredecessors = 0; (j >= minJ4) && numSkippedPredecessors <= currChainMaxSkip; --j) {
-
-#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
-            std::cerr << "    [i = " << i << ", i&0x03 = " << (i & 0x03)
-                      << ", startJ4 = " << startJ4 << ", j = " << j
-                      << "] numSkippedPredecessors = " << numSkippedPredecessors << "\n";
-#endif
-
             // Compute X and Y distances, and the diagonal distance.
             const __m128i distQuery = _mm_sub_epi32(qpi, qpPtr[j]);
             const __m128i distTarget = _mm_sub_epi32(tpi, tpPtr[j]);
@@ -263,50 +314,10 @@ int32_t ChainHitsForwardFastSimd(const SeedHit* hits, const int32_t hitsSize,
             numSkippedPredecessors = std::max(numSkippedPredecessors, 0);
 
 #ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
-            {
-                std::cerr << "        range = [" << (j * NUM_ELEMENTS) << ", " << ((j + 1) * NUM_ELEMENTS) << "]\n";
-                std::cerr << "        dp = [";
-                PrintVectorInt32(std::cerr, dp[j]);
-                std::cerr << "], score = [";
-                PrintVectorInt32(std::cerr, score);
-                std::cerr << "], isBetter = [";
-                PrintVectorInt32(std::cerr, isBetter);
-                std::cerr << "], c = [";
-                PrintVectorInt32(std::cerr, c);
-                std::cerr << "], bestDpScore = [";
-                PrintVectorInt32(std::cerr, bestDpScore);
-                std::cerr << "], bestDpPred = [";
-                PrintVectorInt32(std::cerr, bestDpPred);
-                std::cerr << "]";
-                std::cerr << "\n";
-                std::cerr << "        logPart = [";
-                PrintVectorInt32(std::cerr, logPart);
-                std::cerr << "], linPart = [";
-                PrintVectorInt32(std::cerr, linPart);
-                std::cerr << "], matchScore = [";
-                PrintVectorInt32(std::cerr, matchScore);
-                std::cerr << "]\n";
-                std::cerr << "        distQuery = [";
-                PrintVectorInt32(std::cerr, distQuery);
-                std::cerr << "], distTarget = [";
-                PrintVectorInt32(std::cerr, distTarget);
-                std::cerr << "], qs[j] = [";
-                PrintVectorInt32(std::cerr, qs[j]);
-                std::cerr << "]\n";
-                std::cerr << "        distDiagFloat = [";
-                PrintVectorFloat(std::cerr, distDiagFloat);
-                std::cerr << "], linPartFloat [";
-                PrintVectorFloat(std::cerr, linPartFloat);
-                std::cerr << "]\n";
-                std::cerr << "        tidPtr[j] = [";
-                PrintVectorInt32(std::cerr, tidPtr[j]);
-                std::cerr << "], tidi [";
-                PrintVectorInt32(std::cerr, tidi);
-                std::cerr << "]\n";
-                std::cerr << "        numSkippedPredecessors = " << numSkippedPredecessors
-                          << ", currChainMaxSkip = " << currChainMaxSkip << "\n";
-                std::cerr << "\n";
-            }
+    DebugVerboseInnerLoop(i, j, startJ, score, isBetter, c, logPart, linPart, matchScore, distQuery, distTarget,
+                                        distDiagFloat, linPartFloat, tidi,
+                                        numSkippedPredecessors, currChainMaxSkip);
+
 #endif
         }
 
