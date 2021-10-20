@@ -3,11 +3,12 @@
 ## Active version in development
 ### Changes
 
-## v1.?.?
+## v1.5.0
 - LIS performance improvements.
-- Streamlined the DP chaining procedure. Removed all but one branching in the inner loop.
-- Reusing the memory for DP chaining in MapperCLR.
-- Implemented SSE4.1 DP Chaining. Turned off by default, need to specify Meson option 'sse41' to compile this feature, otherwise the SISD version is used.
+- Streamlined the SISD DP chaining procedure. Removed all but one branching in the inner loop.
+- Reusing the memory for SISD DP chaining in MapperCLR.
+- Implemented SSE4.1 DP Chaining. It's turned off by default, user needs to specify Meson option 'sse41' to compile this feature, otherwise the SISD version is used.
+- Improved sorting time in MapperCLR.
 
 ## v1.4.1
 - Added a time profiling feature. Turned off by default. Enable by specifying the `-Dtime=true` Meson option, or the `PANCAKE_ENABLE_TIMINGS` macro.
