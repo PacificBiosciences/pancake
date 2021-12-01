@@ -194,7 +194,6 @@ SesResults SESAlignBanded(const char* query, size_t queryLen, const char* target
         int32_t numPoints = (currD + 1) * 2;
         int32_t currPoint = numPoints - 1;
 
-        int32_t rowStart = currD * rowLen;
         while (currD > 0) {
             const auto& elCurr = v2[dStart[currD].first + ((currK - dStart[currD].second) >> 1)];
             const auto& elPrev = v2[dStart[currD - 1].first + ((elCurr.prevK - dStart[currD - 1].second) >> 1)];
@@ -211,7 +210,6 @@ SesResults SESAlignBanded(const char* query, size_t queryLen, const char* target
 
             currK = elCurr.prevK;
             --currD;
-            rowStart -= rowLen;
         }
         // Handle the first two points separately so that the above while loop
         // can be iterated witohut one more branching.
