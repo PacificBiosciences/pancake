@@ -5,11 +5,11 @@ project(
   default_options : [
     'buildtype=release',
     'warning_level=3',
-    'cpp_std=c++17',
-    'c_std=c11',
+    'cpp_std=c++20',
+    'c_std=c17',
     'b_ndebug=if-release'],
   license : 'BSD-3',
-  meson_version : '>= 0.52.0')
+  meson_version : '>= 0.57.0')
 
 ############
 # CXXFLAGS #
