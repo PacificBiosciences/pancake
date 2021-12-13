@@ -92,7 +92,7 @@ test(
   pancake_clang_formatter,
   args : [
     '--all'],
-  workdir : meson.source_root())
+  workdir : meson.project_source_root())
 
 test(
   'pancake gtest unittests',
