@@ -6,7 +6,7 @@ project(
     'buildtype=release',
     'warning_level=3',
     'cpp_std=c++20',
-    'c_std=c11',
+    'c_std=c17',
     'b_ndebug=if-release'],
   license : 'BSD-3',
   meson_version : '>= 0.57.0')
