@@ -6,7 +6,7 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace OptionNames {
+namespace SeqDBOptionNames {
 
 // clang-format off
 
@@ -51,18 +51,18 @@ R"({
 
 // clang-format on
 
-}  // namespace OptionNames
+}  // namespace SeqDBOptionNames
 
 SeqDBSettings::SeqDBSettings() = default;
 
 SeqDBSettings::SeqDBSettings(const PacBio::CLI_v2::Results& options)
-    : OutputPrefix{options[OptionNames::OutputPrefix]}
-    , InputFiles{options[OptionNames::Input]}
+    : OutputPrefix{options[SeqDBOptionNames::OutputPrefix]}
+    , InputFiles{options[SeqDBOptionNames::Input]}
     , NumThreads{options.NumThreads()}
-    , CompressionLevel{options[OptionNames::CompressionLevel]}
-    , BufferSize{options[OptionNames::BufferSize]}
-    , BlockSize{options[OptionNames::BlockSize]}
-    , SplitBlocks{options[OptionNames::SplitBlocks]}
+    , CompressionLevel{options[SeqDBOptionNames::CompressionLevel]}
+    , BufferSize{options[SeqDBOptionNames::BufferSize]}
+    , BlockSize{options[SeqDBOptionNames::BlockSize]}
+    , SplitBlocks{options[SeqDBOptionNames::SplitBlocks]}
 {
     // Allow multiple positional input arguments.
     const auto& files = options.PositionalArguments();
@@ -92,14 +92,14 @@ PacBio::CLI_v2::Interface SeqDBSettings::CreateCLI()
 
     // clang-format off
     i.AddOptionGroup("Algorithm Options", {
-        OptionNames::CompressionLevel,
-        OptionNames::BufferSize,
-        OptionNames::BlockSize,
-        OptionNames::SplitBlocks,
+        SeqDBOptionNames::CompressionLevel,
+        SeqDBOptionNames::BufferSize,
+        SeqDBOptionNames::BlockSize,
+        SeqDBOptionNames::SplitBlocks,
     });
     i.AddPositionalArguments({
-        OptionNames::OutputPrefix,
-        OptionNames::Input,
+        SeqDBOptionNames::OutputPrefix,
+        SeqDBOptionNames::Input,
     });
 
     // clang-format on

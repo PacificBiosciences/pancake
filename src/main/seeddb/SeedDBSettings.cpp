@@ -7,7 +7,7 @@
 namespace PacBio {
 namespace Pancake {
 namespace SeedDB {
-namespace OptionNames {
+namespace SeedDBOptionNames {
 
 // clang-format off
 
@@ -73,21 +73,21 @@ R"({
 
 // clang-format on
 
-}  // namespace OptionNames
+}  // namespace SeedDBOptionNames
 
 SeedDBSettings::SeedDBSettings() = default;
 
 SeedDBSettings::SeedDBSettings(const PacBio::CLI_v2::Results& options)
-    : InputFile{options[OptionNames::InputFile]}
-    , OutputPrefix{options[OptionNames::OutputPrefix]}
+    : InputFile{options[SeedDBOptionNames::InputFile]}
+    , OutputPrefix{options[SeedDBOptionNames::OutputPrefix]}
     , NumThreads{options.NumThreads()}
-    , SplitBlocks{options[OptionNames::SplitBlocks]}
-    , SeedParameters{options[OptionNames::KmerSize],
-                     options[OptionNames::MinimizerWindow],
-                     options[OptionNames::Spacing],
-                     options[OptionNames::UseHPC],
-                     options[OptionNames::UseHPCForSeedsOnly],
-                     !options[OptionNames::NoRevCmp]}
+    , SplitBlocks{options[SeedDBOptionNames::SplitBlocks]}
+    , SeedParameters{options[SeedDBOptionNames::KmerSize],
+                     options[SeedDBOptionNames::MinimizerWindow],
+                     options[SeedDBOptionNames::Spacing],
+                     options[SeedDBOptionNames::UseHPC],
+                     options[SeedDBOptionNames::UseHPCForSeedsOnly],
+                     !options[SeedDBOptionNames::NoRevCmp]}
 {
 }
 
@@ -98,17 +98,17 @@ PacBio::CLI_v2::Interface SeedDBSettings::CreateCLI()
 
     // clang-format off
     i.AddOptionGroup("Algorithm Options", {
-        OptionNames::SplitBlocks,
-        OptionNames::KmerSize,
-        OptionNames::MinimizerWindow,
-        OptionNames::Spacing,
-        OptionNames::UseHPC,
-        OptionNames::UseHPCForSeedsOnly,
-        OptionNames::NoRevCmp,
+        SeedDBOptionNames::SplitBlocks,
+        SeedDBOptionNames::KmerSize,
+        SeedDBOptionNames::MinimizerWindow,
+        SeedDBOptionNames::Spacing,
+        SeedDBOptionNames::UseHPC,
+        SeedDBOptionNames::UseHPCForSeedsOnly,
+        SeedDBOptionNames::NoRevCmp,
     });
     i.AddPositionalArguments({
-        OptionNames::InputFile,
-        OptionNames::OutputPrefix,
+        SeedDBOptionNames::InputFile,
+        SeedDBOptionNames::OutputPrefix,
     });
 
     // clang-format on

@@ -8,7 +8,7 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace OptionNames {
+namespace SeqDBDumpOptionNames {
 
 // clang-format off
 const CLI_v2::PositionalArgument InputSeqDB {
@@ -45,16 +45,16 @@ R"({
 
 // clang-format on
 
-}  // namespace OptionNames
+}  // namespace SeqDBDumpOptionNames
 
 SeqDBDumpSettings::SeqDBDumpSettings() = default;
 
 SeqDBDumpSettings::SeqDBDumpSettings(const PacBio::CLI_v2::Results& options)
-    : InputSeqDB{options[OptionNames::InputSeqDB]}
-    , OutputFile{options[OptionNames::OutputFile]}
-    , BlockId(options[OptionNames::BlockId])
-    , WriteIds(options[OptionNames::WriteIds])
-    , UseHPC(options[OptionNames::UseHPC])
+    : InputSeqDB{options[SeqDBDumpOptionNames::InputSeqDB]}
+    , OutputFile{options[SeqDBDumpOptionNames::OutputFile]}
+    , BlockId(options[SeqDBDumpOptionNames::BlockId])
+    , WriteIds(options[SeqDBDumpOptionNames::WriteIds])
+    , UseHPC(options[SeqDBDumpOptionNames::UseHPC])
 {
 }
 
@@ -68,13 +68,13 @@ PacBio::CLI_v2::Interface SeqDBDumpSettings::CreateCLI()
 
     // clang-format off
     i.AddOptionGroup("Algorithm Options", {
-        OptionNames::BlockId,
-        OptionNames::WriteIds,
-        OptionNames::UseHPC,
+        SeqDBDumpOptionNames::BlockId,
+        SeqDBDumpOptionNames::WriteIds,
+        SeqDBDumpOptionNames::UseHPC,
     });
     i.AddPositionalArguments({
-        OptionNames::InputSeqDB,
-        OptionNames::OutputFile,
+        SeqDBDumpOptionNames::InputSeqDB,
+        SeqDBDumpOptionNames::OutputFile,
     });
 
     // clang-format on
