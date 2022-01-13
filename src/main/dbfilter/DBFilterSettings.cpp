@@ -8,7 +8,7 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace OptionNames {
+namespace DBFilterOptionNames {
 
 // clang-format off
 
@@ -100,7 +100,7 @@ R"({
 
 // clang-format on
 
-}  // namespace OptionNames
+}  // namespace DBFilterOptionNames
 
 SamplingType ParseSamplingType(const std::string& val)
 {
@@ -129,28 +129,28 @@ FilterListType ParseFilterListType(const std::string& val)
 DBFilterSettings::DBFilterSettings() = default;
 
 DBFilterSettings::DBFilterSettings(const PacBio::CLI_v2::Results& options)
-    : InputPrefix{options[OptionNames::InputPrefix]}
-    , OutputPrefix{options[OptionNames::OutputPrefix]}
-    , SampleBases{options[OptionNames::SampleBases]}
-    , BlockSize{options[OptionNames::BlockSize]}
-    , RandomSeed{options[OptionNames::RandomSeed]}
-    , FilterListPath(options[OptionNames::FilterListPath])
-    , Consolidate(options[OptionNames::Consolidate])
-    , CompressionLevel{options[OptionNames::CompressionLevel]}
-    , BufferSize{options[OptionNames::BufferSize]}
-    , SplitBlocks{options[OptionNames::SplitBlocks]}
+    : InputPrefix{options[DBFilterOptionNames::InputPrefix]}
+    , OutputPrefix{options[DBFilterOptionNames::OutputPrefix]}
+    , SampleBases{options[DBFilterOptionNames::SampleBases]}
+    , BlockSize{options[DBFilterOptionNames::BlockSize]}
+    , RandomSeed{options[DBFilterOptionNames::RandomSeed]}
+    , FilterListPath(options[DBFilterOptionNames::FilterListPath])
+    , Consolidate(options[DBFilterOptionNames::Consolidate])
+    , CompressionLevel{options[DBFilterOptionNames::CompressionLevel]}
+    , BufferSize{options[DBFilterOptionNames::BufferSize]}
+    , SplitBlocks{options[DBFilterOptionNames::SplitBlocks]}
 {
-    Sampling = ParseSamplingType(options[OptionNames::Sampling]);
+    Sampling = ParseSamplingType(options[DBFilterOptionNames::Sampling]);
     if (Sampling == SamplingType::Unknown) {
         throw std::runtime_error("Unknown sampling type: '" +
-                                 std::string(options[OptionNames::Sampling]) + "'.");
+                                 std::string(options[DBFilterOptionNames::Sampling]) + "'.");
     }
 
     // Parse the filter type into an enum class.
-    FilterType = ParseFilterListType(options[OptionNames::FilterType]);
+    FilterType = ParseFilterListType(options[DBFilterOptionNames::FilterType]);
     if (FilterType == FilterListType::Unknown) {
         throw std::runtime_error("Unknown filter type: '" +
-                                 std::string(options[OptionNames::FilterType]) + "'.");
+                                 std::string(options[DBFilterOptionNames::FilterType]) + "'.");
     }
 
     // Convert block and buffer sizes from MB to bytes.
@@ -172,22 +172,22 @@ PacBio::CLI_v2::Interface DBFilterSettings::CreateCLI()
 
     // clang-format off
     i.AddOptionGroup("Algorithm Options", {
-        OptionNames::Sampling,
-        OptionNames::SampleBases,
-        OptionNames::BlockSize,
-        OptionNames::RandomSeed,
-        OptionNames::FilterListPath,
-        OptionNames::FilterType,
-        OptionNames::Consolidate,
+        DBFilterOptionNames::Sampling,
+        DBFilterOptionNames::SampleBases,
+        DBFilterOptionNames::BlockSize,
+        DBFilterOptionNames::RandomSeed,
+        DBFilterOptionNames::FilterListPath,
+        DBFilterOptionNames::FilterType,
+        DBFilterOptionNames::Consolidate,
     });
     i.AddOptionGroup("Consolidation Options", {
-        OptionNames::CompressionLevel,
-        OptionNames::BufferSize,
-        OptionNames::SplitBlocks,
+        DBFilterOptionNames::CompressionLevel,
+        DBFilterOptionNames::BufferSize,
+        DBFilterOptionNames::SplitBlocks,
     });
     i.AddPositionalArguments({
-        OptionNames::InputPrefix,
-        OptionNames::OutputPrefix,
+        DBFilterOptionNames::InputPrefix,
+        DBFilterOptionNames::OutputPrefix,
     });
 
     // clang-format on

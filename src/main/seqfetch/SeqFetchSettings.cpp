@@ -8,7 +8,7 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace OptionNames {
+namespace SeqFetchOptionNames {
 
 // clang-format off
 
@@ -83,7 +83,7 @@ R"({
 
 // clang-format on
 
-}  // namespace OptionNames
+}  // namespace SeqFetchOptionNames
 
 SeqFetchOutFormat ParseSeqFetchOutFormat(const std::string& val)
 {
@@ -100,14 +100,14 @@ SeqFetchOutFormat ParseSeqFetchOutFormat(const std::string& val)
 SeqFetchSettings::SeqFetchSettings() = default;
 
 SeqFetchSettings::SeqFetchSettings(const PacBio::CLI_v2::Results& options)
-    : OutputFile{options[OptionNames::OutputFile]}
-    , InputFetchListFile{options[OptionNames::InputFetchListFile]}
-    , InputFiles{options[OptionNames::InputFiles]}
-    , AliasSeqDBFile(options[OptionNames::AliasSeqDBFile])
-    , FailOnMissingQueries(options[OptionNames::FailOnMissingQueries])
-    , WriteIds(options[OptionNames::WriteIds])
-    , UseHPC(options[OptionNames::UseHPC])
-    , UseRLE(options[OptionNames::UseRLE])
+    : OutputFile{options[SeqFetchOptionNames::OutputFile]}
+    , InputFetchListFile{options[SeqFetchOptionNames::InputFetchListFile]}
+    , InputFiles{options[SeqFetchOptionNames::InputFiles]}
+    , AliasSeqDBFile(options[SeqFetchOptionNames::AliasSeqDBFile])
+    , FailOnMissingQueries(options[SeqFetchOptionNames::FailOnMissingQueries])
+    , WriteIds(options[SeqFetchOptionNames::WriteIds])
+    , UseHPC(options[SeqFetchOptionNames::UseHPC])
+    , UseRLE(options[SeqFetchOptionNames::UseRLE])
 {
     // Allow multiple positional input arguments.
     const auto& files = options.PositionalArguments();
@@ -117,9 +117,9 @@ SeqFetchSettings::SeqFetchSettings(const PacBio::CLI_v2::Results& options)
     for (size_t i = 2; i < files.size(); ++i)
         InputFiles.push_back(files[i]);
 
-    OutputFormat = ParseSeqFetchOutFormat(options[OptionNames::OutputFormat]);
+    OutputFormat = ParseSeqFetchOutFormat(options[SeqFetchOptionNames::OutputFormat]);
 
-    std::string tempDummyQV = options[OptionNames::DummyQV];
+    std::string tempDummyQV = options[SeqFetchOptionNames::DummyQV];
     if (tempDummyQV.size() != 1) {
         throw std::runtime_error("The dummyQV needs to be exactly 1 character in size.");
     }
@@ -142,18 +142,18 @@ PacBio::CLI_v2::Interface SeqFetchSettings::CreateCLI()
 
     // clang-format off
     i.AddOptionGroup("Algorithm Options", {
-        OptionNames::OutputFormat,
-        OptionNames::DummyQV,
-        OptionNames::AliasSeqDBFile,
-        OptionNames::FailOnMissingQueries,
-        OptionNames::WriteIds,
-        OptionNames::UseHPC,
-        OptionNames::UseRLE,
+        SeqFetchOptionNames::OutputFormat,
+        SeqFetchOptionNames::DummyQV,
+        SeqFetchOptionNames::AliasSeqDBFile,
+        SeqFetchOptionNames::FailOnMissingQueries,
+        SeqFetchOptionNames::WriteIds,
+        SeqFetchOptionNames::UseHPC,
+        SeqFetchOptionNames::UseRLE,
     });
     i.AddPositionalArguments({
-        OptionNames::OutputFile,
-        OptionNames::InputFetchListFile,
-        OptionNames::InputFiles,
+        SeqFetchOptionNames::OutputFile,
+        SeqFetchOptionNames::InputFetchListFile,
+        SeqFetchOptionNames::InputFiles,
     });
 
     // clang-format on
