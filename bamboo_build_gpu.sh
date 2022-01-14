@@ -55,6 +55,8 @@ export ENABLED_TESTS="true"
 export ENABLED_INTERNAL_TESTS="${bamboo_ENABLED_INTERNAL_TESTS}"
 # export LDFLAGS="-static-libstdc++ -static-libgcc"
 
+env
+
 source scripts/ci/configure_with_fallback.sh
 source scripts/ci/build.sh
 source scripts/ci/test.sh
