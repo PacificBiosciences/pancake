@@ -2,16 +2,14 @@
 
 type module >& /dev/null || . /mnt/software/Modules/current/init/bash
 
-set -e
+set -vex
 
 ################
 # DEPENDENCIES #
 ################
 
 ## Load modules
-set +vx
 source scripts/ci/modules.sh
-set -vx
 
 export CC="ccache gcc"
 export CXX="ccache g++"
@@ -56,6 +54,8 @@ export ENABLED_GPU_CUDA="true"
 export ENABLED_TESTS="true"
 export ENABLED_INTERNAL_TESTS="${bamboo_ENABLED_INTERNAL_TESTS}"
 # export LDFLAGS="-static-libstdc++ -static-libgcc"
+
+env
 
 source scripts/ci/configure_with_fallback.sh
 source scripts/ci/build.sh
