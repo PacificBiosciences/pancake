@@ -2,16 +2,14 @@
 
 type module >& /dev/null || . /mnt/software/Modules/current/init/bash
 
-set -e
+set -vex
 
 ################
 # DEPENDENCIES #
 ################
 
 ## Load modules
-set +vx
 source scripts/ci/modules.sh
-set -vx
 
 export CC="ccache gcc"
 export CXX="ccache g++"
