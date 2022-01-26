@@ -5,7 +5,7 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace OptionNames {
+namespace OverlapHiFiOptionNames {
 
 // clang-format off
 
@@ -318,7 +318,7 @@ R"({
 
 // clang-format on
 
-}  // namespace OptionNames
+}  // namespace OverlapHiFiOptionNames
 
 OverlapHifiSettings::OverlapHifiSettings() = default;
 
@@ -337,49 +337,50 @@ OverlapWriterFormat ParseOutFormat(const std::string& val)
 }
 
 OverlapHifiSettings::OverlapHifiSettings(const PacBio::CLI_v2::Results& options)
-    : TargetDBPrefix{options[OptionNames::TargetDBPrefix]}
-    , QueryDBPrefix{options[OptionNames::QueryDBPrefix]}
+    : TargetDBPrefix{options[OverlapHiFiOptionNames::TargetDBPrefix]}
+    , QueryDBPrefix{options[OverlapHiFiOptionNames::QueryDBPrefix]}
     , NumThreads{options.NumThreads()}
-    , TargetBlockId{std::stoi(options[OptionNames::TargetBlockId])}
-    , QueryBlockStartId{std::stoi(options[OptionNames::QueryBlockStartId])}
-    , QueryBlockEndId{std::stoi(options[OptionNames::QueryBlockEndId])}
+    , TargetBlockId{std::stoi(options[OverlapHiFiOptionNames::TargetBlockId])}
+    , QueryBlockStartId{std::stoi(options[OverlapHiFiOptionNames::QueryBlockStartId])}
+    , QueryBlockEndId{std::stoi(options[OverlapHiFiOptionNames::QueryBlockEndId])}
 
-    , FreqPercentile{options[OptionNames::FreqPercentile]}
-    , MinQueryLen{options[OptionNames::MinQueryLen]}
-    , MinTargetLen{options[OptionNames::MinTargetLen]}
-    , MaxSeedDistance{options[OptionNames::MaxSeedDistance]}
-    , MinNumSeeds{options[OptionNames::MinNumSeeds]}
-    , MinCoveredBases{options[OptionNames::MinCoveredBases]}
-    , MinChainSpan{options[OptionNames::MinChainSpan]}
-    , ChainBandwidth{options[OptionNames::ChainBandwidth]}
-    , AlignmentBandwidth{options[OptionNames::AlignmentBandwidth]}
-    , AlignmentMaxD{options[OptionNames::AlignmentMaxD]}
-    , MinIdentity{options[OptionNames::MinIdentity]}
-    , NoSNPsInIdentity{options[OptionNames::NoSNPsInIdentity]}
-    , NoIndelsInIdentity{options[OptionNames::NoIndelsInIdentity]}
-    , MinMappedLength{options[OptionNames::MinMappedLength]}
-    , OneHitPerTarget{options[OptionNames::OneHitPerTarget]}
-    , SmartHitPerTarget{options[OptionNames::SmartHitPerTarget]}
-    , WriteReverseOverlaps{options[OptionNames::WriteReverseOverlaps]}
-    , WriteIds{options[OptionNames::WriteIds]}
-    , WriteCigar{options[OptionNames::WriteCigar]}
-    , AllowedDovetailDist{options[OptionNames::AllowedDovetailDist]}
-    , AllowedHeuristicExtendDist{options[OptionNames::AllowedHeuristicExtendDist]}
-    , CombineBlocks{options[OptionNames::CombineBlocks]}
-    , BestN{options[OptionNames::BestN]}
-    , UseHPC{options[OptionNames::UseHPC]}
-    , UseTraceback{options[OptionNames::UseTraceback]}
-    , MaskHomopolymers{options[OptionNames::MaskHomopolymers]}
-    , MaskSimpleRepeats{options[OptionNames::MaskSimpleRepeats]}
-    , MaskHomopolymerSNPs{options[OptionNames::MaskHomopolymerSNPs]}
-    , MaskHomopolymersArbitrary{options[OptionNames::MaskHomopolymersArbitrary]}
-    , MarkSecondary{options[OptionNames::MarkSecondary]}
-    , SecondaryAllowedOverlapFraction{options[OptionNames::SecondaryAllowedOverlapFraction]}
-    , SecondaryMinScoreFraction{options[OptionNames::SecondaryMinScoreFraction]}
-    , TrimAlignment{options[OptionNames::TrimAlignment]}
-    , TrimWindowSize{options[OptionNames::TrimWindowSize]}
-    , TrimWindowMatchFraction{options[OptionNames::TrimWindowMatchFraction]}
-    , TrimToFirstMatch{options[OptionNames::TrimToFirstMatch]}
+    , FreqPercentile{options[OverlapHiFiOptionNames::FreqPercentile]}
+    , MinQueryLen{options[OverlapHiFiOptionNames::MinQueryLen]}
+    , MinTargetLen{options[OverlapHiFiOptionNames::MinTargetLen]}
+    , MaxSeedDistance{options[OverlapHiFiOptionNames::MaxSeedDistance]}
+    , MinNumSeeds{options[OverlapHiFiOptionNames::MinNumSeeds]}
+    , MinCoveredBases{options[OverlapHiFiOptionNames::MinCoveredBases]}
+    , MinChainSpan{options[OverlapHiFiOptionNames::MinChainSpan]}
+    , ChainBandwidth{options[OverlapHiFiOptionNames::ChainBandwidth]}
+    , AlignmentBandwidth{options[OverlapHiFiOptionNames::AlignmentBandwidth]}
+    , AlignmentMaxD{options[OverlapHiFiOptionNames::AlignmentMaxD]}
+    , MinIdentity{options[OverlapHiFiOptionNames::MinIdentity]}
+    , NoSNPsInIdentity{options[OverlapHiFiOptionNames::NoSNPsInIdentity]}
+    , NoIndelsInIdentity{options[OverlapHiFiOptionNames::NoIndelsInIdentity]}
+    , MinMappedLength{options[OverlapHiFiOptionNames::MinMappedLength]}
+    , OneHitPerTarget{options[OverlapHiFiOptionNames::OneHitPerTarget]}
+    , SmartHitPerTarget{options[OverlapHiFiOptionNames::SmartHitPerTarget]}
+    , WriteReverseOverlaps{options[OverlapHiFiOptionNames::WriteReverseOverlaps]}
+    , WriteIds{options[OverlapHiFiOptionNames::WriteIds]}
+    , WriteCigar{options[OverlapHiFiOptionNames::WriteCigar]}
+    , AllowedDovetailDist{options[OverlapHiFiOptionNames::AllowedDovetailDist]}
+    , AllowedHeuristicExtendDist{options[OverlapHiFiOptionNames::AllowedHeuristicExtendDist]}
+    , CombineBlocks{options[OverlapHiFiOptionNames::CombineBlocks]}
+    , BestN{options[OverlapHiFiOptionNames::BestN]}
+    , UseHPC{options[OverlapHiFiOptionNames::UseHPC]}
+    , UseTraceback{options[OverlapHiFiOptionNames::UseTraceback]}
+    , MaskHomopolymers{options[OverlapHiFiOptionNames::MaskHomopolymers]}
+    , MaskSimpleRepeats{options[OverlapHiFiOptionNames::MaskSimpleRepeats]}
+    , MaskHomopolymerSNPs{options[OverlapHiFiOptionNames::MaskHomopolymerSNPs]}
+    , MaskHomopolymersArbitrary{options[OverlapHiFiOptionNames::MaskHomopolymersArbitrary]}
+    , MarkSecondary{options[OverlapHiFiOptionNames::MarkSecondary]}
+    , SecondaryAllowedOverlapFraction{options
+                                          [OverlapHiFiOptionNames::SecondaryAllowedOverlapFraction]}
+    , SecondaryMinScoreFraction{options[OverlapHiFiOptionNames::SecondaryMinScoreFraction]}
+    , TrimAlignment{options[OverlapHiFiOptionNames::TrimAlignment]}
+    , TrimWindowSize{options[OverlapHiFiOptionNames::TrimWindowSize]}
+    , TrimWindowMatchFraction{options[OverlapHiFiOptionNames::TrimWindowMatchFraction]}
+    , TrimToFirstMatch{options[OverlapHiFiOptionNames::TrimToFirstMatch]}
 {
     if ((NoSNPsInIdentity || NoIndelsInIdentity || MaskHomopolymers || MaskSimpleRepeats ||
          MaskHomopolymerSNPs || MaskHomopolymersArbitrary) &&
@@ -401,20 +402,20 @@ OverlapHifiSettings::OverlapHifiSettings(const PacBio::CLI_v2::Results& options)
             "Option '--mask-hp-arbitrary' can only be used together with '--mask-hp'.");
     }
 
-    OutFormat = ParseOutFormat(options[OptionNames::OutFormat]);
+    OutFormat = ParseOutFormat(options[OverlapHiFiOptionNames::OutFormat]);
     if (OutFormat == OverlapWriterFormat::Unknown) {
         throw std::runtime_error("Unknown output format: '" +
-                                 std::string(options[OptionNames::OutFormat]) + "'.");
+                                 std::string(options[OverlapHiFiOptionNames::OutFormat]) + "'.");
     }
 
     SkipSelfHits = false;
-    if (static_cast<bool>(options[OptionNames::AllowSelfHits]) == false &&
+    if (static_cast<bool>(options[OverlapHiFiOptionNames::AllowSelfHits]) == false &&
         QueryDBPrefix == TargetDBPrefix) {
         SkipSelfHits = true;
     }
 
     SkipSymmetricOverlaps = false;
-    if (static_cast<bool>(options[OptionNames::SkipSymmetricOverlaps]) &&
+    if (static_cast<bool>(options[OverlapHiFiOptionNames::SkipSymmetricOverlaps]) &&
         QueryDBPrefix == TargetDBPrefix) {
         SkipSymmetricOverlaps = true;
     }
@@ -432,54 +433,54 @@ PacBio::CLI_v2::Interface OverlapHifiSettings::CreateCLI()
 
     // clang-format off
     i.AddOptionGroup("Input/Output Options", {
-        OptionNames::OutFormat,
+        OverlapHiFiOptionNames::OutFormat,
     });
     i.AddOptionGroup("Algorithm Options", {
-        OptionNames::FreqPercentile,
-        OptionNames::MinQueryLen,
-        OptionNames::MinTargetLen,
-        OptionNames::MaxSeedDistance,
-        OptionNames::MinNumSeeds,
-        OptionNames::MinCoveredBases,
-        OptionNames::MinChainSpan,
-        OptionNames::ChainBandwidth,
-        OptionNames::AlignmentBandwidth,
-        OptionNames::AlignmentMaxD,
-        OptionNames::MinIdentity,
-        OptionNames::NoSNPsInIdentity,
-        OptionNames::NoIndelsInIdentity,
-        OptionNames::MinMappedLength,
-        OptionNames::SkipSymmetricOverlaps,
-        OptionNames::AllowSelfHits,
-        OptionNames::OneHitPerTarget,
-        OptionNames::SmartHitPerTarget,
-        OptionNames::WriteReverseOverlaps,
-        OptionNames::WriteIds,
-        OptionNames::WriteCigar,
-        OptionNames::AllowedDovetailDist,
-        OptionNames::AllowedHeuristicExtendDist,
-        OptionNames::CombineBlocks,
-        OptionNames::BestN,
-        OptionNames::UseHPC,
-        OptionNames::UseTraceback,
-        OptionNames::MaskHomopolymers,
-        OptionNames::MaskSimpleRepeats,
-        OptionNames::MaskHomopolymerSNPs,
-        OptionNames::MaskHomopolymersArbitrary,
-        OptionNames::MarkSecondary,
-        OptionNames::SecondaryAllowedOverlapFraction,
-        OptionNames::SecondaryMinScoreFraction,
-        OptionNames::TrimAlignment,
-        OptionNames::TrimWindowSize,
-        OptionNames::TrimWindowMatchFraction,
-        OptionNames::TrimToFirstMatch,
+        OverlapHiFiOptionNames::FreqPercentile,
+        OverlapHiFiOptionNames::MinQueryLen,
+        OverlapHiFiOptionNames::MinTargetLen,
+        OverlapHiFiOptionNames::MaxSeedDistance,
+        OverlapHiFiOptionNames::MinNumSeeds,
+        OverlapHiFiOptionNames::MinCoveredBases,
+        OverlapHiFiOptionNames::MinChainSpan,
+        OverlapHiFiOptionNames::ChainBandwidth,
+        OverlapHiFiOptionNames::AlignmentBandwidth,
+        OverlapHiFiOptionNames::AlignmentMaxD,
+        OverlapHiFiOptionNames::MinIdentity,
+        OverlapHiFiOptionNames::NoSNPsInIdentity,
+        OverlapHiFiOptionNames::NoIndelsInIdentity,
+        OverlapHiFiOptionNames::MinMappedLength,
+        OverlapHiFiOptionNames::SkipSymmetricOverlaps,
+        OverlapHiFiOptionNames::AllowSelfHits,
+        OverlapHiFiOptionNames::OneHitPerTarget,
+        OverlapHiFiOptionNames::SmartHitPerTarget,
+        OverlapHiFiOptionNames::WriteReverseOverlaps,
+        OverlapHiFiOptionNames::WriteIds,
+        OverlapHiFiOptionNames::WriteCigar,
+        OverlapHiFiOptionNames::AllowedDovetailDist,
+        OverlapHiFiOptionNames::AllowedHeuristicExtendDist,
+        OverlapHiFiOptionNames::CombineBlocks,
+        OverlapHiFiOptionNames::BestN,
+        OverlapHiFiOptionNames::UseHPC,
+        OverlapHiFiOptionNames::UseTraceback,
+        OverlapHiFiOptionNames::MaskHomopolymers,
+        OverlapHiFiOptionNames::MaskSimpleRepeats,
+        OverlapHiFiOptionNames::MaskHomopolymerSNPs,
+        OverlapHiFiOptionNames::MaskHomopolymersArbitrary,
+        OverlapHiFiOptionNames::MarkSecondary,
+        OverlapHiFiOptionNames::SecondaryAllowedOverlapFraction,
+        OverlapHiFiOptionNames::SecondaryMinScoreFraction,
+        OverlapHiFiOptionNames::TrimAlignment,
+        OverlapHiFiOptionNames::TrimWindowSize,
+        OverlapHiFiOptionNames::TrimWindowMatchFraction,
+        OverlapHiFiOptionNames::TrimToFirstMatch,
     });
     i.AddPositionalArguments({
-        OptionNames::TargetDBPrefix,
-        OptionNames::QueryDBPrefix,
-        OptionNames::TargetBlockId,
-        OptionNames::QueryBlockStartId,
-        OptionNames::QueryBlockEndId
+        OverlapHiFiOptionNames::TargetDBPrefix,
+        OverlapHiFiOptionNames::QueryDBPrefix,
+        OverlapHiFiOptionNames::TargetBlockId,
+        OverlapHiFiOptionNames::QueryBlockStartId,
+        OverlapHiFiOptionNames::QueryBlockEndId
     });
 
     // clang-format on

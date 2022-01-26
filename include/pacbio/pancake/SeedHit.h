@@ -15,13 +15,13 @@ static const PacBio::Pancake::Int128t MASK128_LOW32bit = 0x000000000FFFFFFFF;
 static const PacBio::Pancake::Int128t MASK128_LOW16bit = 0x0000000000000FFFF;
 static const PacBio::Pancake::Int128t MASK128_LOW8bit = 0x000000000000000FF;
 static const PacBio::Pancake::Int128t MASK128_LOW1bit = 0x00000000000000001;
-static const int32_t SEED_HIT_FLAG_IGNORE_BIT_SET = 1 << 0;
-static const int32_t SEED_HIT_FLAG_LONG_JOIN_BIT_SET = 1 << 1;
+constexpr int32_t SEED_HIT_FLAG_IGNORE_BIT_SET = 1 << 0;
+constexpr int32_t SEED_HIT_FLAG_LONG_JOIN_BIT_SET = 1 << 1;
 
-static const int32_t SEED_HIT_FLAG_IGNORE_BIT_UNSET = ~SEED_HIT_FLAG_IGNORE_BIT_SET;
-static const int32_t SEED_HIT_FLAG_LONG_JOIN_BIT_UNSET = ~SEED_HIT_FLAG_LONG_JOIN_BIT_SET;
+constexpr int32_t SEED_HIT_FLAG_IGNORE_BIT_UNSET = ~SEED_HIT_FLAG_IGNORE_BIT_SET;
+constexpr int32_t SEED_HIT_FLAG_LONG_JOIN_BIT_UNSET = ~SEED_HIT_FLAG_LONG_JOIN_BIT_SET;
 
-class SeedHit
+class alignas(sizeof(PacBio::Pancake::Int128t)) SeedHit
 {
 public:
     SeedHit() = default;
@@ -51,7 +51,20 @@ public:
               ((static_cast<PacBio::Pancake::Int128t>(flags) & MASK128_LOW16bit) << 0);
         return ret;
     }
+
+    void ParseFrom128(PacBio::Pancake::Int128t vals)
+    {
+        targetId = (vals >> 97) & MASK128_LOW32bit;
+        targetRev = (vals >> 96) & MASK128_LOW1bit;
+        targetPos = (vals >> 64) & MASK128_LOW32bit;
+        queryPos = (vals >> 32) & MASK128_LOW32bit;
+        targetSpan = (vals >> 24) & MASK128_LOW8bit;
+        querySpan = (vals >> 16) & MASK128_LOW8bit;
+        flags = vals & MASK128_LOW16bit;
+    }
+
     bool operator<(const SeedHit& b) const { return this->PackTo128() < b.PackTo128(); }
+
     bool operator==(const SeedHit& b) const
     {
         return targetId == b.targetId && targetRev == b.targetRev && targetPos == b.targetPos &&
@@ -71,8 +84,11 @@ public:
             flags &= SEED_HIT_FLAG_IGNORE_BIT_UNSET;
         }
     }
+
     void SetFlagIgnore() { flags |= SEED_HIT_FLAG_IGNORE_BIT_SET; }
+
     void UnsetFlagIgnore() { flags &= SEED_HIT_FLAG_IGNORE_BIT_UNSET; }
+
     bool CheckFlagIgnore() const { return (flags & SEED_HIT_FLAG_IGNORE_BIT_SET); }
 
     void SetFlagLongJoin(bool val)
@@ -83,8 +99,11 @@ public:
             flags &= SEED_HIT_FLAG_IGNORE_BIT_UNSET;
         }
     }
+
     void SetFlagLongJoin() { flags |= SEED_HIT_FLAG_IGNORE_BIT_SET; }
+
     void UnsetFlagLongJoin() { flags &= SEED_HIT_FLAG_IGNORE_BIT_UNSET; }
+
     bool CheckFlagLongJoin() const { return (flags & SEED_HIT_FLAG_IGNORE_BIT_SET); }
 
     /*
@@ -102,8 +121,9 @@ public:
 inline std::ostream& operator<<(std::ostream& os, const SeedHit& a)
 {
     os << "tid = " << a.targetId << ", trev = " << a.targetRev << ", tpos = " << a.targetPos
-       << ", qpos = " << a.queryPos << ", tspan = " << a.targetSpan << ", qspan = " << a.querySpan
-       << ", flags = " << a.flags << ", diag = " << (a.targetPos - a.queryPos);
+       << ", qpos = " << a.queryPos << ", tspan = " << static_cast<int32_t>(a.targetSpan)
+       << ", qspan = " << static_cast<int32_t>(a.querySpan) << ", flags = " << a.flags
+       << ", diag = " << (a.targetPos - a.queryPos);
     return os;
 }
 

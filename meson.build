@@ -1,15 +1,15 @@
 project(
   'pancake',
   ['cpp', 'c'],
-  version : '1.4.0',
+  version : '1.5.0',
   default_options : [
     'buildtype=release',
     'warning_level=3',
-    'cpp_std=c++17',
-    'c_std=c11',
+    'cpp_std=c++20',
+    'c_std=c17',
     'b_ndebug=if-release'],
   license : 'BSD-3',
-  meson_version : '>= 0.52.0')
+  meson_version : '>= 0.57.0')
 
 ############
 # CXXFLAGS #
@@ -27,7 +27,8 @@ foreach cflag: [
   '-Wdouble-promotion',
   '-Wshadow',
   '-fno-new-ttp-matching',
-  '-Wformat=1']
+  '-Wformat=1',
+  ]
     if cpp.has_argument(cflag)
       pancake_warning_flags += cflag
     endif
@@ -37,6 +38,26 @@ pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC']
 
 opt_tests = get_option('tests')
 opt_cuda = get_option('gpu-cuda')
+opt_time = get_option('time')
+opt_sse41 = get_option('sse41')
+
+# Enable internal profiling.
+if opt_time
+  pancake_flags += ['-DPANCAKE_ENABLE_TIMINGS']
+endif
+if opt_sse41
+  pancake_arch_flags = {
+      # ARM64 (ARMv8-A, Apple M1)
+      'aarch64': [
+        '-march=armv8.2-a',
+      ],
+      'x86_64': [
+        '-msse4.1',
+      ],
+  }
+  pancake_flags += pancake_arch_flags.get(host_machine.cpu_family(), [])
+  pancake_flags += ['-DPANCAKE_USE_SSE41']
+endif
 
 ################
 # dependencies #

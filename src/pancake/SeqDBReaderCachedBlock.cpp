@@ -69,13 +69,11 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
 {
     // Count the data size.
     int64_t totalBases = 0;
-    int64_t totalRecords = 0;
     for (const auto& part : parts) {
         for (const auto& sId : part.seqIds) {
             const auto& sl = seqDBIndexCache_->GetSeqLine(sId);
             totalBases += sl.numBases;
         }
-        totalRecords += static_cast<int64_t>(part.seqIds.size());
     }
 
     // Preallocate the space for all the records.
@@ -137,13 +135,11 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
 {
     // Count the data size.
     int64_t totalBases = 0;
-    int64_t totalRecords = 0;
     for (const auto& part : parts) {
         for (const auto& sId : part.seqIds) {
             const auto& sl = seqDBIndexCache_->GetSeqLine(sId);
             totalBases += sl.numBases;
         }
-        totalRecords += static_cast<int64_t>(part.seqIds.size());
     }
 
     // Preallocate the space for all the records.

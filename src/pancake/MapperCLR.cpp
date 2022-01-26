@@ -5,6 +5,8 @@
 #include <pacbio/alignment/DiffCounts.h>
 #include <pacbio/alignment/SesDistanceBanded.h>
 #include <pacbio/pancake/AlignmentSeeded.h>
+#include <pacbio/pancake/DPChain.h>
+#include <pacbio/pancake/DPChainSimd.h>
 #include <pacbio/pancake/MapperCLR.h>
 #include <pacbio/pancake/MapperUtility.h>
 #include <pacbio/pancake/Minimizers.h>
@@ -15,12 +17,15 @@
 #include <pacbio/util/Util.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/third-party/edlib.h>
+#include <util/TicToc.h>
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <iostream>
 #include <lib/istl/lis.hpp>
 #include <sstream>
 #include <tuple>
+#include "pdqsort.h"
 
 // #define PANCAKE_MAP_CLR_DEBUG
 // #define PANCAKE_MAP_CLR_DEBUG_2
@@ -30,16 +35,27 @@
 // #define PANCAKE_MAP_CLR_DEBUG_PRINT_CHAINED_REGIONS
 // #define PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
 
+#include <util/DebugTools.h>
+
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
 #include <pbcopper/utility/MemoryConsumption.h>
 #include <iomanip>
+#endif
+
+#ifdef PANCAKE_USE_SSE41
+#define ChainHits ChainHitsSimd
+#else
+#define ChainHits ChainHitsSisd
 #endif
 
 namespace PacBio {
 namespace Pancake {
 
 MapperCLR::MapperCLR(const MapperCLRSettings& settings)
-    : settings_{settings}, alignerGlobal_(nullptr), alignerExt_(nullptr)
+    : settings_{settings}
+    , alignerGlobal_(nullptr)
+    , alignerExt_(nullptr)
+    , ssChain_(std::make_shared<ChainingScratchSpace>())
 {
     alignerGlobal_ =
         AlignerFactory(settings.align.alignerTypeGlobal, settings.align.alnParamsGlobal);
@@ -47,6 +63,14 @@ MapperCLR::MapperCLR(const MapperCLRSettings& settings)
 }
 
 MapperCLR::~MapperCLR() = default;
+
+void MapperCLR::UpdateSettings(const MapperCLRSettings& settings)
+{
+    settings_ = settings;
+    alignerGlobal_ =
+        AlignerFactory(settings.align.alignerTypeGlobal, settings.align.alnParamsGlobal);
+    alignerExt_ = AlignerFactory(settings.align.alignerTypeExt, settings.align.alnParamsExt);
+}
 
 std::vector<MapperBaseResult> MapperCLR::MapAndAlign(const std::vector<std::string>& targetSeqs,
                                                      const std::vector<std::string>& querySeqs)
@@ -78,8 +102,8 @@ std::vector<MapperBaseResult> MapperCLR::MapAndAlign(
 std::vector<MapperBaseResult> MapperCLR::MapAndAlign(const FastaSequenceCachedStore& targetSeqs,
                                                      const FastaSequenceCachedStore& querySeqs)
 {
-    return WrapBuildIndexMapAndAlignWithFallback_(targetSeqs, querySeqs, settings_, alignerGlobal_,
-                                                  alignerExt_);
+    return WrapBuildIndexMapAndAlignWithFallback_(targetSeqs, querySeqs, settings_, ssChain_,
+                                                  ssSeedHits_, alignerGlobal_, alignerExt_);
 }
 
 MapperBaseResult MapperCLR::MapAndAlignSingleQuery(
@@ -88,16 +112,16 @@ MapperBaseResult MapperCLR::MapAndAlignSingleQuery(
     const int32_t queryId, int64_t freqCutoff)
 {
     return WrapMapAndAlign_(targetSeqs, index, querySeq, querySeeds, queryId, freqCutoff, settings_,
-                            alignerGlobal_, alignerExt_);
+                            ssChain_, ssSeedHits_, alignerGlobal_, alignerExt_);
 }
 
 MapperBaseResult MapperCLR::Map(const FastaSequenceCachedStore& targetSeqs,
                                 const PacBio::Pancake::SeedIndex& index,
                                 const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                                const int32_t queryLen, const int32_t queryId,
-                                int64_t freqCutoff) const
+                                const int32_t queryLen, const int32_t queryId, int64_t freqCutoff)
 {
-    return Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings_, freqCutoff);
+    return Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings_, freqCutoff, ssChain_,
+                ssSeedHits_);
 }
 
 MapperBaseResult MapperCLR::Align(const FastaSequenceCachedStore& targetSeqs,
@@ -167,7 +191,8 @@ void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& 
 
 std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
     const FastaSequenceCachedStore& targetSeqs, const FastaSequenceCachedStore& querySeqs,
-    const MapperCLRSettings& settings, AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
+    const MapperCLRSettings& settings, std::shared_ptr<ChainingScratchSpace> ssChain,
+    std::vector<SeedHit>& ssSeedHits, AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
 {
     // Construct the index.
     std::vector<PacBio::Pancake::Int128t> seeds;
@@ -223,7 +248,7 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
 
         MapperBaseResult queryResults =
             WrapMapAndAlign_(targetSeqs, *seedIndex, query, querySeeds, queryId, freqCutoff,
-                             settings, alignerGlobal, alignerExt);
+                             settings, ssChain, ssSeedHits, alignerGlobal, alignerExt);
 
         if (queryResults.mappings.empty() && seedIndexFallback != nullptr) {
             rv = SeedDB::GenerateMinimizers(
@@ -236,9 +261,9 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
                     "Generating minimizers failed for the query sequence, id = " +
                     std::to_string(queryId));
 
-            queryResults =
-                WrapMapAndAlign_(targetSeqs, *seedIndexFallback, query, querySeeds, queryId,
-                                 freqCutoffFallback, settings, alignerGlobal, alignerExt);
+            queryResults = WrapMapAndAlign_(targetSeqs, *seedIndexFallback, query, querySeeds,
+                                            queryId, freqCutoffFallback, settings, ssChain,
+                                            ssSeedHits, alignerGlobal, alignerExt);
         }
 
         for (const auto& m : queryResults.mappings) {
@@ -258,12 +283,14 @@ MapperBaseResult MapperCLR::WrapMapAndAlign_(
     const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
     const FastaSequenceCached& querySeq, const std::vector<PacBio::Pancake::Int128t>& querySeeds,
     const int32_t queryId, int64_t freqCutoff, const MapperCLRSettings& settings,
+    std::shared_ptr<ChainingScratchSpace> ssChain, std::vector<SeedHit>& ssSeedHits,
     AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
 {
     const int32_t queryLen = querySeq.size();
 
     // Map the query.
-    auto result = Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings, freqCutoff);
+    auto result = Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings, freqCutoff,
+                       ssChain, ssSeedHits);
 
     // Align if needed.
     if (settings.align.align) {
@@ -283,11 +310,19 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                                  const PacBio::Pancake::SeedIndex& index,
                                  const std::vector<PacBio::Pancake::Int128t>& querySeeds,
                                  const int32_t queryLen, const int32_t queryId,
-                                 const MapperCLRSettings& settings, int64_t freqCutoff)
+                                 const MapperCLRSettings& settings, int64_t freqCutoff,
+                                 std::shared_ptr<ChainingScratchSpace> ssChain,
+                                 std::vector<SeedHit>& ssSeedHits)
 {
+    TicToc ttMapAll;
+    TicToc ttPartial;
+
+    MapperBaseResult result;
+
     // Skip short queries.
     if (queryLen < settings.map.minQueryLen) {
-        return {};
+        LogTicToc("map-L1-all", ttMapAll, result.time);
+        return result;
     }
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
@@ -328,9 +363,12 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         seedHitHistogram, settings.map.seedOccurrenceMin, settings.map.seedOccurrenceMax,
         settings.map.seedOccurrenceMaxMemory, freqCutoff, debugVerboseOccurrenceThreshold);
 
+    LogTicToc("map-L1-01-occthresh", ttPartial, result.time);
+
     // Collect seed hits.
-    std::vector<SeedHit> hits;
+    auto& hits = ssSeedHits;
     index.CollectHits(&querySeeds[0], querySeeds.size(), queryLen, hits, occThreshold);
+    LogTicToc("map-L1-02-collect", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     {
@@ -355,6 +393,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
             }
         }
     }
+    LogTicToc("map-L1-03-perfaln", ttPartial, result.time);
 
     // Filter symmetric and self hits.
     if (settings.map.skipSymmetricOverlaps ||
@@ -364,6 +403,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
             settings.map.skipSymmetricOverlaps);
         std::swap(hits, newHits);
     }
+    LogTicToc("map-L1-04-skipsym", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     {
@@ -375,12 +415,41 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
 #endif
 
     // Sort the seed hits.
-    std::sort(hits.begin(), hits.end(), [](const auto& a, const auto& b) {
-        return PackSeedHitWithDiagonalToTuple(a) < PackSeedHitWithDiagonalToTuple(b);
-    });
+    {
+        // Unfortunately, we cannot just pack the values into an 128-bit integer in the order
+        // of <targetID, targetRev, diag, targetPos, queryPos>, because the diagonal is internal,
+        // and signedness matters here. In that case, negative diagonals would actually get sorted _after_
+        // the positive ones. So we have to use pairs/tuples to properly compare the values here.
+        // Here, we attempt to optimize the amount of comparisons that need to be performed when sorting:
+        //  - First of the pair is the targetID + targetRev.
+        //  - Second of the pair stores the diagonal first, then packs the ID of the current seed hit. This way
+        //      the diagonal's sign can validly be compared.
+        std::vector<std::pair<int32_t, int64_t>> seedHitsPacked(hits.size());
+        for (size_t i = 0; i < hits.size(); ++i) {
+            const auto& sh = hits[i];
+            seedHitsPacked[i] = std::make_pair(
+                ((sh.targetId << 1) | sh.targetRev),
+                (static_cast<uint64_t>(sh.targetPos - sh.queryPos) << 32 | (i & 0x0FFFFFFFF)));
+        }
+        const double timeSortPrepare = ttPartial.GetMicrosecs(true);
+        LogTicTocAdd("map-L3-total-sort", timeSortPrepare, result.time);
+        LogTicToc("map-L1-05-sort-prepare", ttPartial, result.time);
+
+        pdqsort(seedHitsPacked.begin(), seedHitsPacked.end());
+
+        std::vector<PacBio::Pancake::SeedHit> sortedHits(hits.size());
+        for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
+            sortedHits[i] = hits[seedHitsPacked[i].second & 0x0FFFFFFFF];
+        }
+        std::swap(hits, sortedHits);
+        const double timeSort = ttPartial.GetMicrosecs(true);
+        LogTicTocAdd("map-L3-total-sort", timeSort, result.time);
+        LogTicToc("map-L1-05-sort", ttPartial, result.time);
+    }
 
     // Group seed hits by diagonal.
     auto groups = DiagonalGroup(hits, settings.map.chainBandwidth, true);
+    LogTicToc("map-L1-06-diaggroup", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     {
@@ -396,8 +465,9 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         targetSeqs, hits, groups, queryId, queryLen, settings.map.chainMaxSkip,
         settings.map.chainMaxPredecessors, settings.map.maxGap, settings.map.chainBandwidth,
         settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore,
-        settings.map.useLIS);
+        settings.map.useLIS, ssChain, result.time);
     DebugWriteChainedRegion(allChainedRegions, "1-chain-and-make-overlap", queryId, queryLen);
+    LogTicToc("map-L1-07-chain", ttPartial, result.time);
 
     // Take the remaining regions, merge all seed hits, and rechain.
     // Needed because diagonal chaining was greedy and a wide window could have split
@@ -406,22 +476,27 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     allChainedRegions = ReChainSeedHits_(
         allChainedRegions, targetSeqs, queryId, queryLen, settings.map.chainMaxSkip,
         settings.map.chainMaxPredecessors, settings.map.maxGap, settings.map.chainBandwidth,
-        settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore);
+        settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore, ssChain,
+        result.time);
     DebugWriteChainedRegion(allChainedRegions, "2-rechain-hits", queryId, queryLen);
+    LogTicToc("map-L1-08-rechain", ttPartial, result.time);
 
     // Sort all chains in descending order of the number of hits.
-    std::sort(allChainedRegions.begin(), allChainedRegions.end(),
-              [](const auto& a, const auto& b) { return a->chain.score > b->chain.score; });
+    pdqsort(allChainedRegions.begin(), allChainedRegions.end(),
+            [](const auto& a, const auto& b) { return a->chain.score > b->chain.score; });
+    LogTicToc("map-L1-09-sortchained", ttPartial, result.time);
 
     // Secondary/supplementary flagging.
     WrapFlagSecondaryAndSupplementary(
         allChainedRegions, settings.map.secondaryAllowedOverlapFractionQuery,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
     DebugWriteChainedRegion(allChainedRegions, "3-wrap-flag-secondary-suppl-1", queryId, queryLen);
+    LogTicToc("map-L1-10-secondary", ttPartial, result.time);
 
     // Merge long gaps.
     LongMergeChains_(allChainedRegions, settings.map.maxGap);
     DebugWriteChainedRegion(allChainedRegions, "4-long-merge-chains", queryId, queryLen);
+    LogTicToc("map-L1-11-longmerge", ttPartial, result.time);
 
     // Add an extra query alignment only if needed (i.e. if the MapperSelfHitPolicy == PERFECT_ALIGNMENT
     // and the query has self-hits ("self" in term of queryId/targetId).
@@ -432,22 +507,25 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
             CreateMockedMapping_(queryId, queryLen, targetId, targetLen);
         allChainedRegions.emplace_back(std::move(newChainedRegion));
     }
+    LogTicToc("map-L1-12-addperfect", ttPartial, result.time);
 
     // Again relabel, because some chains are longer now.
     WrapFlagSecondaryAndSupplementary(
         allChainedRegions, settings.map.secondaryAllowedOverlapFractionQuery,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
     DebugWriteChainedRegion(allChainedRegions, "5-wrap-flag-secondary-suppl-2", queryId, queryLen);
+    LogTicToc("map-L1-13-secondary", ttPartial, result.time);
 
     // Sort all chains by priority and then score.
-    std::sort(allChainedRegions.begin(), allChainedRegions.end(),
-              [](const std::unique_ptr<ChainedRegion>& a, const std::unique_ptr<ChainedRegion>& b) {
-                  auto at = std::tuple<int32_t, bool, int32_t>(a->priority, a->isSupplementary,
-                                                               a->chain.score);
-                  auto bt = std::tuple<int32_t, bool, int32_t>(b->priority, b->isSupplementary,
-                                                               b->chain.score);
-                  return at < bt;
-              });
+    pdqsort(allChainedRegions.begin(), allChainedRegions.end(),
+            [](const std::unique_ptr<ChainedRegion>& a, const std::unique_ptr<ChainedRegion>& b) {
+                auto at = std::tuple<int32_t, bool, int32_t>(a->priority, a->isSupplementary,
+                                                             a->chain.score);
+                auto bt = std::tuple<int32_t, bool, int32_t>(b->priority, b->isSupplementary,
+                                                             b->chain.score);
+                return at < bt;
+            });
+    LogTicToc("map-L1-14-sortchained", ttPartial, result.time);
 
     // Refine seed hits for alignment.
     for (size_t i = 0; i < allChainedRegions.size(); ++i) {
@@ -472,11 +550,12 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         }
     }
     DebugWriteChainedRegion(allChainedRegions, "6-refining-seed-hits", queryId, queryLen);
+    LogTicToc("map-L1-15-refineseeds", ttPartial, result.time);
 
     // Filter out the mappings.
-    MapperBaseResult result;
     result.mappings = std::move(allChainedRegions);
     const int32_t numPrimary = CondenseMappings(result.mappings, settings.map.bestNSecondary);
+    LogTicToc("map-L1-16-condense", ttPartial, result.time);
 
     // If this occurs, that means that a filtering stage removed the primary alignment for some reason.
     // This can happen in case self-hits are skipped in the overlapping use case (the self-hit is the
@@ -488,6 +567,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                                           settings.map.secondaryAllowedOverlapFractionTarget,
                                           settings.map.secondaryMinScoreFraction);
     }
+    LogTicToc("map-L1-17-secondary", ttPartial, result.time);
 
     // Collect regions for alignment.
     for (size_t i = 0; i < result.mappings.size(); ++i) {
@@ -500,6 +580,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     }
 
     DebugWriteChainedRegion(result.mappings, "7-result-mappings", queryId, queryLen);
+    LogTicToc("map-L1-18-collectalnregions", ttPartial, result.time);
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
     std::cerr << "All hits: hits.size() = " << hits.size() << "\n";
@@ -524,6 +605,8 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     }
 #endif
 
+    LogTicToc("map-all", ttMapAll, result.time);
+
     return result;
 }
 
@@ -533,6 +616,9 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
                                    const MapperCLRSettings& settings, AlignerBasePtr& alignerGlobal,
                                    AlignerBasePtr& alignerExt)
 {
+    TicToc ttAlignAll;
+    TicToc ttPartial;
+
 #ifdef PANCAKE_MAP_CLR_DEBUG_ALIGN
     std::cerr << "Aligning.\n";
     std::cerr << "alignerTypeGlobal = " << AlignerTypeToString(settings.align.alignerTypeGlobal)
@@ -604,6 +690,7 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
         }
 #endif
     }
+    LogTicToc("aln-L1-01-alnseeded", ttPartial, alignedResult.time);
 
     // Secondary/supplementary flagging.
     WrapFlagSecondaryAndSupplementary(
@@ -611,9 +698,11 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
 
     DebugWriteChainedRegion(alignedResult.mappings, "8-result-after-align", queryId, queryLen);
+    LogTicToc("aln-L1-02-secondary", ttPartial, alignedResult.time);
 
     const int32_t numPrimary =
         CondenseMappings(alignedResult.mappings, settings.map.bestNSecondary);
+    LogTicToc("aln-L1-03-condense", ttPartial, alignedResult.time);
 
     // If this occurs, that means that a filtering stage removed the primary alignment for some reason.
     // This can happen in case self-hits are skipped in the overlapping use case (the self-hit is the
@@ -627,6 +716,9 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
                                           settings.map.secondaryAllowedOverlapFractionTarget,
                                           settings.map.secondaryMinScoreFraction);
     }
+    LogTicToc("aln-L1-04-secondary", ttPartial, alignedResult.time);
+
+    LogTicToc("aln-all", ttAlignAll, alignedResult.time);
 
     return alignedResult;
 }
@@ -709,32 +801,67 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
     const std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
     const FastaSequenceCachedStore& targetSeqs, int32_t queryId, int32_t queryLen,
     int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
-    int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore)
+    int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
+    std::shared_ptr<ChainingScratchSpace> ssChain,
+    std::unordered_map<std::string, double>& retTimings)
 {
+    TicToc ttPartial;
+
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
     std::cerr << "(ReChainSeedHits_) Starting to rechain the seed hits.\n";
 #endif
 
-    std::vector<std::unique_ptr<ChainedRegion>> newChainedRegions;
-
-    // Merge all remaining seed hits.
     std::vector<SeedHit> hits2;
-    for (size_t i = 0; i < chainedRegions.size(); ++i) {
-        auto& region = chainedRegions[i];
-        if (region->priority > 1) {
-            continue;
+    {
+        // It turns out to be much faster to copy and convert data than to use a custom comparison
+        // operator to compare tuples. Also, Pdqsort is more efficient than std::sort.
+        // Sort the hits by coordinates.
+        // Compute the size for collected hits.
+        size_t newSize = 0;
+        for (size_t i = 0; i < chainedRegions.size(); ++i) {
+            auto& region = chainedRegions[i];
+            if (region->priority > 1) {
+                continue;
+            }
+            newSize += region->chain.hits.size();
         }
-        hits2.insert(hits2.end(), region->chain.hits.begin(), region->chain.hits.end());
+        // Pack and merge all the hits.
+        std::vector<Int128t> seedHitsPacked(newSize);
+        for (size_t i = 0, newId = 0; i < chainedRegions.size(); ++i) {
+            auto& region = chainedRegions[i];
+            if (region->priority > 1) {
+                continue;
+            }
+            for (size_t j = 0; j < region->chain.hits.size(); ++j) {
+                seedHitsPacked[newId] = region->chain.hits[j].PackTo128();
+                ++newId;
+            }
+        }
+        const double timeSortPrepare = ttPartial.GetMicrosecs(true);
+        LogTicTocAdd("map-L3-total-sort", timeSortPrepare, retTimings);
+        LogTicToc("map-L2-rechain-01-sort-prepare", ttPartial, retTimings);
+
+        // Sort.
+        pdqsort(seedHitsPacked.begin(), seedHitsPacked.end());
+        const double timeSort = ttPartial.GetMicrosecs(true);
+        LogTicTocAdd("map-L3-total-sort", timeSort, retTimings);
+        LogTicToc("map-L2-rechain-01-sort", ttPartial, retTimings);
+
+        // Unpack.
+        hits2.resize(seedHitsPacked.size());
+        for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
+            hits2[i].ParseFrom128(seedHitsPacked[i]);
+        }
+        const double timeSortPost = ttPartial.GetMicrosecs(true);
+        LogTicTocAdd("map-L3-total-sort", timeSortPost, retTimings);
+        LogTicToc("map-L2-rechain-01-sort-post", ttPartial, retTimings);
     }
 
-    // Sort the hits by coordinates.
-    // IMPORTANT: This needs to sort by target, and if target coords are identical then by query.
-    std::sort(hits2.begin(), hits2.end(), [](const SeedHit& a, const SeedHit& b) {
-        return std::tuple(a.targetId, a.targetRev, a.targetPos, a.queryPos) <
-               std::tuple(b.targetId, b.targetRev, b.targetPos, b.queryPos);
-    });
+    const auto groups = GroupByTargetAndStrand(hits2);
 
-    auto groups = GroupByTargetAndStrand(hits2);
+    LogTicToc("map-L2-rechain-02-group", ttPartial, retTimings);
+
+    std::vector<std::unique_ptr<ChainedRegion>> newChainedRegions;
 
     for (size_t groupId = 0; groupId < groups.size(); ++groupId) {
         const auto& group = groups[groupId];
@@ -749,9 +876,19 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
 #endif
 
         // DP Chaining of the filtered hits to remove outliers.
-        std::vector<ChainedHits> chains = ChainHits(
-            &hits2[group.start], group.end - group.start, chainMaxSkip, chainMaxPredecessors,
-            maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore);
+        double timeChaining = 0.0, timeBacktrack = 0.0;
+        std::vector<ChainedHits> chains =
+            ChainHits(&hits2[group.start], group.end - group.start, chainMaxSkip,
+                      chainMaxPredecessors, maxGap, chainBandwidth, minNumSeeds, minCoveredBases,
+                      minDPScore, timeChaining, timeBacktrack, ssChain);
+
+        double timeChainHits = ttPartial.GetMicrosecs(true);
+        LogTicTocAdd("map-L2-rechain-03-chainhits", ttPartial, retTimings);
+        LogTicTocAdd("map-L3-rechain-01-chaining", timeChaining, retTimings);
+        LogTicTocAdd("map-L3-rechain-02-backtrack", timeBacktrack, retTimings);
+        LogTicTocAdd("map-L2-total-chainhits-simd", timeChainHits, retTimings);
+        LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
+        LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
         std::cerr << "[group " << groupId << "] After ChainHits:\n";
@@ -785,6 +922,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
             chainedRegion->mapping = std::move(ovl);
             newChainedRegions.emplace_back(std::move(chainedRegion));
         }
+        LogTicTocAdd("map-L2-rechain-04-makeovl", ttPartial, retTimings);
     }
 
     return newChainedRegions;
@@ -794,20 +932,11 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
     const FastaSequenceCachedStore& targetSeqs, const std::vector<SeedHit>& hits,
     const std::vector<PacBio::Pancake::Range>& hitGroups, int32_t queryId, int32_t queryLen,
     int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
-    int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore, bool useLIS)
+    int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore, bool useLIS,
+    std::shared_ptr<ChainingScratchSpace> ssChain,
+    std::unordered_map<std::string, double>& retTimings)
 {
-    // Comparison function to sort the seed hits for LIS.
-    // IMPORTANT: This needs to sort by target, and if target coords are identical then by query.
-    auto ComparisonSort = [](const SeedHit& a, const SeedHit& b) -> bool {
-        return std::pair(a.targetPos, a.queryPos) < std::pair(b.targetPos, b.queryPos);
-    };
-
-    // Comparison function to compute the LIS.
-    // IMPORTANT: This needs to always return the upper-left element as the smaller one.
-    std::function<bool(const SeedHit& a, const SeedHit& b)> ComparisonLIS = [](const SeedHit& a,
-                                                                               const SeedHit& b) {
-        return (a.queryPos < b.queryPos && a.targetPos < b.targetPos);
-    };
+    TicToc ttPartial;
 
     // Process each diagonal bin to get the final chains.
     std::vector<std::unique_ptr<ChainedRegion>> allChainedRegions;
@@ -824,25 +953,73 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             continue;
         }
 
-        // Get a copy of the seed hits so that we can sort without touching the input.
-        std::vector<SeedHit> groupHits(hits.begin() + range.start, hits.begin() + range.end);
+        std::vector<SeedHit> groupHits(range.Span());
+        {
+            // Hits have previously been sorted by diagonals, and not by coordinates, so we need to sort again
+            // to get them in proper order.
+            // It turns out to be much faster to copy and convert data than to use a custom comparison
+            // operator to compare tuples. Also, Pdqsort is more efficient than std::sort.
+            std::vector<Int128t> seedHitsPacked(range.Span());
+            for (int32_t i = range.start, hitId = 0; i < range.end; ++i, ++hitId) {
+                seedHitsPacked[hitId] = hits[i].PackTo128();
+            }
+            ttPartial.Stop();
+            const double timeSortPrepare = ttPartial.GetMicrosecs(true);
+            LogTicTocAdd("map-L3-total-sort", timeSortPrepare, retTimings);
+            LogTicTocAdd("map-L2-chain-01-sort-prepare", timeSortPrepare, retTimings);
+            ttPartial.Start();
 
-        // Groups are already groupped by target ID and strand, so only sorting by coordinates is enough.
-        // Hits have previously been sorted by diagonals, and not by coordinates, so we need to sort again
-        // to get them in proper order.
-        std::sort(groupHits.begin(), groupHits.end(), ComparisonSort);
+            pdqsort(seedHitsPacked.begin(), seedHitsPacked.end());
+            ttPartial.Stop();
+            const double timeSort = ttPartial.GetMicrosecs(true);
+            LogTicTocAdd("map-L3-total-sort", timeSort, retTimings);
+            LogTicTocAdd("map-L2-chain-01-sort", timeSort, retTimings);
+            ttPartial.Start();
+
+            for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
+                groupHits[i].ParseFrom128(seedHitsPacked[i]);
+            }
+            ttPartial.Stop();
+            const double timeSortPost = ttPartial.GetMicrosecs(true);
+            LogTicTocAdd("map-L3-total-sort", timeSortPost, retTimings);
+            LogTicTocAdd("map-L2-chain-01-sort-post", timeSortPost, retTimings);
+            ttPartial.Start();
+        }
 
         // Perform chaining.
         std::vector<ChainedHits> chains;
 
         if (useLIS) {
             // Longest Increasing Subsequence.
+            /**
+             * Difference between the sort comparison and the LIS comparison:
+             *  - When sorting 2D points we need to restrict ourselves to 1 dimension. In this case, we only sort on A.x < B.x, except in case when A.x == B.x.
+             *  - LIS comparison returns true if and only if A is in the upper left corner from B. Meaning, both A.x and A.y need to be smaller.
+             * For example:
+             *  Point{6, 7} and Point{9, 3} would result in:
+             *      - Sort Comparison == true
+             *      - LIS Comparison == false
+             *      - Packed into uint64_t and using the standard operator< == true (same as the Sort Comparison).
+            */
             std::vector<PacBio::Pancake::SeedHit> lisHits =
-                istl::LIS(groupHits, 0, groupHits.size(), ComparisonLIS);
+                istl::LIS(groupHits, [](const SeedHit& a, const SeedHit& b) {
+                    return (a.queryPos < b.queryPos && a.targetPos < b.targetPos);
+                });
+            LogTicTocAdd("map-L2-chain-02-lis", ttPartial, retTimings);
 
             // DP Chaining of the filtered hits to remove outliers.
+            double timeChaining = 0.0, timeBacktrack = 0.0;
             chains = ChainHits(&lisHits[0], lisHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore);
+                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
+                               timeChaining, timeBacktrack, ssChain);
+
+            const double timeChainHits = ttPartial.GetMicrosecs(true);
+            LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
+            LogTicTocAdd("map-L3-chain-01-chaining", timeChaining, retTimings);
+            LogTicTocAdd("map-L3-chain-02-backtrack", timeBacktrack, retTimings);
+            LogTicTocAdd("map-L2-total-chainhits-simd", timeChainHits, retTimings);
+            LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
+            LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
             std::cerr << "  - Hits before LIS:\n";
@@ -859,8 +1036,18 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             }
 #endif
         } else {
+            double timeChaining = 0.0, timeBacktrack = 0.0;
             chains = ChainHits(&groupHits[0], groupHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore);
+                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
+                               timeChaining, timeBacktrack, ssChain);
+
+            const double timeChainHits = ttPartial.GetMicrosecs(true);
+            LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
+            LogTicTocAdd("map-L3-chain-01-chaining", timeChaining, retTimings);
+            LogTicTocAdd("map-L3-chain-02-backtrack", timeBacktrack, retTimings);
+            LogTicTocAdd("map-L2-total-chainhits", timeChainHits, retTimings);
+            LogTicTocAdd("map-L3-total-chaining", timeChaining, retTimings);
+            LogTicTocAdd("map-L3-total-backtrack", timeBacktrack, retTimings);
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
             std::cerr << "  - not using LIS.\n";
 #endif
@@ -893,6 +1080,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             chainedRegion->mapping = std::move(ovl);
             allChainedRegions.emplace_back(std::move(chainedRegion));
         }
+        LogTicTocAdd("map-L2-chain-04-makeovl", ttPartial, retTimings);
     }
     return allChainedRegions;
 }
@@ -921,7 +1109,7 @@ void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& ch
         candidates.emplace_back(i);
     }
 
-    std::sort(candidates.begin(), candidates.end(), [&](const auto& a, const auto& b) {
+    pdqsort(candidates.begin(), candidates.end(), [&](const auto& a, const auto& b) {
         const auto& ar = chainedRegions[a];
         const auto& br = chainedRegions[b];
         return std::tuple(ar->mapping->Bid, ar->mapping->Brev, ar->mapping->Astart,
@@ -976,7 +1164,7 @@ void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& ch
         if (chainedRegions[i] == nullptr) {
             continue;
         }
-        std::sort(chainedRegions[i]->chain.hits.begin(), chainedRegions[i]->chain.hits.end());
+        pdqsort(chainedRegions[i]->chain.hits.begin(), chainedRegions[i]->chain.hits.end());
     }
 
     // Remove the merged ones.

@@ -10,13 +10,37 @@
 #ifndef PANCAKE_DP_CHAIN_H
 #define PANCAKE_DP_CHAIN_H
 
+#include <emmintrin.h>
 #include <pacbio/pancake/Range.h>
 #include <pacbio/pancake/SeedHit.h>
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {
 namespace Pancake {
+
+struct ChainingScratchSpace
+{
+    std::vector<int32_t> dp;
+    std::vector<int32_t> pred;
+    std::vector<int32_t> chainId;
+
+#ifdef PANCAKE_USE_SSE41
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wignored-attributes"
+    std::vector<__m128i> dpSimd;
+    std::vector<__m128i> predSimd;
+
+    std::vector<__m128i> qp;             // Query pos.
+    std::vector<__m128i> tp;             // Target pos.
+    std::vector<__m128i> qs;             // Query span.
+    std::vector<__m128i> tid;            // Target ID and strand.
+    std::vector<__m128i> vectorIndices;  // Target ID and strand.
+
+#pragma GCC diagnostic pop
+#endif
+};
 
 struct ChainedHits
 {
@@ -28,9 +52,13 @@ struct ChainedHits
     int32_t coveredBasesTarget = 0;
 
     ChainedHits() = default;
-    ChainedHits(int32_t _targetId, bool _targetRev) : targetId(_targetId), targetRev(_targetRev) {}
-    ChainedHits(int32_t _targetId, bool _targetRev, const std::vector<SeedHit>& _hits,
-                int32_t _score, int32_t _coveredBasesQuery, int32_t _coveredBasesTarget)
+    ChainedHits(const int32_t _targetId, const bool _targetRev)
+        : targetId(_targetId), targetRev(_targetRev)
+    {
+    }
+    ChainedHits(const int32_t _targetId, const bool _targetRev, const std::vector<SeedHit>& _hits,
+                const int32_t _score, const int32_t _coveredBasesQuery,
+                const int32_t _coveredBasesTarget)
         : targetId(_targetId)
         , targetRev(_targetRev)
         , hits(_hits)
@@ -40,12 +68,15 @@ struct ChainedHits
     {
     }
 };
+
 inline bool operator==(const ChainedHits& lhs, const ChainedHits& rhs)
 {
-    return lhs.targetId == rhs.targetId && lhs.targetRev == rhs.targetRev && lhs.hits == rhs.hits &&
-           lhs.score == rhs.score && lhs.coveredBasesQuery == rhs.coveredBasesQuery &&
-           lhs.coveredBasesTarget == rhs.coveredBasesTarget;
+    return std::tie(lhs.targetId, lhs.targetRev, lhs.hits, lhs.score, lhs.coveredBasesQuery,
+                    lhs.coveredBasesTarget) == std::tie(rhs.targetId, rhs.targetRev, rhs.hits,
+                                                        rhs.score, rhs.coveredBasesQuery,
+                                                        rhs.coveredBasesTarget);
 }
+
 inline std::ostream& operator<<(std::ostream& os, const ChainedHits& b)
 {
     os << "targetId = " << b.targetId << ", targetRev = " << (b.targetRev ? "true" : "false")
@@ -57,30 +88,88 @@ inline std::ostream& operator<<(std::ostream& os, const ChainedHits& b)
     return os;
 }
 
-int32_t ChainHitsForward(const SeedHit* hits, int32_t hitsSize, int32_t chainMaxSkip,
-                         int32_t chainMaxPredecessors, int32_t seedJoinDist, int32_t diagMargin,
-                         std::vector<int32_t>& dp, std::vector<int32_t>& pred,
-                         std::vector<int32_t>& chainId);
+inline int32_t SisdCompareLte(const int32_t a, const int32_t b)
+{
+    /**
+     * Returns 0xFFFFFFFF if a <= b, 0x00000000 otherwise.
+    */
+    return (a - b - 1) >> 31;  // a <= b
+}
+inline int32_t SisdCompareLt(const int32_t a, const int32_t b)
+{
+    /**
+     * Returns 0xFFFFFFFF if a < b, 0x00000000 otherwise.
+    */
+    return (a - b) >> 31;  // a < b
+}
+inline int32_t SisdCompareGte(const int32_t a, const int32_t b)
+{
+    /**
+     * Returns 0xFFFFFFFF if a >= b, 0x00000000 otherwise.
+    */
+    return (b - a - 1) >> 31;  // a >= b
+}
+inline int32_t SisdCompareGt(const int32_t a, const int32_t b)
+{
+    /**
+     * Returns 0xFFFFFFFF if a > b, 0x00000000 otherwise.
+    */
+    return (b - a) >> 31;  // a > b
+}
 
-std::vector<ChainedHits> ChainHits(const SeedHit* hits, int32_t hits_size, int32_t chain_max_skip,
-                                   int32_t chain_max_predecessors, int32_t seed_join_dist,
-                                   int32_t diag_margin, int32_t min_num_seeds,
-                                   int32_t min_cov_bases, int32_t min_dp_score);
+inline uint32_t ilog2_32_clz_special_zero(const int32_t v)
+{
+    /**
+     * \brief This is a modified integer log2 function, it returns 0 when v == 0.
+     *          Of course, a proper mathematical log2 would return -inf, but this
+     *          special case is required for chaining.
+    */
+    const int32_t vNonZero = std::max(v, 1);
+    return (31 - __builtin_clz(vNonZero));
+}
+
+int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
+                         const int32_t chainMaxPredecessors, const int32_t seedJoinDist,
+                         const int32_t diagMargin, std::vector<int32_t>& dp,
+                         std::vector<int32_t>& pred, std::vector<int32_t>& chainId);
+
+int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
+                                 const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
+                                 const int32_t seedJoinDist, const int32_t diagMargin,
+                                 std::vector<int32_t>& dp, std::vector<int32_t>& pred,
+                                 std::vector<int32_t>& chainId);
+
+std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t hitsSize,
+                                            const int32_t* dp, const int32_t* pred,
+                                            const int32_t* chainId, const int32_t numChains,
+                                            const int32_t minNumSeeds, const int32_t minCovBases,
+                                            const int32_t minDPScore);
+
+std::vector<ChainedHits> ChainHitsSisd(const SeedHit* hits, const int32_t hitsSize,
+                                       const int32_t chainMaxSkip,
+                                       const int32_t chainMaxPredecessors,
+                                       const int32_t seedJoinDist, const int32_t diagMargin,
+                                       const int32_t minNumSeeds, const int32_t minCovBases,
+                                       const int32_t minDPScore, double& timeChaining,
+                                       double& timeBacktrack,
+                                       std::shared_ptr<ChainingScratchSpace> ss = nullptr);
 
 double ComputeChainDivergence(const std::vector<SeedHit>& hits);
 
-ChainedHits RefineChainedHits(const ChainedHits& chain, int32_t minGap, int32_t diffThreshold,
-                              int32_t maxForwardSeedDist, int32_t maxForwardSeedCount);
+ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
+                              const int32_t diffThreshold, const int32_t maxForwardSeedDist,
+                              const int32_t maxForwardSeedCount);
 
-ChainedHits RefineChainedHits2(const ChainedHits& chain, int32_t minGap,
-                               int32_t maxForwardSeedDist);
+ChainedHits RefineChainedHits2(const ChainedHits& chain, const int32_t minGap,
+                               const int32_t maxForwardSeedDist);
 
-ChainedHits RefineBadEnds(const ChainedHits& chain, int32_t bandwidth, int32_t minMatch);
+ChainedHits RefineBadEnds(const ChainedHits& chain, const int32_t bandwidth,
+                          const int32_t minMatch);
 
 std::vector<Range> GroupByTargetAndStrand(const std::vector<SeedHit>& sortedHits);
 
-std::vector<Range> DiagonalGroup(const std::vector<SeedHit>& sortedHits, int32_t chainBandwidth,
-                                 bool overlappingWindows);
+std::vector<Range> DiagonalGroup(const std::vector<SeedHit>& sortedHits,
+                                 const int32_t chainBandwidth, const bool overlappingWindows);
 
 }  // namespace Pancake
 }  // namespace PacBio

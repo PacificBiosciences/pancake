@@ -169,6 +169,7 @@ if not meson.is_subproject()
   install_headers(
     files([
       'pacbio/util/CommonTypes.h',
+      'pacbio/util/DebugTools.h',
       'pacbio/util/Conversion.h',
       'pacbio/util/FileIO.h',
       'pacbio/util/GenomicUnit.h',
@@ -184,6 +185,13 @@ if not meson.is_subproject()
         files([
           'pacbio/pancake/AlignerBatchGPU.h',
           'pacbio/pancake/MapperBatchGPU.h',
+          ]),
+          subdir : 'pacbio/pancake')
+  endif
+  if opt_sse41
+      install_headers(
+        files([
+            'pacbio/pancake/DPChainSimd.h',
           ]),
           subdir : 'pacbio/pancake')
   endif

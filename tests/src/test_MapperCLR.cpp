@@ -258,6 +258,7 @@ TEST(MapperCLR, CheckMappingAndSeedHits)
                 },
                 {
                     SeedHit(0, false, 37479, 5606, 26, 24, 0),
+                    SeedHit(0, false, 37480, 5607, 26, 24, 0),
                     SeedHit(0, false, 37486, 5612, 26, 25, 0),
                 },
             },
@@ -266,8 +267,6 @@ TEST(MapperCLR, CheckMappingAndSeedHits)
                 "000000000 000000000 568 67.66 0 6209 12358 43446 0 7261 13474 46238 *",
                 "000000000 000000000 188 71.66 0 5287 5940 43446 0 37146 37820 46238 *",
             },
-
-
         },
     };
     // clang-format on
@@ -311,8 +310,14 @@ TEST(MapperCLR, CheckMappingAndSeedHits)
             }
         }
 
+        std::vector<std::string> expectedMappingsSorted = data.expectedMappings;
+        std::sort(expectedMappingsSorted.begin(), expectedMappingsSorted.end());
+        std::sort(resultsMappings.begin(), resultsMappings.end());
+
+        std::sort(resultSeedHits.begin(), resultSeedHits.end());
+
         EXPECT_EQ(data.expectedSeedHits, resultSeedHits);
-        EXPECT_EQ(data.expectedMappings, resultsMappings);
+        EXPECT_EQ(expectedMappingsSorted, resultsMappings);
     }
 
     // exit(1);
@@ -929,7 +934,7 @@ TEST(MapperCLR, SeedOccurrenceThresholds_LoadFromFile)
             settingsMaxOcc1000,
             // Expected results.
             {
-                "000000000 000000000 17156 78.67 0 0 20128 22221 0 2366 22310 22331 *",
+                "000000000 000000000 17158 78.77 0 0 20128 22221 0 2366 22310 22331 *",
                 "000000000 000000000 -66 55.15 0 21722 21858 22221 0 850 951 22331 *",
             },
         },

@@ -90,8 +90,9 @@ void SeedDBWriter::WriteSeeds(const std::string& seqName, int32_t seqId, int32_t
     ++fileLines_.back().numSequences;
 
     // Write the actual sequences.
-    int64_t numWritten = fwrite(reinterpret_cast<const uint8_t*>(seeds.data()), sizeof(uint8_t),
-                                seeds.size() * 16, fpOutSeeds_.get());
+    const int64_t numWritten =
+        seeds.empty() ? 0 : fwrite(reinterpret_cast<const uint8_t*>(seeds.data()), sizeof(uint8_t),
+                                   seeds.size() * 16, fpOutSeeds_.get());
 
     // Sanity check.
     if (numWritten != numBytes) {

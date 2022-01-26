@@ -44,7 +44,7 @@ build-debug2:
 
 conf-debug2:
 	rm -rf "${CURRENT_DEBUG_BUILD_DIR_SANITIZE}"
-	bash -vex scripts/ci/configure_debug_sanitize_fallback.sh ${CURRENT_DEBUG_BUILD_DIR_SANITIZE}
+	ENABLED_SSE41=true ENABLED_TESTS=true CURRENT_BUILD_DIR="${CURRENT_DEBUG_BUILD_DIR_SANITIZE}" bash -vex scripts/ci/configure_debug_sanitize_fallback.sh
 
 debug2: conf-debug2 build-debug2
 

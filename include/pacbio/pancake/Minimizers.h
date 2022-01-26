@@ -130,22 +130,22 @@ bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedDB::
 
     for (int64_t seedId = 0; seedId < querySeedsSize; ++seedId) {
         const auto& querySeed = querySeeds[seedId];
-        auto decodedQuery = PacBio::Pancake::SeedDB::Seed(querySeed);
-        auto it = hash.find(decodedQuery.key);
+        const auto decodedQuery = PacBio::Pancake::SeedDB::Seed(querySeed);
+        const auto it = hash.find(decodedQuery.key);
         if (it != hash.end()) {
-            int64_t start = std::get<0>(it->second);
-            int64_t end = std::get<1>(it->second);
+            const int64_t start = std::get<0>(it->second);
+            const int64_t end = std::get<1>(it->second);
             // Skip very frequent seeds.
             if (freqCutoff > 0 && (end - start) > freqCutoff) {
                 continue;
             }
             for (int64_t i = start; i < end; ++i) {
-                auto decodedTarget = PacBio::Pancake::SeedDB::Seed(targetSeeds[i]);
-                bool isRev = false;
-                int32_t targetPos = decodedTarget.pos;  // Start position of the target kmer hit.
-                int32_t queryPos = decodedQuery.pos;    // Start position of the query kmer hit.
+                const auto decodedTarget = PacBio::Pancake::SeedDB::Seed(targetSeeds[i]);
+                const int32_t targetPos = decodedTarget.pos;
                 const int32_t querySpan = decodedQuery.span;
                 const int32_t targetSpan = decodedTarget.span;
+                bool isRev = false;
+                int32_t queryPos = decodedQuery.pos;
 
                 if (decodedQuery.IsRev() != decodedTarget.IsRev()) {
                     isRev = true;
@@ -161,7 +161,7 @@ bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedDB::
                             querySpan,
                             0};
 
-                hits.emplace_back(hit);
+                hits.emplace_back(std::move(hit));
             }
         }
     }

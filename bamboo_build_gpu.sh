@@ -2,16 +2,14 @@
 
 type module >& /dev/null || . /mnt/software/Modules/current/init/bash
 
-set -e
+set -vex
 
 ################
 # DEPENDENCIES #
 ################
 
 ## Load modules
-set +vx
 source scripts/ci/modules.sh
-set -vx
 
 export CC="ccache gcc"
 export CXX="ccache g++"
@@ -49,15 +47,6 @@ case "${bamboo_planRepository_branchName}" in
 esac
 
 ####################################
-# Get a custom Meson for CUDA.
-git clone https://github.com/SoapGentoo/meson.git -b cuda-fixes
-pushd meson
-ln -sf meson.py meson
-export PATH=$(pwd):$PATH
-popd
-
-module load python/3 ninja
-
 export ENABLED_GPU_CUDA="true"
 ####################################
 
@@ -66,10 +55,12 @@ export ENABLED_TESTS="true"
 export ENABLED_INTERNAL_TESTS="${bamboo_ENABLED_INTERNAL_TESTS}"
 # export LDFLAGS="-static-libstdc++ -static-libgcc"
 
+env
+
 source scripts/ci/configure_with_fallback.sh
 source scripts/ci/build.sh
 source scripts/ci/test.sh
- 
+
 echo "Not installing anything (branch: ${bamboo_planRepository_branchName}), exiting."
 
 # if [[ -z ${PREFIX_ARG+x} ]]; then

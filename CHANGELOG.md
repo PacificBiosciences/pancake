@@ -2,6 +2,17 @@
 
 ## Active version in development
 ### Changes
+
+## v1.5.0
+- LIS performance improvements.
+- Streamlined the SISD DP chaining procedure. Removed all but one branching in the inner loop.
+- Reusing the memory for SISD DP chaining in MapperCLR.
+- Implemented SSE4.1 DP Chaining. It's turned off by default, user needs to specify Meson option 'sse41' to compile this feature, otherwise the SISD version is used.
+- Improved sorting time in MapperCLR.
+
+## v1.4.1
+- Added a time profiling feature. Turned off by default. Enable by specifying the `-Dtime=true` Meson option, or the `PANCAKE_ENABLE_TIMINGS` macro.
+
 ## v1.4.0
  - Added a CLI option `--smart-hit-per-target` to the `ovl-hifi` subtool.  For a query/target pair, this labels supplementary and secondary overlaps for that pair only. It discards secondary alignments, but keeps all supplementary. These supplementary alignments all have to be on the same strand.
  - Added `dynamicBandwidth` boolean to `AlignmentParameters` that allows iterative KSW2 bandwidth exploration.

@@ -5,6 +5,7 @@ pancake_test_cpp_sources = files([
   'src/test_DPChain.cpp',
   'src/test_FastaSequenceCachedStore.cpp',
   'src/test_FileIO.cpp',
+  'src/test_LCS.cpp',
   'src/test_LIS.cpp',
   'src/test_MapperBatchCPU.cpp',
   'src/test_MapperCLR.cpp',
@@ -37,6 +38,11 @@ if opt_cuda
     pancake_test_cpp_sources += files([
       'src/test_AlignerBatchGPU.cpp',
       'src/test_MapperBatchGPU.cpp',
+    ])
+endif
+if opt_sse41
+    pancake_test_cpp_sources += files([
+        'src/test_DPChainSimd.cpp',
     ])
 endif
 
@@ -75,7 +81,7 @@ pancake_test = executable(
   dependencies : [pancake_gtest_dep] + pancake_lib_deps,
   include_directories : [pancake_include_directories, include_directories('include')],
   link_with : [pancake_lib],
-  cpp_args : pancake_warning_flags,
+  cpp_args : pancake_warning_flags + pancake_flags,
   install : false)
 
 #########
@@ -87,13 +93,13 @@ test(
   pancake_clang_formatter,
   args : [
     '--all'],
-  workdir : meson.source_root())
+  workdir : meson.project_source_root())
 
 test(
   'pancake gtest unittests',
   pancake_test,
   args : [
-    '--gtest_output=xml:' + join_paths(meson.build_root(), 'pancake-gtest-unittests.xml')],
+    '--gtest_output=xml:' + join_paths(meson.project_build_root(), 'pancake-gtest-unittests.xml')],
   env : [
     'ARGS=-V',
     'VERBOSE=1'])
@@ -102,11 +108,11 @@ test(
   'pancake cram test',
   pancake_cram_script,
   args : [
-    '--xunit-file=' + join_paths(meson.build_root(), 'pancake-cram-ccs.xml'),
+    '--xunit-file=' + join_paths(meson.project_build_root(), 'pancake-cram-ccs.xml'),
     '--keep-tmpdir',
     '--verbose'] +
     pancake_test_cram_sources,
   env : [
-    'BIN_DIR=' + join_paths(meson.build_root(), 'src'),
+    'BIN_DIR=' + join_paths(meson.project_build_root(), 'src'),
     'PROJECT_DIR=' + join_paths([meson.current_source_dir(), '..'])],
   timeout : 36000) # with '-O0 -g' tests can be *very* slow
