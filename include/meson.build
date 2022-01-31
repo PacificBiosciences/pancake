@@ -31,6 +31,8 @@ if not meson.is_subproject()
   # lib/istl
   install_headers(
     files([
+      'lib/istl/fenwick.hpp',
+      'lib/istl/lcs.hpp',
       'lib/istl/lis.hpp',
       'lib/istl/range_tools.hpp',
       ]),
