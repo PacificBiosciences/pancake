@@ -904,8 +904,9 @@ TEST(MapperCLR, SeedOccurrenceThresholds_LoadFromFile)
         // Do not filter seeds with occurrences lower than this. (Lower bound.)
         settings.map.seedOccurrenceMin = 100;
 
-        settings.map.maxGap = 10000;
-        settings.map.maxFlankExtensionDist = settings.map.maxGap;
+        settings.map.seedJoinDist = 10000;
+        settings.map.longMergeBandwidth = 10000;
+        settings.map.maxFlankExtensionDist = settings.map.seedJoinDist;
         settings.map.minAlignmentSpan = 200;
 
         settings.align.alnParamsGlobal.zdrop = 400;

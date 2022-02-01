@@ -64,7 +64,8 @@ public:
     int32_t chainMaxSkip = 25;
     int32_t chainMaxPredecessors = 500;
     int32_t chainBandwidth = 500;
-    int32_t maxGap = 10000;
+    int32_t seedJoinDist = 10000;           // Maximum distance in either query or target coordinates to chain neighboring seeds.
+    int32_t longMergeBandwidth = 10000;     // Maximum gap distance for chaining (abs(query_dist - target_dist)).
     int32_t minNumSeeds = 3;
     int32_t minCoveredBases = 0;
     int32_t minDPScore = 40;
@@ -115,7 +116,8 @@ inline std::ostream& operator<<(std::ostream& out, const MapperCLRMapSettings& a
     out << "chainMaxSkip = " << a.chainMaxSkip << "\n"
         << "chainMaxPredecessors = " << a.chainMaxPredecessors << "\n"
         << "chainBandwidth = " << a.chainBandwidth << "\n"
-        << "maxGap = " << a.maxGap << "\n"
+        << "seedJoinDist = " << a.seedJoinDist << "\n"
+        << "longMergeBandwidth = " << a.longMergeBandwidth << "\n"
         << "minNumSeeds = " << a.minNumSeeds << "\n"
         << "minCoveredBases = " << a.minCoveredBases << "\n"
         << "minDPScore = " << a.minDPScore << "\n"
@@ -336,9 +338,9 @@ private:
     static std::vector<std::unique_ptr<ChainedRegion>> ChainAndMakeOverlap_(
         const FastaSequenceCachedStore& targetSeqs, const std::vector<SeedHit>& hits,
         const std::vector<PacBio::Pancake::Range>& hitGroups, int32_t queryId, int32_t queryLen,
-        int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
-        int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore, bool useLIS,
-        std::shared_ptr<ChainingScratchSpace> ssChain,
+        int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t seedJoinDist,
+        int32_t chainBandwidth, int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
+        bool useLIS, std::shared_ptr<ChainingScratchSpace> ssChain,
         std::unordered_map<std::string, double>& retTimings);
 
     /*
@@ -349,8 +351,8 @@ private:
     static std::vector<std::unique_ptr<ChainedRegion>> ReChainSeedHits_(
         const std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
         const FastaSequenceCachedStore& targetSeqs, int32_t queryId, int32_t queryLen,
-        int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
-        int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
+        int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t seedJoinDist,
+        int32_t chainBandwidth, int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
         std::shared_ptr<ChainingScratchSpace> ssChain,
         std::unordered_map<std::string, double>& retTimings);
 
@@ -360,7 +362,7 @@ private:
      * The right of the two merged chained regions is set to nullptr.
     */
     static void LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
-                                 int32_t maxGap);
+                                 int32_t maxBandwidth);
 
     static std::vector<AlignmentRegion> CollectAlignmentRegions_(const ChainedRegion& singleMapping,
                                                                  int32_t minAlignmentSpan,
