@@ -10,7 +10,10 @@
 #ifndef PANCAKE_DP_CHAIN_H
 #define PANCAKE_DP_CHAIN_H
 
+#ifdef PANCAKE_USE_SSE41
 #include <emmintrin.h>
+#endif
+
 #include <pacbio/pancake/Range.h>
 #include <pacbio/pancake/SeedHit.h>
 #include <cstdint>
