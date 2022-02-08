@@ -463,7 +463,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     // Process each diagonal bin to get the chains.
     std::vector<std::unique_ptr<ChainedRegion>> allChainedRegions = ChainAndMakeOverlap_(
         targetSeqs, hits, groups, queryId, queryLen, settings.map.chainMaxSkip,
-        settings.map.chainMaxPredecessors, settings.map.maxGap, settings.map.chainBandwidth,
+        settings.map.chainMaxPredecessors, settings.map.seedJoinDist, settings.map.chainBandwidth,
         settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore,
         settings.map.useLIS, ssChain, result.time);
     DebugWriteChainedRegion(allChainedRegions, "1-chain-and-make-overlap", queryId, queryLen);
@@ -475,7 +475,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     // in low-complexity regions.
     allChainedRegions = ReChainSeedHits_(
         allChainedRegions, targetSeqs, queryId, queryLen, settings.map.chainMaxSkip,
-        settings.map.chainMaxPredecessors, settings.map.maxGap, settings.map.chainBandwidth,
+        settings.map.chainMaxPredecessors, settings.map.seedJoinDist, settings.map.chainBandwidth,
         settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore, ssChain,
         result.time);
     DebugWriteChainedRegion(allChainedRegions, "2-rechain-hits", queryId, queryLen);
@@ -494,7 +494,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     LogTicToc("map-L1-10-secondary", ttPartial, result.time);
 
     // Merge long gaps.
-    LongMergeChains_(allChainedRegions, settings.map.maxGap);
+    LongMergeChains_(allChainedRegions, settings.map.longMergeBandwidth);
     DebugWriteChainedRegion(allChainedRegions, "4-long-merge-chains", queryId, queryLen);
     LogTicToc("map-L1-11-longmerge", ttPartial, result.time);
 
@@ -536,8 +536,8 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
         ChainedHits newChain =
             RefineBadEnds(region->chain, settings.align.alnParamsGlobal.alignBandwidth,
                           settings.map.minDPScore * 2);
-        newChain = RefineChainedHits(newChain, 10, 40, settings.map.maxGap / 2, 10);
-        newChain = RefineChainedHits2(newChain, 30, settings.map.maxGap / 2);
+        newChain = RefineChainedHits(newChain, 10, 40, settings.map.seedJoinDist / 2, 10);
+        newChain = RefineChainedHits2(newChain, 30, settings.map.seedJoinDist / 2);
 
         std::swap(region->chain, newChain);
 
@@ -800,8 +800,8 @@ std::vector<AlignmentRegion> MapperCLR::CollectAlignmentRegions_(const ChainedRe
 std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
     const std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
     const FastaSequenceCachedStore& targetSeqs, int32_t queryId, int32_t queryLen,
-    int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
-    int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
+    int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t seedJoinDist,
+    int32_t chainBandwidth, int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
     std::shared_ptr<ChainingScratchSpace> ssChain,
     std::unordered_map<std::string, double>& retTimings)
 {
@@ -879,8 +879,8 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
         double timeChaining = 0.0, timeBacktrack = 0.0;
         std::vector<ChainedHits> chains =
             ChainHits(&hits2[group.start], group.end - group.start, chainMaxSkip,
-                      chainMaxPredecessors, maxGap, chainBandwidth, minNumSeeds, minCoveredBases,
-                      minDPScore, timeChaining, timeBacktrack, ssChain);
+                      chainMaxPredecessors, seedJoinDist, chainBandwidth, minNumSeeds,
+                      minCoveredBases, minDPScore, timeChaining, timeBacktrack, ssChain);
 
         double timeChainHits = ttPartial.GetMicrosecs(true);
         LogTicTocAdd("map-L2-rechain-03-chainhits", ttPartial, retTimings);
@@ -931,9 +931,9 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
 std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
     const FastaSequenceCachedStore& targetSeqs, const std::vector<SeedHit>& hits,
     const std::vector<PacBio::Pancake::Range>& hitGroups, int32_t queryId, int32_t queryLen,
-    int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t maxGap, int32_t chainBandwidth,
-    int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore, bool useLIS,
-    std::shared_ptr<ChainingScratchSpace> ssChain,
+    int32_t chainMaxSkip, int32_t chainMaxPredecessors, int32_t seedJoinDist,
+    int32_t chainBandwidth, int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
+    bool useLIS, std::shared_ptr<ChainingScratchSpace> ssChain,
     std::unordered_map<std::string, double>& retTimings)
 {
     TicToc ttPartial;
@@ -1010,8 +1010,8 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             // DP Chaining of the filtered hits to remove outliers.
             double timeChaining = 0.0, timeBacktrack = 0.0;
             chains = ChainHits(&lisHits[0], lisHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
-                               timeChaining, timeBacktrack, ssChain);
+                               seedJoinDist, chainBandwidth, minNumSeeds, minCoveredBases,
+                               minDPScore, timeChaining, timeBacktrack, ssChain);
 
             const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
@@ -1038,8 +1038,8 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
         } else {
             double timeChaining = 0.0, timeBacktrack = 0.0;
             chains = ChainHits(&groupHits[0], groupHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               maxGap, chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
-                               timeChaining, timeBacktrack, ssChain);
+                               seedJoinDist, chainBandwidth, minNumSeeds, minCoveredBases,
+                               minDPScore, timeChaining, timeBacktrack, ssChain);
 
             const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
@@ -1086,11 +1086,12 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 }
 
 void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
-                                 int32_t maxGap)
+                                 const int32_t maxBandwidth)
 {
-    if (maxGap < 0) {
-        throw std::runtime_error("(LongMergeChains_) maxGap cannot be negative. maxGap = " +
-                                 std::to_string(maxGap));
+    if (maxBandwidth < 0) {
+        throw std::runtime_error(
+            "(LongMergeChains_) maxBandwidth cannot be negative. maxBandwidth = " +
+            std::to_string(maxBandwidth));
     }
 
     if (chainedRegions.empty()) {
@@ -1138,7 +1139,7 @@ void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& ch
         const int32_t gap = std::abs((curr->mapping->Bstart - last->mapping->Bend) -
                                      (curr->mapping->Astart - last->mapping->Aend));
 
-        if (gap > maxGap) {
+        if (gap > maxBandwidth) {
             lastId = currId;
             continue;
         }
