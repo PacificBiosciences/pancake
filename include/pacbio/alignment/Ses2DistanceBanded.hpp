@@ -93,8 +93,8 @@ SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* ta
                 }
                 // clang-format on
             } else if (k == minK || (k != maxK && yp == maxY) || yc >= tlen) {
-                y = yp +
-                    1;  // Unlike 1986 paper, here we update y instead of x, so the +1 goes to the move to right (yp) instead of down (ym).
+                // Unlike 1986 paper, here we update y instead of x, so the +1 goes to the move to right (yp) instead of down (ym).
+                y = yp + 1;
                 // clang-format off
                 if constexpr (TRIM_MODE == SESTrimmingMode::Enabled) {
                     m = M[kz + 1];

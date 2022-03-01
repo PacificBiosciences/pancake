@@ -69,15 +69,15 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
     int32_t lastK = 0;
     int32_t lastD = 0;
     int32_t prevK = -1;
-    auto& WMatrix =
-        ss->v2;  // Traceback matrix, implemented as a flat vector. We track the start of each row with dStart.
-    auto& dStart =
-        ss->dStart;  // Start of each diff's row in the WMatrix vector. dStart[d] = <WMatrixPos, minK>,
+    // Traceback matrix, implemented as a flat vector. We track the start of each row with dStart.
+    auto& WMatrix = ss->v2;
+    // Start of each diff's row in the WMatrix vector. dStart[d] = <WMatrixPos, minK>,
     // where WMatrixPos is the index of the element in the WMatrix's flat vector where the row begins,
     // and minK is the banding related minimum K for the inner loop.
+    auto& dStart = ss->dStart;
     auto& alnPath = ss->alnPath;  // Alignment path during traceback.
-    int32_t WMatrixPos =
-        0;  // Tracks the current location in the WMatrix (which is implemented as a flat vector).
+    // Tracks the current location in the WMatrix (which is implemented as a flat vector).
+    int32_t WMatrixPos = 0;
 
     // A useless void cast to prevent the compiler from complaining
     // about unused variables when the constexpr if condition is not met.
@@ -177,8 +177,8 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
                 }
                 // clang-format on
             } else if (k == minK || (k != maxK && yp == maxY) || yc >= tlen) {
-                y = yp +
-                    1;  // Unlike 1986 paper, here we update y instead of x, so the +1 goes to the move to right (yp) instead of down (ym).
+                // Unlike 1986 paper, here we update y instead of x, so the +1 goes to the move to right (yp) instead of down (ym).
+                y = yp + 1;
                 // clang-format off
                 if constexpr (TRACEBACK == SESTracebackMode::Enabled) {
                     prevK = k + 1;
