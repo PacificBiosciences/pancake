@@ -194,7 +194,8 @@ TEST(Test_FileIO, ExpandInputFileList_SingleFofnAndOneNoncomposite)
 {
     // Input data which will be written and read.
     std::vector<std::string> inFiles = {
-        PacBio::PancakeTestsConfig::GeneratedData_Dir + "/test1.fofn", "test2.bam",
+        PacBio::PancakeTestsConfig::GeneratedData_Dir + "/test1.fofn",
+        "test2.bam",
     };
 
     std::vector<std::pair<PacBio::Pancake::SequenceFormat, std::string>> expected = {
@@ -228,7 +229,8 @@ TEST(Test_FileIO, ExpandInputFileList_CompositeMix)
     // Input data which will be written and read.
     std::vector<std::string> inFiles = {
         PacBio::PancakeTestsConfig::GeneratedData_Dir + "/test1.fofn",
-        PacBio::PancakeTestsConfig::GeneratedData_Dir + "/test2.fofn", "test4.bam",
+        PacBio::PancakeTestsConfig::GeneratedData_Dir + "/test2.fofn",
+        "test4.bam",
     };
 
     std::vector<std::pair<PacBio::Pancake::SequenceFormat, std::string>> expected = {
@@ -416,4 +418,4 @@ TEST(Test_FileIO, ExpandInputFileList_NoFofnJustXmlWithNoExpansionToBAM)
     // Verify.
     EXPECT_EQ(expected, results);
 }
-}
+}  // namespace FileIOTests

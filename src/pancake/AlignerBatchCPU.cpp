@@ -30,8 +30,7 @@ AlignerBatchCPU::AlignerBatchCPU(Parallel::FireAndForget* faf, const AlignerType
     , alnParamsGlobal_(alnParamsGlobal)
     , alnTypeExt_(alnTypeExt)
     , alnParamsExt_(alnParamsExt)
-{
-}
+{}
 
 AlignerBatchCPU::~AlignerBatchCPU()
 {

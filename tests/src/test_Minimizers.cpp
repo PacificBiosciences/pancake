@@ -664,7 +664,8 @@ TEST(GenerateMinimizers, FromStrings)
     const bool useHPC = false;
     const bool useRC = true;
     const std::vector<std::string> seqs = {
-        "AAAAAAAAAA", "AGCTTTTCATTCTGACTGCANNNACTNNNNNAGCTTTTCATTCTGACTGCA",
+        "AAAAAAAAAA",
+        "AGCTTTTCATTCTGACTGCANNNACTNNNNNAGCTTTTCATTCTGACTGCA",
     };
 
     // Helper function.

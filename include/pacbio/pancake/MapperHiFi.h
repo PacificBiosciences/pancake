@@ -34,8 +34,7 @@ class Mapper
 public:
     Mapper(const OverlapHifiSettings& settings)
         : settings_{settings}, sesScratch_{std::make_shared<Pancake::Alignment::SESScratchSpace>()}
-    {
-    }
+    {}
     ~Mapper() = default;
 
     /// \brief Maps a single query to a given set of targets. The targets

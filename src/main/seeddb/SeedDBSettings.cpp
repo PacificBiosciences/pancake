@@ -88,8 +88,7 @@ SeedDBSettings::SeedDBSettings(const PacBio::CLI_v2::Results& options)
                      options[SeedDBOptionNames::UseHPC],
                      options[SeedDBOptionNames::UseHPCForSeedsOnly],
                      !options[SeedDBOptionNames::NoRevCmp]}
-{
-}
+{}
 
 PacBio::CLI_v2::Interface SeedDBSettings::CreateCLI()
 {

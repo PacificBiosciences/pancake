@@ -102,8 +102,7 @@ public:
         , IsFlipped(_IsFlipped)
         , IsSupplementary(_IsSupplementary)
         , IsSecondary(_IsSecondary)
-    {
-    }
+    {}
 
     Overlap(int32_t _Aid, int32_t _Bid, float _Score, float _Identity, bool _Arev, int32_t _Astart,
             int32_t _Aend, int32_t _Alen, bool _Brev, int32_t _Bstart, int32_t _Bend, int32_t _Blen)
@@ -130,8 +129,7 @@ public:
         , IsFlipped(false)
         , IsSupplementary(false)
         , IsSecondary(false)
-    {
-    }
+    {}
 
 public:
     int32_t ASpan() const { return (Aend - Astart); }

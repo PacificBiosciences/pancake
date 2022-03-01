@@ -25,8 +25,8 @@ inline std::ostream& operator<<(std::ostream& os, const Point& a)
     os << "x = " << a.x << ", y = " << a.y;
     return os;
 }
-std::function<bool(const Point& a, const Point& b)> ComparisonLIS = [](
-    const Point& a, const Point& b) { return (a.x < b.x && a.y < b.y); };
+std::function<bool(const Point& a, const Point& b)> ComparisonLIS =
+    [](const Point& a, const Point& b) { return (a.x < b.x && a.y < b.y); };
 
 TEST(LIS, EmptyInput)
 {
@@ -85,7 +85,10 @@ TEST(LIS, SimpleTest2D)
     std::vector<Point> result = istl::LIS<Point>(data, 0, data.size(), ComparisonLIS);
 
     std::vector<Point> expected = {
-        {1, 1}, {2, 2}, {4, 4}, {5, 5},
+        {1, 1},
+        {2, 2},
+        {4, 4},
+        {5, 5},
     };
 
     ASSERT_EQ(expected, result);
@@ -141,7 +144,9 @@ TEST(LIS, RealTest2_TestMultiplePointsWithSameXCoordinate)
     std::vector<Point> result = istl::LIS<Point>(data, 0, data.size(), ComparisonLIS);
 
     std::vector<Point> expected = {
-        {29565, 11779}, {29577, 11791}, {29637, 11849},
+        {29565, 11779},
+        {29577, 11791},
+        {29637, 11849},
     };
 
     for (size_t i = 0; i < result.size(); ++i) {

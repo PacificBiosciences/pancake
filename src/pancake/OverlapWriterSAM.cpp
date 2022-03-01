@@ -7,8 +7,7 @@ namespace Pancake {
 
 OverlapWriterSAM::OverlapWriterSAM(FILE* fpOut, bool writeIds, bool writeCigar)
     : outFile_(""), fpOut_(fpOut), shouldClose_(false), writeIds_(writeIds), writeCigar_(writeCigar)
-{
-}
+{}
 
 OverlapWriterSAM::~OverlapWriterSAM()
 {

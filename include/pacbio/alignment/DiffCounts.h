@@ -22,8 +22,7 @@ public:
     DiffCounts() = default;
     DiffCounts(int32_t _numEq, int32_t _numX, int32_t _numI, int32_t _numD)
         : numEq(_numEq), numX(_numX), numI(_numI), numD(_numD)
-    {
-    }
+    {}
 
     void Clear() { numEq = numX = numI = numD = 0; }
 
@@ -78,8 +77,8 @@ inline std::ostream& operator<<(std::ostream& os, const DiffCounts& a)
        << ", numD = " << a.numD;
     return os;
 }
-}
-}
-}
+}  // namespace Alignment
+}  // namespace Pancake
+}  // namespace PacBio
 
 #endif  // PANCAKE_DIFF_COUNTS_H

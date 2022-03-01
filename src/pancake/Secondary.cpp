@@ -49,8 +49,9 @@ std::vector<OverlapPriority> FlagSecondaryAndSupplementary(std::vector<OverlapPt
     std::unordered_map<int32_t, IntervalTreeInt32> targetTrees;
 
     // Initial construction of the interval trees.
-    CreateRegionIntervalTrees(overlaps, priorities, [](int32_t a) { return a == 0; },
-                              queryIntervals, queryTrees, targetIntervals, targetTrees);
+    CreateRegionIntervalTrees(
+        overlaps, priorities, [](int32_t a) { return a == 0; }, queryIntervals, queryTrees,
+        targetIntervals, targetTrees);
 
     // Loop through all mappings, and check if they overlap the primary mappings and by how much.
     // If the overlap amount is below the specified fraction, mark the region as supplementary and

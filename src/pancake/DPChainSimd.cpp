@@ -432,7 +432,7 @@ std::vector<ChainedHits> ChainHitsSimd(
     const int32_t minNumSeeds, const int32_t minCovBases, const int32_t minDPScore,
     double& timeChaining, double& timeBacktrack, std::shared_ptr<ChainingScratchSpace> ss)
 {
-/**
+    /**
      * Hits need to be sorted in this order of priority:
      *      target_id, target_rev, target_pos, query_pos
     */

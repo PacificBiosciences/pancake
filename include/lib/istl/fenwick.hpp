@@ -75,6 +75,6 @@ private:
 private:
     std::vector<T> elements_;
 };
-}
+}  // namespace istl
 
 #endif

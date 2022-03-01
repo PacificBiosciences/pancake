@@ -15,6 +15,6 @@ enum class OverlapWriterFormat
     Unknown
 };
 }
-}
+}  // namespace PacBio
 
 #endif  // PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_FORMAT_H

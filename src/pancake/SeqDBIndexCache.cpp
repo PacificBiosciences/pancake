@@ -479,7 +479,7 @@ std::vector<ContiguousFilePart> GetSeqDBContiguousParts(
 std::vector<ContiguousFilePart> GetSeqDBContiguousParts(
     const std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& seqDBIndexCache,
     std::vector<int32_t> seqIdsToFetch  // Intentional copy, for sort.
-    )
+)
 {
     // Sort the sequences by their offset in the input File.
     std::sort(seqIdsToFetch.begin(), seqIdsToFetch.end(),

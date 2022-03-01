@@ -598,9 +598,8 @@ void ExtractVariantString(const char* query, int64_t queryLen, const char* targe
             // Check if the indel is exactly the same as preceding or following bases in
             // either query or target.
             if (maskSimpleRepeats && isMasked == false && op.Length() > 1) {
-                if (targetPos >= op.Length() &&
-                    strncmp(target + targetPos - op.Length(), target + targetPos, op.Length()) ==
-                        0) {
+                if (targetPos >= op.Length() && strncmp(target + targetPos - op.Length(),
+                                                        target + targetPos, op.Length()) == 0) {
                     isMasked = true;
                 } else if ((targetPos + 2 * op.Length()) <= targetLen &&
                            strncmp(target + targetPos, target + targetPos + op.Length(),
@@ -1060,12 +1059,12 @@ bool TrimCigar(const PacBio::BAM::Cigar& cigar, const int32_t windowSize, const 
     // Temporary storage until the end, so that we don't return partial results.
     TrimmingInfo trimInfo;
 
-    const auto ProcessCigarOp = [](
-        const PacBio::BAM::Cigar& _cigar, const int32_t opId, const int32_t _windowSize,
-        const int32_t _minMatches, const bool _clipOnFirstMatch,
-        std::array<std::pair<int32_t, int32_t>, 512>& buff, int32_t& buffStart, int32_t& buffEnd,
-        int32_t& matchCount, int32_t& foundOpId, int32_t& foundOpInternalId, int32_t& posQuery,
-        int32_t& posTarget) -> bool {
+    const auto ProcessCigarOp =
+        [](const PacBio::BAM::Cigar& _cigar, const int32_t opId, const int32_t _windowSize,
+           const int32_t _minMatches, const bool _clipOnFirstMatch,
+           std::array<std::pair<int32_t, int32_t>, 512>& buff, int32_t& buffStart, int32_t& buffEnd,
+           int32_t& matchCount, int32_t& foundOpId, int32_t& foundOpInternalId, int32_t& posQuery,
+           int32_t& posTarget) -> bool {
         /*
          * This function processes a single CIGAR operation and adds it to the circular buffer.
          * The circular buffer represents the window.

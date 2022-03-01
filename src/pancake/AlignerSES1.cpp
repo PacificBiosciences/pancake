@@ -15,8 +15,7 @@ std::shared_ptr<AlignerBase> CreateAlignerSES1(const AlignmentParameters& opt)
 
 AlignerSES1::AlignerSES1(const AlignmentParameters& opt)
     : opt_(opt), sesScratch_{std::make_shared<Pancake::Alignment::SESScratchSpace>()}
-{
-}
+{}
 
 AlignerSES1::~AlignerSES1() {}
 

@@ -21,11 +21,11 @@ namespace istl {
  * The first template class Q is the atomic data type.
  * The second template class T is an iterable container of atomic types, std::vector by default.
 */
-template<class Q, class T = std::vector<Q>>
-std::vector<std::pair<size_t, size_t>> FindRanges(const T& data, std::function<bool(const Q& a,
-                                      const Q& b)> comp_eq =
-                                      [](const Q& a, const Q& b)
-                                      { return a == b; } ) {
+template <class Q, class T = std::vector<Q>>
+std::vector<std::pair<size_t, size_t>> FindRanges(
+    const T& data, std::function<bool(const Q& a, const Q& b)> comp_eq =
+                       [](const Q& a, const Q& b) { return a == b; })
+{
 
     std::vector<std::pair<size_t, size_t>> ret;
     if (data.empty()) {
@@ -36,16 +36,15 @@ std::vector<std::pair<size_t, size_t>> FindRanges(const T& data, std::function<b
         if (comp_eq(data[pos], data[pos - 1])) {
             continue;
         }
-        ret.emplace_back(std::make_pair(prevEnd, pos));
+        ret.emplace_back(prevEnd, pos);
         prevEnd = pos;
     }
     if (prevEnd != data.size()) {
-        ret.emplace_back(std::make_pair(prevEnd, data.size()));
+        ret.emplace_back(prevEnd, data.size());
     }
     return ret;
 }
 
-}
+}  // namespace istl
 
 #endif
-

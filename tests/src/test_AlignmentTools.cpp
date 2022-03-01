@@ -1357,4 +1357,4 @@ TEST(Test_AlignmentTools_CheckAlignmentOutOfBand, ArrayOfTests)
         EXPECT_EQ(data.expected, result);
     }
 }
-}
+}  // namespace AlignmentToolsTests

@@ -53,11 +53,23 @@ TEST(Test_RunLengthEncoding, SimpleTestCase)
 
 TEST(Test_RunLengthEncoding, SeveralTestCases_From_in_2_small_fasta)
 {
+    //clang-format off
     std::vector<std::tuple<std::string, std::string, std::vector<int32_t>>> testSets = {
         {"ATCGGTTCAGGCCGCG",
          "ATCGTCAGCGCG",
          {
-             1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1,
+             1,
+             1,
+             1,
+             2,
+             2,
+             1,
+             1,
+             2,
+             2,
+             1,
+             1,
+             1,
          }},
         {"AGCCGCCAGCAGAACAATACCGAATAATGCCA",
          "AGCGCAGCAGACATACGATATGCA",
@@ -69,6 +81,7 @@ TEST(Test_RunLengthEncoding, SeveralTestCases_From_in_2_small_fasta)
          {1, 1, 2, 1, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2,
           1, 1, 1, 4, 1, 1, 1, 2, 1, 1, 2, 2, 3, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2}},
     };
+    //clang-format onf
 
     for (const auto& singleTest : testSets) {
         const auto& input = std::get<0>(singleTest);
@@ -102,4 +115,4 @@ TEST(Test_RunLengthEncoding, SimpleTestCase_WithCoords)
     EXPECT_EQ(expectedSeqToHPC, resultSeqToHPCCoords);
     EXPECT_EQ(expectedHPCToSeq, resultHPCToSeqCoords);
 }
-}
+}  // namespace RLECompressTests

@@ -36,8 +36,7 @@ public:
         , targetSpan(_targetSpan)
         , querySpan(_querySpan)
         , flags(_flags)
-    {
-    }
+    {}
 
     PacBio::Pancake::Int128t PackTo128() const
     {

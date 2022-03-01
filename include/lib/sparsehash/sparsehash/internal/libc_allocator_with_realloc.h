@@ -76,8 +76,7 @@ public:
 
     template <class U>
     libc_allocator_with_realloc(const libc_allocator_with_realloc<U>&)
-    {
-    }
+    {}
 
     template <class U>
     struct rebind

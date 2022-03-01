@@ -24,8 +24,8 @@ enum class SESTrimmingMode
     Disabled,
     Enabled,
 };
-}
-}
-}
+}  // namespace Alignment
+}  // namespace Pancake
+}  // namespace PacBio
 
 #endif  // PANCAKE_ALIGNMENT_SES_OPTIONS_H

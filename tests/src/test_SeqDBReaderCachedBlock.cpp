@@ -488,7 +488,10 @@ B	1	4	5	4751	19001
     // Expected.
     // Tuple: (file_id, startOffset, endOffset, startId, endId, file_offset_end)
     const std::vector<PacBio::Pancake::ContiguousFilePart> expected = {
-        {0, 0, 1463, {0}}, {1, 0, 2996, {1}}, {2, 0, 6073, {2}}, {3, 0, 1277, {3}},
+        {0, 0, 1463, {0}},
+        {1, 0, 2996, {1}},
+        {2, 0, 6073, {2}},
+        {3, 0, 1277, {3}},
     };
 
     // Load the SeedDB.

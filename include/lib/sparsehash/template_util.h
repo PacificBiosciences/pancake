@@ -114,27 +114,23 @@ struct if_<false, A, B>
 // It is functionally identical, but is_same is the standard spelling.
 template <typename A, typename B>
 struct type_equals_ : public false_
-{
-};
+{};
 
 template <typename A>
 struct type_equals_<A, A> : public true_
-{
-};
+{};
 
 // and_ is a template && operator.
 // and_<A, B>::value evaluates "A::value && B::value".
 template <typename A, typename B>
 struct and_ : public integral_constant<bool, (A::value && B::value)>
-{
-};
+{};
 
 // or_ is a template || operator.
 // or_<A, B>::value evaluates "A::value || B::value".
 template <typename A, typename B>
 struct or_ : public integral_constant<bool, (A::value || B::value)>
-{
-};
+{};
 
 _END_GOOGLE_NAMESPACE_
 

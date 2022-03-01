@@ -14,6 +14,6 @@ namespace Pancake {
 std::unique_ptr<OverlapWriterBase> OverlapWriterFactory(OverlapWriterFormat writerType, FILE* fpOut,
                                                         bool writeIds, bool writeCigar);
 }
-}
+}  // namespace PacBio
 
 #endif  // PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_FACTORY_H

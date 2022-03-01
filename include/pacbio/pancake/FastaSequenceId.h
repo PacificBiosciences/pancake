@@ -69,7 +69,7 @@ private:
     int64_t id_;
 };
 
-}  // namespace BAM
+}  // namespace Pancake
 }  // namespace PacBio
 
 #endif  // FASTASEQUENCE_H

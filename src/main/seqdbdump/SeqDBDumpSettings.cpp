@@ -55,8 +55,7 @@ SeqDBDumpSettings::SeqDBDumpSettings(const PacBio::CLI_v2::Results& options)
     , BlockId(options[SeqDBDumpOptionNames::BlockId])
     , WriteIds(options[SeqDBDumpOptionNames::WriteIds])
     , UseHPC(options[SeqDBDumpOptionNames::UseHPC])
-{
-}
+{}
 
 PacBio::CLI_v2::Interface SeqDBDumpSettings::CreateCLI()
 {

@@ -19,7 +19,7 @@ namespace Alignment {
 SesResults SESDistanceBanded(const char* query, size_t queryLen, const char* target,
                              size_t targetLen, int32_t maxDiffs, int32_t bandwidth);
 }
-}
-}
+}  // namespace Pancake
+}  // namespace PacBio
 
 #endif  // PANCAKE_ALIGNMENT_SES_DISTANCE_BANDED_H

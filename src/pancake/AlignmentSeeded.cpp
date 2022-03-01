@@ -80,16 +80,18 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         // Sanity check that the first hit matches the strand specified via function call.
         if (h1.targetRev != isRev) {
             std::ostringstream oss;
-            oss << "[" << __FUNCTION__ << "] Hit strand does not match the strand specified as the "
-                                          "parameter to this function. First hit: "
+            oss << "[" << __FUNCTION__
+                << "] Hit strand does not match the strand specified as the "
+                   "parameter to this function. First hit: "
                 << h1;
             throw std::runtime_error(oss.str());
         }
         // Sanity check that the seed hit itself is valid.
         if ((h1.queryPos + h1.querySpan) > qLen || (h1.targetPos + h1.targetSpan) > tLen) {
             std::ostringstream oss;
-            oss << "[" << __FUNCTION__ << "] Seed hit coordinates/span are not valid, they span "
-                                          "out of the bounds of query or target. First hit: "
+            oss << "[" << __FUNCTION__
+                << "] Seed hit coordinates/span are not valid, they span "
+                   "out of the bounds of query or target. First hit: "
                 << h1;
             throw std::runtime_error(oss.str());
         }
@@ -116,24 +118,27 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         // Sanity check that the seed hit has the same strand as the specified via function arguments.
         if (h1.targetRev != isRev) {
             std::ostringstream oss;
-            oss << "[" << __FUNCTION__ << "] Hit strand does not match the strand specified as the "
-                                          "parameter to this function. Current hit (i = "
+            oss << "[" << __FUNCTION__
+                << "] Hit strand does not match the strand specified as the "
+                   "parameter to this function. Current hit (i = "
                 << i << "): " << h2;
             throw std::runtime_error(oss.str());
         }
         // Sanity check that the coordinates are valid.
         if (h2.targetPos < hPrev.targetPos || h2.queryPos < hPrev.queryPos) {
             std::ostringstream oss;
-            oss << "[" << __FUNCTION__ << "] The chain of seed hits is not monotonically "
-                                          "increasing in terms of coordinates. Previous hit: "
+            oss << "[" << __FUNCTION__
+                << "] The chain of seed hits is not monotonically "
+                   "increasing in terms of coordinates. Previous hit: "
                 << hPrev << ". Current hit (i = " << i << "): " << h2;
             throw std::runtime_error(oss.str());
         }
         // Sanity check that the seed hit itself is valid.
         if ((h2.queryPos + h2.querySpan) > qLen || (h2.targetPos + h2.targetSpan) > tLen) {
             std::ostringstream oss;
-            oss << "[" << __FUNCTION__ << "] Seed hit coordinates/span are not valid, they span "
-                                          "out of the bounds of query or target. Current hit (i = "
+            oss << "[" << __FUNCTION__
+                << "] Seed hit coordinates/span are not valid, they span "
+                   "out of the bounds of query or target. Current hit (i = "
                 << i << "): " << h2;
             throw std::runtime_error(oss.str());
         }

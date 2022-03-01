@@ -21,7 +21,6 @@
 #include <cassert>
 #include <cstdint>
 #include <functional>
-#include <functional>
 #include <vector>
 #include "fenwick.hpp"
 
@@ -70,7 +69,7 @@ std::vector<T> LCSkCore(const std::vector<std::pair<T, T>>& points, const int k)
     int32_t bestIdx = 0;
     int32_t lcsLen = 0;
     for (const auto& event : events) {
-        const auto & [ i, j, rawIdx ] = event;
+        const auto& [i, j, rawIdx] = event;
         const int32_t idx = (rawIdx >= numMatches) ? (rawIdx - numMatches) : rawIdx;
         const bool isBeginning = rawIdx >= numMatches;
 
@@ -128,6 +127,6 @@ std::vector<int32_t> LCSkIndices(const std::vector<std::pair<T, T>>& points, con
 {
     return LCSkCore(points, k);
 }
-}
+}  // namespace istl
 
 #endif

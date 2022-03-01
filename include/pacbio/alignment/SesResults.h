@@ -63,8 +63,7 @@ public:
         , lastTargetPos(_lastTargetPos)
         , numDiffs(_diffs)
         , valid(_valid)
-    {
-    }
+    {}
     SesResults(int32_t _lastQueryPos, int32_t _lastTargetPos, int32_t _diffs, int32_t _numEq,
                int32_t _numX, int32_t _numI, int32_t _numD, bool _valid,
                const PacBio::BAM::Cigar& _cigar)
@@ -74,8 +73,7 @@ public:
         , numDiffs(_diffs)
         , valid(_valid)
         , cigar(_cigar)
-    {
-    }
+    {}
     SesResults(int32_t _lastQueryPos, int32_t _lastTargetPos, DiffCounts _diffCounts, bool _valid,
                const PacBio::BAM::Cigar& _cigar)
         : lastQueryPos(_lastQueryPos)
@@ -84,8 +82,7 @@ public:
         , numDiffs(_diffCounts.NumDiffs())
         , valid(_valid)
         , cigar(_cigar)
-    {
-    }
+    {}
 
     bool operator==(const SesResults& b) const
     {
@@ -104,8 +101,8 @@ inline std::ostream& operator<<(std::ostream& os, const SesResults& a)
        << a.cigar.ToStdString() << "'";
     return os;
 }
-}
-}
-}
+}  // namespace Alignment
+}  // namespace Pancake
+}  // namespace PacBio
 
 #endif  // PANCAKE_ALIGNMENT_SES_RESULTS_H

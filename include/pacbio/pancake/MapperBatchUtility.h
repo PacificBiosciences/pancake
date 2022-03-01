@@ -80,8 +80,7 @@ public:
         : ordinalBatchId(_ordinalBatchId)
         , ordinalQueryId(_ordinalQueryId)
         , ordinalMapId(_ordinalMapId)
-    {
-    }
+    {}
 
     std::vector<AlignmentStitchPart> parts;
     int32_t ordinalBatchId = -1;

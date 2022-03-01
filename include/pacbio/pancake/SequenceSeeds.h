@@ -97,7 +97,7 @@ private:
     int64_t id_;
 };
 
-}  // namespace BAM
+}  // namespace Pancake
 }  // namespace PacBio
 
 #endif  // PANCAKE_SEQUENCE_SEEDS_H

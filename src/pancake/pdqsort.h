@@ -60,16 +60,13 @@ enum
 #if __cplusplus >= 201103L
 template <class T>
 struct is_default_compare : std::false_type
-{
-};
+{};
 template <class T>
 struct is_default_compare<std::less<T>> : std::true_type
-{
-};
+{};
 template <class T>
 struct is_default_compare<std::greater<T>> : std::true_type
-{
-};
+{};
 #endif
 
 // Returns floor(log2(n)), assumes n > 0.
@@ -566,7 +563,7 @@ inline void pdqsort_loop(Iter begin, Iter end, Compare comp, int bad_allowed, bo
         leftmost = false;
     }
 }
-}
+}  // namespace pdqsort_detail
 
 template <class Iter, class Compare>
 inline void pdqsort(Iter begin, Iter end, Compare comp)

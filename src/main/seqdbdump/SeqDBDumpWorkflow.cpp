@@ -52,8 +52,8 @@ int SeqDBDumpWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     // Sanity check.
     const int32_t numBlocks = seqDBCache->blockLines.size();
     if (settings.BlockId >= numBlocks) {
-        throw std::runtime_error("Specified block ID is too large, numBlocks = " +
-                                 std::to_string(numBlocks) + ".");
+        throw std::runtime_error(
+            "Specified block ID is too large, numBlocks = " + std::to_string(numBlocks) + ".");
     }
 
     // Open up a reader.
