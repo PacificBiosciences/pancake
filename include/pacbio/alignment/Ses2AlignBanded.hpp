@@ -22,9 +22,9 @@ namespace Pancake {
 namespace Alignment {
 
 template <SESAlignMode ALIGN_MODE, SESTrimmingMode TRIM_MODE, SESTracebackMode TRACEBACK>
-SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* target,
-                              size_t targetLen, int32_t maxDiffs, int32_t bandwidth,
-                          std::shared_ptr<SESScratchSpace> ss = nullptr)
+SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* target, size_t targetLen,
+                           int32_t maxDiffs, int32_t bandwidth,
+                           std::shared_ptr<SESScratchSpace> ss = nullptr)
 {
     SesResults ret;
 
@@ -49,11 +49,11 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
     const int32_t rowLen = (2 * maxAllowedDiffs + 3);
 
     // Working space for regular alignment (without traceback).
-    auto& W = ss->v;                                        // Y for a diagonal k. 'W' is taken from the pseudocode. Working row.
+    auto& W = ss->v;  // Y for a diagonal k. 'W' is taken from the pseudocode. Working row.
 
     // Trimming related options.
-    std::vector<uint64_t> B;                                // Bitmask for trimming.
-    std::vector<int32_t> M;                                 // Match count.
+    std::vector<uint64_t> B;  // Bitmask for trimming.
+    std::vector<int32_t> M;   // Match count.
     uint64_t b = 0;
     int32_t m = 0;
     const uint64_t C = 60;
@@ -69,12 +69,16 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
     int32_t lastK = 0;
     int32_t lastD = 0;
     int32_t prevK = -1;
-    auto& WMatrix = ss->v2;         // Traceback matrix, implemented as a flat vector. We track the start of each row with dStart.
-    auto& dStart = ss->dStart;      // Start of each diff's row in the WMatrix vector. dStart[d] = <WMatrixPos, minK>,
-                                    // where WMatrixPos is the index of the element in the WMatrix's flat vector where the row begins,
-                                    // and minK is the banding related minimum K for the inner loop.
-    auto& alnPath = ss->alnPath;    // Alignment path during traceback.
-    int32_t WMatrixPos = 0;         // Tracks the current location in the WMatrix (which is implemented as a flat vector).
+    // Traceback matrix, implemented as a flat vector. We track the start of each row with dStart.
+    auto& WMatrix = ss->v2;
+    // Start of each diff's row in the WMatrix vector. dStart[d] = <WMatrixPos, minK>,
+    // where WMatrixPos is the index of the element in the WMatrix's flat vector where the row begins,
+    // and minK is the banding related minimum K for the inner loop.
+    auto& dStart = ss->dStart;
+    // Alignment path during traceback.
+    auto& alnPath = ss->alnPath;
+    // Tracks the current location in the WMatrix (which is implemented as a flat vector).
+    int32_t WMatrixPos = 0;
 
     // A useless void cast to prevent the compiler from complaining
     // about unused variables when the constexpr if condition is not met.
@@ -155,7 +159,8 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
             int32_t maxY = std::max(yc, std::max(ym, yp));
 
 #ifdef SES2_DEBUG
-            std::cerr << "[d = " << d << ", k = " << k << "] ym = " << ym << ", yc = " << yc << ", yp = " << yp << ", maxY = " << maxY;
+            std::cerr << "[d = " << d << ", k = " << k << "] ym = " << ym << ", yc = " << yc
+                      << ", yp = " << yp << ", maxY = " << maxY;
 #endif
 
             if (yc == maxY && yc < tlen) {
@@ -173,7 +178,8 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
                 }
                 // clang-format on
             } else if (k == minK || (k != maxK && yp == maxY) || yc >= tlen) {
-                y = yp + 1; // Unlike 1986 paper, here we update y instead of x, so the +1 goes to the move to right (yp) instead of down (ym).
+                // Unlike 1986 paper, here we update y instead of x, so the +1 goes to the move to right (yp) instead of down (ym).
+                y = yp + 1;
                 // clang-format off
                 if constexpr (TRACEBACK == SESTracebackMode::Enabled) {
                     prevK = k + 1;
@@ -229,7 +235,7 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
             y += moves;
             x += moves;
             W[kz] = y;
-            u[kz] = y + k + y; // x + y = 2*y + k
+            u[kz] = y + k + y;  // x + y = 2*y + k
 
             // clang-format off
             if constexpr (TRACEBACK == SESTracebackMode::Enabled) {
@@ -252,7 +258,8 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
             }
 
 #ifdef SES2_DEBUG
-            std::cerr << "; x2 = " << x << ", y2 = " << y << ", u[kz] = " << u[kz] << ", lastK = " << lastK << ", lastD = " << lastD;
+            std::cerr << "; x2 = " << x << ", y2 = " << y << ", u[kz] = " << u[kz]
+                      << ", lastK = " << lastK << ", lastD = " << lastD;
             std::cerr << "\n";
 #endif
 
@@ -288,8 +295,6 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
         minK = newMinK - 1;
         maxK = newMaxK + 1;
     }
-
-
 
     // clang-format off
     if constexpr (TRACEBACK == SESTracebackMode::Enabled) {
@@ -397,8 +402,8 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
 
     return ret;
 }
-}
-}
-}
+}  // namespace Alignment
+}  // namespace Pancake
+}  // namespace PacBio
 
 #endif  // PANCAKE_ALIGNMENT_SES2_ALIGN_BANDED_H

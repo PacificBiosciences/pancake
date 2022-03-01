@@ -50,8 +50,7 @@ public:
         , seqID(DecodeSeqId(codedKeypos))
         , seqRev(DecodeIsRev(codedKeypos))
         , pos(DecodePos(codedKeypos))
-    {
-    }
+    {}
 
     bool IsRev() const { return seqRev; }
 

@@ -91,6 +91,6 @@ SesResults SESDistanceBanded(const char* query, size_t queryLen, const char* tar
 
     return ret;
 }
-}
-}
-}
+}  // namespace Alignment
+}  // namespace Pancake
+}  // namespace PacBio

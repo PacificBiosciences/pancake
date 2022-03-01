@@ -59,8 +59,7 @@ MapperBatchGPU::MapperBatchGPU(const MapperCLRAlignSettings& alignSettings,
     , fafFallback_(nullptr)
     , aligner_{std::make_unique<AlignerBatchGPU>(alignSettings.alnParamsGlobal, gpuStartBandwidth,
                                                  gpuDeviceId, gpuMemoryBytes)}
-{
-}
+{}
 
 MapperBatchGPU::~MapperBatchGPU()
 {

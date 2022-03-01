@@ -155,6 +155,6 @@ inline void radix_sort(RandomIt s, RandomIt e)
     typename std::iterator_traits<RandomIt>::value_type* dummy(0);
     radix_sort_entry_(s, e, dummy);
 }
-}
+}  // namespace kx
 
 #endif

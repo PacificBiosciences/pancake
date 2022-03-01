@@ -45,7 +45,10 @@ TEST(LCS, SimpleTest2D)
     std::vector<std::pair<int32_t, int32_t>> result = istl::LCSk<int32_t>(data, 1);
 
     std::vector<std::pair<int32_t, int32_t>> expected = {
-        {1, 1}, {2, 2}, {4, 4}, {5, 5},
+        {1, 1},
+        {2, 2},
+        {4, 4},
+        {5, 5},
     };
 
     ASSERT_EQ(expected, result);
@@ -104,7 +107,9 @@ TEST(LCS, RealTest2_TestMultiplePointsWithSameXCoordinate)
     std::vector<std::pair<int32_t, int32_t>> result = istl::LCSk<int32_t>(data, 1);
 
     std::vector<std::pair<int32_t, int32_t>> expected = {
-        {29565, 11779}, {29577, 11791}, {29637, 11849},
+        {29565, 11779},
+        {29577, 11791},
+        {29637, 11849},
     };
 
     ASSERT_EQ(expected, result);

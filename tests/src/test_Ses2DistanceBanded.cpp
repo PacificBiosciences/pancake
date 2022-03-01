@@ -299,4 +299,4 @@ TEST(Ses2DistanceBanded, Global_AllTests)
 }  // namespace Test
 }  // namespace Alignment
 }  // namespace Pancake
-}  // namespace Pacbio
+}  // namespace PacBio

@@ -105,12 +105,12 @@
 _START_GOOGLE_NAMESPACE_
 
 namespace base {  // just to make google->opensource transition easier
-using GOOGLE_NAMESPACE::true_type;
 using GOOGLE_NAMESPACE::false_type;
 using GOOGLE_NAMESPACE::integral_constant;
 using GOOGLE_NAMESPACE::is_same;
 using GOOGLE_NAMESPACE::remove_const;
-}
+using GOOGLE_NAMESPACE::true_type;
+}  // namespace base
 
 // The probing method
 // Linear probing
@@ -1268,8 +1268,7 @@ private:
         typedef typename alloc_impl<value_alloc_type>::value_type value_type;
 
         ValInfo(const alloc_impl<value_alloc_type>& a) : alloc_impl<value_alloc_type>(a), emptyval()
-        {
-        }
+        {}
         ValInfo(const ValInfo& v) : alloc_impl<value_alloc_type>(v), emptyval(v.emptyval) {}
 
         value_type emptyval;  // which key marks unused entries
@@ -1286,8 +1285,7 @@ private:
             : sparsehash_internal::sh_hashtable_settings<key_type, hasher, size_type,
                                                          HT_MIN_BUCKETS>(
                   hf, HT_OCCUPANCY_PCT / 100.0f, HT_EMPTY_PCT / 100.0f)
-        {
-        }
+        {}
     };
 
     // Packages ExtractKey and SetKey functors.
@@ -1296,8 +1294,7 @@ private:
     public:
         KeyInfo(const ExtractKey& ek, const SetKey& sk, const EqualKey& eq)
             : ExtractKey(ek), SetKey(sk), EqualKey(eq)
-        {
-        }
+        {}
 
         // We want to return the exact same type as ExtractKey: Key or const Key&
         typename ExtractKey::result_type get_key(const_reference v) const

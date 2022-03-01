@@ -447,11 +447,11 @@ std::vector<OverlapPtr> Mapper::FormAnchors2_(
         return {};
     }
 
-    auto WrapMakeOverlap = [](
-        const std::vector<SeedHit>& _sortedHits, const int32_t beginId, const int32_t endId,
-        const PacBio::Pancake::FastaSequenceCached& _querySeq,
-        const PacBio::Pancake::FastaSequenceCachedStore& _targetSeqs, int32_t _chainBandwidth,
-        int32_t kmerSize, int32_t _minMatch) -> OverlapPtr {
+    const auto WrapMakeOverlap =
+        [](const std::vector<SeedHit>& _sortedHits, const int32_t beginId, const int32_t endId,
+           const PacBio::Pancake::FastaSequenceCached& _querySeq,
+           const PacBio::Pancake::FastaSequenceCachedStore& _targetSeqs, int32_t _chainBandwidth,
+           int32_t kmerSize, int32_t _minMatch) -> OverlapPtr {
         if (endId <= beginId) {
             return nullptr;
         }
@@ -672,9 +672,8 @@ std::vector<OverlapPtr> Mapper::FilterTandemOverlaps_(const std::vector<OverlapP
 
     // Sort by length.
     std::sort(overlaps_copy.begin(), overlaps_copy.end(), [](const auto& a, const auto& b) {
-        return a->Bid < b->Bid ||
-               (a->Bid == b->Bid &&
-                std::max(a->ASpan(), a->BSpan()) > std::max(b->ASpan(), b->BSpan()));
+        return a->Bid < b->Bid || (a->Bid == b->Bid && std::max(a->ASpan(), a->BSpan()) >
+                                                           std::max(b->ASpan(), b->BSpan()));
     });
 
     // Accumulate the results.
@@ -706,9 +705,8 @@ std::vector<OverlapPtr> Mapper::FilterTandemOverlapsSmart_(
 
     // Sort by length.
     std::sort(ovlCopy.begin(), ovlCopy.end(), [](const auto& a, const auto& b) {
-        return a->Bid < b->Bid ||
-               (a->Bid == b->Bid &&
-                std::max(a->ASpan(), a->BSpan()) > std::max(b->ASpan(), b->BSpan()));
+        return a->Bid < b->Bid || (a->Bid == b->Bid && std::max(a->ASpan(), a->BSpan()) >
+                                                           std::max(b->ASpan(), b->BSpan()));
     });
 
     std::vector<std::pair<size_t, size_t>> ranges = istl::FindRanges<OverlapPtr>(
@@ -716,8 +714,7 @@ std::vector<OverlapPtr> Mapper::FilterTandemOverlapsSmart_(
 
     // Filter.
     std::vector<OverlapPtr> ret;
-    for (const auto& range : ranges) {
-        const auto[start, end] = range;
+    for (const auto& [start, end] : ranges) {
         if (end < start) {
             assert(false);
             continue;

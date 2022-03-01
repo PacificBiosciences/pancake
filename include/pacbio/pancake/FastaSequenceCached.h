@@ -21,8 +21,7 @@ public:
 
     FastaSequenceCached(std::string _name, const char* _bases, int64_t _size, int32_t _id)
         : name_(std::move(_name)), bases_(_bases), size_(_size), id_(_id)
-    {
-    }
+    {}
 
     // Getters.
     const std::string& Name() const { return name_; }

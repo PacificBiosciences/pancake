@@ -250,7 +250,7 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
 
             ++numProcessed;
         }
-// clang-format on
+        // clang-format on
 
 #ifdef DPCHAIN_SISD_DEBUG
         std::cerr << "\n";
@@ -382,7 +382,7 @@ std::vector<ChainedHits> ChainHitsSisd(
     const int32_t minNumSeeds, const int32_t minCovBases, const int32_t minDPScore,
     double& timeChaining, double& timeBacktrack, std::shared_ptr<ChainingScratchSpace> ss)
 {
-/**
+    /**
      * Hits need to be sorted in this order of priority:
      *      target_id, target_rev, target_pos, query_pos
     */

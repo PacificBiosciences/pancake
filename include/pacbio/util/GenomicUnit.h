@@ -75,8 +75,7 @@ class GenomicUnitFromTo
 public:
     GenomicUnitFromTo(GenomicUnit fromUnit, GenomicUnit toUnit)
         : conversionFactor_(GenomicUnitToDouble(fromUnit) / GenomicUnitToDouble(toUnit))
-    {
-    }
+    {}
     double Convert(double fromValue) { return fromValue * conversionFactor_; }
     double conversionFactor() const { return conversionFactor_; }
 

@@ -39,9 +39,9 @@ SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* ta
     const int32_t tlen = targetLen;
     const int32_t zero_offset = maxAllowedDiffs + 1;
     const int32_t rowLen = (2 * maxAllowedDiffs + 3);
-    std::vector<int32_t> W(rowLen, MINUS_INF);    // Y for a diagonal k.
-    std::vector<uint64_t> B;                                // Bitmask for trimming.
-    std::vector<int32_t> M;                                 // Match count.
+    std::vector<int32_t> W(rowLen, MINUS_INF);  // Y for a diagonal k.
+    std::vector<uint64_t> B;                    // Bitmask for trimming.
+    std::vector<int32_t> M;                     // Match count.
 
     if constexpr (TRIM_MODE == SESTrimmingMode::Enabled) {
         B.resize(rowLen, MINUS_INF);
@@ -93,7 +93,8 @@ SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* ta
                 }
                 // clang-format on
             } else if (k == minK || (k != maxK && yp == maxY) || yc >= tlen) {
-                y = yp + 1; // Unlike 1986 paper, here we update y instead of x, so the +1 goes to the move to right (yp) instead of down (ym).
+                // Unlike 1986 paper, here we update y instead of x, so the +1 goes to the move to right (yp) instead of down (ym).
+                y = yp + 1;
                 // clang-format off
                 if constexpr (TRIM_MODE == SESTrimmingMode::Enabled) {
                     m = M[kz + 1];
@@ -134,15 +135,14 @@ SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* ta
                 B[kz] = b;
             }
 
-            u[kz] = y + k + y; // x + y = 2*y + k
+            u[kz] = y + k + y;  // x + y = 2*y + k
             if (best_u <= u[kz]) {
                 best_u = u[kz];
                 ret.lastQueryPos = x;
                 ret.lastTargetPos = y;
             }
 
-
-            if constexpr(ALIGN_MODE == SESAlignMode::Global) {
+            if constexpr (ALIGN_MODE == SESAlignMode::Global) {
                 if (x >= qlen && y >= tlen) {
                     ret.valid = true;
                     ret.lastQueryPos = x;
@@ -179,8 +179,8 @@ SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* ta
 
     return ret;
 }
-}
-}
-}
+}  // namespace Alignment
+}  // namespace Pancake
+}  // namespace PacBio
 
 #endif  // PANCAKE_ALIGNMENT_SES_DISTANCE_BANDED_H

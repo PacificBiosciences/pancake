@@ -111,139 +111,109 @@ struct is_convertible;
 // cv-qualified type is integral if and only if the underlying type is.
 template <class T>
 struct is_integral : false_type
-{
-};
+{};
 template <>
 struct is_integral<bool> : true_type
-{
-};
+{};
 template <>
 struct is_integral<char> : true_type
-{
-};
+{};
 template <>
 struct is_integral<unsigned char> : true_type
-{
-};
+{};
 template <>
 struct is_integral<signed char> : true_type
-{
-};
+{};
 #if defined(_MSC_VER)
 // wchar_t is not by default a distinct type from unsigned short in
 // Microsoft C.
 // See http://msdn2.microsoft.com/en-us/library/dh8che7s(VS.80).aspx
 template <>
 struct is_integral<__wchar_t> : true_type
-{
-};
+{};
 #else
 template <>
 struct is_integral<wchar_t> : true_type
-{
-};
+{};
 #endif
 template <>
 struct is_integral<short> : true_type
-{
-};
+{};
 template <>
 struct is_integral<unsigned short> : true_type
-{
-};
+{};
 template <>
 struct is_integral<int> : true_type
-{
-};
+{};
 template <>
 struct is_integral<unsigned int> : true_type
-{
-};
+{};
 template <>
 struct is_integral<long> : true_type
-{
-};
+{};
 template <>
 struct is_integral<unsigned long> : true_type
-{
-};
+{};
 #ifdef HAVE_LONG_LONG
 template <>
 struct is_integral<long long> : true_type
-{
-};
+{};
 template <>
 struct is_integral<unsigned long long> : true_type
-{
-};
+{};
 #endif
 template <class T>
 struct is_integral<const T> : is_integral<T>
-{
-};
+{};
 template <class T>
 struct is_integral<volatile T> : is_integral<T>
-{
-};
+{};
 template <class T>
 struct is_integral<const volatile T> : is_integral<T>
-{
-};
+{};
 
 // is_floating_point is false except for the built-in floating-point types.
 // A cv-qualified type is integral if and only if the underlying type is.
 template <class T>
 struct is_floating_point : false_type
-{
-};
+{};
 template <>
 struct is_floating_point<float> : true_type
-{
-};
+{};
 template <>
 struct is_floating_point<double> : true_type
-{
-};
+{};
 template <>
 struct is_floating_point<long double> : true_type
-{
-};
+{};
 template <class T>
 struct is_floating_point<const T> : is_floating_point<T>
-{
-};
+{};
 template <class T>
 struct is_floating_point<volatile T> : is_floating_point<T>
-{
-};
+{};
 template <class T>
 struct is_floating_point<const volatile T> : is_floating_point<T>
-{
-};
+{};
 
 // is_pointer is false except for pointer types. A cv-qualified type (e.g.
 // "int* const", as opposed to "int const*") is cv-qualified if and only if
 // the underlying type is.
 template <class T>
 struct is_pointer : false_type
-{
-};
+{};
 template <class T>
 struct is_pointer<T*> : true_type
-{
-};
+{};
 template <class T>
 struct is_pointer<const T> : is_pointer<T>
-{
-};
+{};
 template <class T>
 struct is_pointer<volatile T> : is_pointer<T>
-{
-};
+{};
 template <class T>
 struct is_pointer<const volatile T> : is_pointer<T>
-{
-};
+{};
 
 #if !defined(_MSC_VER) && !(defined(__GNUC__) && __GNUC__ <= 3)
 
@@ -263,13 +233,11 @@ struct is_class_or_union
 // we use add_reference here.
 template <bool NotUnum, class T>
 struct is_enum_impl : is_convertible<typename add_reference<T>::type, int>
-{
-};
+{};
 
 template <class T>
 struct is_enum_impl<true, T> : false_type
-{
-};
+{};
 
 }  // namespace internal
 
@@ -293,33 +261,27 @@ struct is_enum : internal::is_enum_impl<is_same<T, void>::value || is_integral<T
                                             is_floating_point<T>::value || is_reference<T>::value ||
                                             internal::is_class_or_union<T>::value,
                                         T>
-{
-};
+{};
 
 template <class T>
 struct is_enum<const T> : is_enum<T>
-{
-};
+{};
 template <class T>
 struct is_enum<volatile T> : is_enum<T>
-{
-};
+{};
 template <class T>
 struct is_enum<const volatile T> : is_enum<T>
-{
-};
+{};
 
 #endif
 
 // is_reference is false except for reference types.
 template <typename T>
 struct is_reference : false_type
-{
-};
+{};
 template <typename T>
 struct is_reference<T&> : true_type
-{
-};
+{};
 
 // We can't get is_pod right without compiler help, so fail conservatively.
 // We will assume it's false except for arithmetic types, enumerations,
@@ -332,20 +294,16 @@ struct is_pod : integral_constant<bool, (is_integral<T>::value || is_floating_po
                                          is_enum<T>::value ||
 #endif
                                          is_pointer<T>::value)>
-{
-};
+{};
 template <class T>
 struct is_pod<const T> : is_pod<T>
-{
-};
+{};
 template <class T>
 struct is_pod<volatile T> : is_pod<T>
-{
-};
+{};
 template <class T>
 struct is_pod<const volatile T> : is_pod<T>
-{
-};
+{};
 
 // We can't get has_trivial_constructor right without compiler help, so
 // fail conservatively. We will assume it's false except for: (1) types
@@ -354,22 +312,18 @@ struct is_pod<const volatile T> : is_pod<T>
 // (4) const versions thereof.
 template <class T>
 struct has_trivial_constructor : is_pod<T>
-{
-};
+{};
 template <class T, class U>
 struct has_trivial_constructor<std::pair<T, U> >
     : integral_constant<bool,
                         (has_trivial_constructor<T>::value && has_trivial_constructor<U>::value)>
-{
-};
+{};
 template <class A, int N>
 struct has_trivial_constructor<A[N]> : has_trivial_constructor<A>
-{
-};
+{};
 template <class T>
 struct has_trivial_constructor<const T> : has_trivial_constructor<T>
-{
-};
+{};
 
 // We can't get has_trivial_copy right without compiler help, so fail
 // conservatively. We will assume it's false except for: (1) types
@@ -378,21 +332,17 @@ struct has_trivial_constructor<const T> : has_trivial_constructor<T>
 // (4) const versions thereof.
 template <class T>
 struct has_trivial_copy : is_pod<T>
-{
-};
+{};
 template <class T, class U>
 struct has_trivial_copy<std::pair<T, U> >
     : integral_constant<bool, (has_trivial_copy<T>::value && has_trivial_copy<U>::value)>
-{
-};
+{};
 template <class A, int N>
 struct has_trivial_copy<A[N]> : has_trivial_copy<A>
-{
-};
+{};
 template <class T>
 struct has_trivial_copy<const T> : has_trivial_copy<T>
-{
-};
+{};
 
 // We can't get has_trivial_assign right without compiler help, so fail
 // conservatively. We will assume it's false except for: (1) types
@@ -400,17 +350,14 @@ struct has_trivial_copy<const T> : has_trivial_copy<T>
 // constructors. (3) array of a type with a trivial assign constructor.
 template <class T>
 struct has_trivial_assign : is_pod<T>
-{
-};
+{};
 template <class T, class U>
 struct has_trivial_assign<std::pair<T, U> >
     : integral_constant<bool, (has_trivial_assign<T>::value && has_trivial_assign<U>::value)>
-{
-};
+{};
 template <class A, int N>
 struct has_trivial_assign<A[N]> : has_trivial_assign<A>
-{
-};
+{};
 
 // We can't get has_trivial_destructor right without compiler help, so
 // fail conservatively. We will assume it's false except for: (1) types
@@ -419,22 +366,18 @@ struct has_trivial_assign<A[N]> : has_trivial_assign<A>
 // (4) const versions thereof.
 template <class T>
 struct has_trivial_destructor : is_pod<T>
-{
-};
+{};
 template <class T, class U>
 struct has_trivial_destructor<std::pair<T, U> >
     : integral_constant<bool,
                         (has_trivial_destructor<T>::value && has_trivial_destructor<U>::value)>
-{
-};
+{};
 template <class A, int N>
 struct has_trivial_destructor<A[N]> : has_trivial_destructor<A>
-{
-};
+{};
 template <class T>
 struct has_trivial_destructor<const T> : has_trivial_destructor<T>
-{
-};
+{};
 
 // Specified by TR1 [4.7.1]
 template <typename T>
@@ -516,12 +459,10 @@ struct remove_pointer<T* const volatile>
 // Specified by TR1 [4.6] Relationships between types
 template <typename T, typename U>
 struct is_same : public false_type
-{
-};
+{};
 template <typename T>
 struct is_same<T, T> : public true_type
-{
-};
+{};
 
 // Specified by TR1 [4.6] Relationships between types
 #if !defined(_MSC_VER) && !(defined(__GNUC__) && __GNUC__ <= 3)
@@ -550,8 +491,7 @@ template <typename From, typename To>
 struct is_convertible
     : integral_constant<bool, sizeof(internal::ConvertHelper<From, To>::Test(
                                   internal::ConvertHelper<From, To>::Create())) == sizeof(small_)>
-{
-};
+{};
 #endif
 
 _END_GOOGLE_NAMESPACE_

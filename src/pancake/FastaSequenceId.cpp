@@ -27,13 +27,11 @@ static_assert(std::is_nothrow_move_assignable<FastaSequenceId>::value ==
 
 FastaSequenceId::FastaSequenceId(std::string name, std::string bases, int64_t id)
     : BAM::FastaSequence(name, bases), id_{id}
-{
-}
+{}
 
 FastaSequenceId::FastaSequenceId(const BAM::FastaSequence& fastaSequence, int64_t id)
     : BAM::FastaSequence(fastaSequence), id_{id}
-{
-}
+{}
 
 int64_t FastaSequenceId::Id() const { return id_; }
 
@@ -50,5 +48,5 @@ bool FastaSequenceId::operator==(const FastaSequenceId& other) const
 
 bool FastaSequenceId::operator!=(const FastaSequenceId& other) const { return !(*this == other); }
 
-}  // namespace BAM
+}  // namespace Pancake
 }  // namespace PacBio

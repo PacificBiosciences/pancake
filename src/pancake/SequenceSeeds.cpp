@@ -12,8 +12,7 @@ namespace Pancake {
 SequenceSeeds::SequenceSeeds(std::string name, std::vector<PacBio::Pancake::Int128t> seeds,
                              int64_t id)
     : name_{std::move(name)}, seeds_{std::move(seeds)}, id_{id}
-{
-}
+{}
 
 const std::string& SequenceSeeds::Name() const { return name_; }
 
@@ -46,5 +45,5 @@ bool SequenceSeeds::operator==(const SequenceSeeds& other) const
 
 bool SequenceSeeds::operator!=(const SequenceSeeds& other) const { return !(*this == other); }
 
-}  // namespace BAM
+}  // namespace Pancake
 }  // namespace PacBio

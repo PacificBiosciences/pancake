@@ -651,9 +651,10 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
         } else if (settings.align.selfHitPolicy == MapperSelfHitPolicy::PERFECT_ALIGNMENT &&
                    isIdIdentical) {
             // Mock the perfect alignment between the sequence and itself.
-            PBLOG_TRACE << "(" << __FUNCTION__ << ") MapperSelfHitPolicy::PERFECT_ALIGNMENT. "
-                                                  "Mocking self alignment instead of actually "
-                                                  "aligning.";
+            PBLOG_TRACE << "(" << __FUNCTION__
+                        << ") MapperSelfHitPolicy::PERFECT_ALIGNMENT. "
+                           "Mocking self alignment instead of actually "
+                           "aligning.";
             OverlapPtr newOvl =
                 CreateMockedAlignment(ovl, settings.align.alnParamsGlobal.matchScore);
             auto newChainedRegion = std::make_unique<ChainedRegion>();

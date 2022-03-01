@@ -15,6 +15,6 @@ void WriteSeedHits(const std::string& outPath, const std::vector<SeedHit>& hits,
                    int64_t queryLength, const std::string& targetName, int64_t targetLength,
                    bool append);
 }
-}
+}  // namespace PacBio
 
 #endif  // PANCAKE_SEED_HIT_WRITER_H

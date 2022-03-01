@@ -258,7 +258,7 @@ TEST(SES2AlignBanded_Global, AllTests)
         }
     }
 }
-}
-}
-}
-}
+}  // namespace Tests
+}  // namespace Alignment
+}  // namespace Pancake
+}  // namespace PacBio

@@ -1229,8 +1229,7 @@ private:
             : sparsehash_internal::sh_hashtable_settings<key_type, hasher, size_type,
                                                          HT_MIN_BUCKETS>(
                   hf, HT_OCCUPANCY_PCT / 100.0f, HT_EMPTY_PCT / 100.0f)
-        {
-        }
+        {}
     };
 
     // KeyInfo stores delete key and packages zero-size functors:
@@ -1240,8 +1239,7 @@ private:
     public:
         KeyInfo(const ExtractKey& ek, const SetKey& sk, const EqualKey& eq)
             : ExtractKey(ek), SetKey(sk), EqualKey(eq)
-        {
-        }
+        {}
         // We want to return the exact same type as ExtractKey: Key or const Key&
         typename ExtractKey::result_type get_key(const_reference v) const
         {

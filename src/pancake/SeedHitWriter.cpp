@@ -39,5 +39,5 @@ void WriteSeedHits(const std::string& outPath, const std::vector<SeedHit>& hits,
         ofs << hits[j].queryPos << "\t" << hits[j].targetPos << "\t" << hitsId << "\n";
     }
 }
-}
-}
+}  // namespace Pancake
+}  // namespace PacBio

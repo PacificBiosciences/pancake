@@ -47,8 +47,9 @@ inline void SplitPathUnix(const std::string& path, std::string& parent, std::str
     while (posPrefixEnd > 0 && path[posPrefixEnd - 1] == '.')
         --posPrefixEnd;
     parent = path.substr(0, posPrefixEnd);
-    basename =
-        (last == std::string::npos) ? path : (last < path.size()) ? path.substr(last + 1) : "";
+    basename = (last == std::string::npos) ? path
+               : (last < path.size())      ? path.substr(last + 1)
+                                           : "";
     basename = (basename == ".") ? "" : basename;
 }
 
@@ -70,8 +71,9 @@ inline void SplitPathWindows(const std::string& path, std::string& parent, std::
     size_t last = path.find_last_of('\\', pos);
     int32_t posPrefixEnd = (last == std::string::npos) ? 0 : last;
     parent = path.substr(0, posPrefixEnd);
-    basename =
-        (last == std::string::npos) ? path : (last < path.size()) ? path.substr(last + 1) : "";
+    basename = (last == std::string::npos) ? path
+               : (last < path.size())      ? path.substr(last + 1)
+                                           : "";
 }
 
 /// \brief  Joins two paths.

@@ -19,13 +19,11 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
-#include <functional>
 
 namespace istl {
 
-template<class T, class COMP>
-std::vector<T> LIS(const T* points, const int64_t nPoints,
-                    const COMP& compLessThan)
+template <class T, class COMP>
+std::vector<T> LIS(const T* points, const int64_t nPoints, const COMP& compLessThan)
 {
     // Sanity check.
     assert(nPoints >= 0);
@@ -72,8 +70,9 @@ std::vector<T> LIS(const T* points, const int64_t nPoints,
     return lis;
 }
 
-template<class T>
-std::vector<T> LIS(const std::vector<T> &points, const int64_t begin, const int64_t end) {
+template <class T>
+std::vector<T> LIS(const std::vector<T>& points, const int64_t begin, const int64_t end)
+{
     assert(end >= begin);
     if (end < begin) {
         return {};
@@ -82,8 +81,10 @@ std::vector<T> LIS(const std::vector<T> &points, const int64_t begin, const int6
     return LIS(points.data() + begin, (end - begin), std::less<T>{});
 }
 
-template<class T, class COMP>
-std::vector<T> LIS(const std::vector<T> &points, const int64_t begin, const int64_t end, const COMP& compLessThan) {
+template <class T, class COMP>
+std::vector<T> LIS(const std::vector<T>& points, const int64_t begin, const int64_t end,
+                   const COMP& compLessThan)
+{
     assert(end >= begin);
     if (end < begin) {
         return {};
@@ -92,11 +93,12 @@ std::vector<T> LIS(const std::vector<T> &points, const int64_t begin, const int6
     return LIS(points.data() + begin, (end - begin), compLessThan);
 }
 
-template<class T, class COMP>
-std::vector<T> LIS(const std::vector<T> &points, const COMP& compLessThan) {
+template <class T, class COMP>
+std::vector<T> LIS(const std::vector<T>& points, const COMP& compLessThan)
+{
     return LIS(points.data(), points.size(), compLessThan);
 }
 
-}
+}  // namespace istl
 
 #endif

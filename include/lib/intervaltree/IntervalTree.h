@@ -22,8 +22,7 @@ public:
     Value value;
     Interval(const Scalar& s, const Scalar& e, const Value& v)
         : start(std::min(s, e)), stop(std::max(s, e)), value(v)
-    {
-    }
+    {}
 };
 
 template <class Scalar, typename Value>
@@ -76,8 +75,7 @@ public:
         , left(other.left ? other.left->clone() : nullptr)
         , right(other.right ? other.right->clone() : nullptr)
         , center(other.center)
-    {
-    }
+    {}
 
     IntervalTree& operator=(IntervalTree&&) = default;
     IntervalTree(IntervalTree&&) = default;

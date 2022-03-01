@@ -284,8 +284,9 @@ int SeqFetchWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     }
 
     PBLOG_INFO << "Done!";
-    PBLOG_INFO << "Found sequences: " << (static_cast<int32_t>(seqNamesToFind.size()) -
-                                          static_cast<int32_t>(remainingToFind.size()))
+    PBLOG_INFO << "Found sequences: "
+               << (static_cast<int32_t>(seqNamesToFind.size()) -
+                   static_cast<int32_t>(remainingToFind.size()))
                << " / " << seqNamesToFind.size() << " .";
 
     if (settings.FailOnMissingQueries && remainingToFind.size() > 0) {
