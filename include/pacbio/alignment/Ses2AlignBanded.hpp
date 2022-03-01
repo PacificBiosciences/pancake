@@ -75,7 +75,8 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
     // where WMatrixPos is the index of the element in the WMatrix's flat vector where the row begins,
     // and minK is the banding related minimum K for the inner loop.
     auto& dStart = ss->dStart;
-    auto& alnPath = ss->alnPath;  // Alignment path during traceback.
+    // Alignment path during traceback.
+    auto& alnPath = ss->alnPath;
     // Tracks the current location in the WMatrix (which is implemented as a flat vector).
     int32_t WMatrixPos = 0;
 
