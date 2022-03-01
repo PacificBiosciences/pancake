@@ -1,0 +1,4 @@
+[wrap-git]
+directory=pbedelweiss
+url=ssh://git@bitbucket.nanofluidics.com:7999/sat/pbedelweiss.git
+revision=develop

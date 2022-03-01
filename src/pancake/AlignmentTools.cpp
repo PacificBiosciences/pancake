@@ -1285,6 +1285,49 @@ int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, const int32_t match
     return score;
 }
 
+std::pair<int32_t, PacBio::Pancake::DiffCounts> ScoreCigarAlignment(
+    const PacBio::BAM::Cigar& cigar, const int32_t match, const int32_t mismatch,
+    const int32_t gapOpen1, const int32_t gapExt1, const int32_t gapOpen2, const int32_t gapExt2)
+{
+    DiffCounts diffs;
+    int64_t score = 0;
+
+    const int32_t longThreshold =
+        (gapExt1 != gapExt2) ? ((gapOpen2 - gapOpen1) / (gapExt1 - gapExt2) - 1) : 0;
+
+    for (const auto& op : cigar) {
+        const int32_t count = op.Length();
+        switch (op.Type()) {
+            case PacBio::BAM::CigarOperationType::SEQUENCE_MATCH:
+                // Scores are positive.
+                score += match * count;
+                diffs.numEq += count;
+                break;
+            case PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH:
+                // Penalties are positive.
+                score -= mismatch * count;
+                diffs.numX += count;
+                break;
+            case PacBio::BAM::CigarOperationType::INSERTION:
+                // Penalties are positive.
+                score -= (count < longThreshold) ? (gapOpen1 + gapExt1 * (count - 1))
+                                                 : (gapOpen2 + gapExt2 * (count - 1));
+                diffs.numI += count;
+                break;
+            case PacBio::BAM::CigarOperationType::DELETION:
+                // Penalties are positive.
+                score -= (count < longThreshold) ? (gapOpen1 + gapExt1 * (count - 1))
+                                                 : (gapOpen2 + gapExt2 * (count - 1));
+                ;
+                diffs.numD += count;
+                break;
+            default:
+                break;
+        }
+    }
+    return {score, diffs};
+}
+
 void MergeCigars(PacBio::Data::Cigar& dest, const PacBio::Data::Cigar& src)
 {
     if (src.empty()) {

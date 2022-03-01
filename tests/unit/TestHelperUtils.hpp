@@ -34,8 +34,16 @@ void HelperLoadBatchData(
     const int32_t seqIdOffset, std::vector<PacBio::Pancake::MapperBatchChunk>& retBatchData,
     std::vector<PacBio::BAM::FastaSequence>& retAllSeqs);
 
+void HelperLoadBatchData(
+    const std::vector<std::pair<std::string, std::string>>& batchDataSequenceFiles,
+    const int32_t seqIdOffset, const PacBio::Pancake::MapperCLRMapSettings& mapSettings,
+    std::vector<PacBio::Pancake::MapperBatchChunk>& retBatchData,
+    std::vector<PacBio::BAM::FastaSequence>& retAllSeqs);
+
 std::vector<std::vector<std::string>> HelperFormatBatchMappingResults(
     const std::vector<std::vector<PacBio::Pancake::MapperBaseResult>>& results);
+
+PacBio::Pancake::MapperCLRSettings HelperInitPancakeSettingsSubread();
 
 }  // namespace PancakeTests
 }  // namespace PacBio

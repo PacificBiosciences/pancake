@@ -243,6 +243,22 @@ int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, int32_t match, int3
                             int32_t gapOpen, int32_t gapExt);
 
 /**
+ * @brief Computes the alignment score from a given CIGAR vector, using double affine gap penalties.
+ *
+ * @param cigar Input alignment in CIGAR format.
+ * @param match Match score.
+ * @param mismatch Mismatch score (positive value).
+ * @param gapOpen1 Gap open score for the first affine function (positive value).
+ * @param gapExt1 Gap extend score for the first affine function (positive value).
+ * @param gapOpen2 Gap open score for the second affine function (positive value).
+ * @param gapExt2 Gap extend score for the second affine function (positive value).
+ * @return std::pair<int32_t, PacBio::Pancake::DiffCounts> Pair: (alignment score, diff counts).
+ */
+std::pair<int32_t, PacBio::Pancake::DiffCounts> ScoreCigarAlignment(
+    const PacBio::BAM::Cigar& cigar, int32_t match, int32_t mismatch, int32_t gapOpen1,
+    int32_t gapExt1, int32_t gapOpen2, int32_t gapExt2);
+
+/**
  * @brief Merges the src CIGAR vector into the existing dest vector.
  *
  * @param dest Destination of the merge. Operations from src will be appended to the back of dst.

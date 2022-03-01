@@ -104,13 +104,22 @@ if opt_cuda
     cuda = import('unstable-cuda')
     pancake_cuda_flags = cuda.nvcc_arch_flags(nvcc, 'Auto')
 
+    arch_readable = cuda.nvcc_arch_readable(nvcc, 'Auto')
+    driver_version = cuda.min_driver_version('>=11.3.0')
+    message('NVCC version:   ' + nvcc.version())
+    message('NVCC flags:     ' + ' '.join(pancake_cuda_flags))
+    message('NVCC readable:  ' + ' '.join(arch_readable))
+    message('Driver version: >=' + driver_version)
+
     if (get_option('b_ndebug') == 'true') or ((get_option('b_ndebug') == 'if-release') and (get_option('buildtype') == 'release'))
       pancake_cuda_flags += '-DNDEBUG'
     endif
 
     pancake_cpp_sources += files([
         'pancake/AlignerBatchGPU.cpp',
+        'pancake/AlignerBatchGPUEdelweiss.cpp',
         'pancake/MapperBatchGPU.cpp',
+        'pancake/MapperBatchGPUEdelweiss.cpp',
     ])
     pancake_cu_sources = files([
         'pancake/AlignerBatchGPUGenomeWorksInterface.cu',

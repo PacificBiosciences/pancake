@@ -68,9 +68,7 @@ std::vector<std::string> HelperLoadFile(const std::string& inFile)
 
 void HelperLoadBatchData(
     const std::vector<std::pair<std::string, std::string>>& batchDataSequenceFiles,
-    const int32_t seqIdOffset, const double freqPercentile,
-    const PacBio::Pancake::SeedDBParameters& seedParamsPrimary,
-    const PacBio::Pancake::SeedDBParameters& seedParamsFallback,
+    const int32_t seqIdOffset, const PacBio::Pancake::MapperCLRMapSettings& mapSettings,
     std::vector<PacBio::Pancake::MapperBatchChunk>& retBatchData,
     std::vector<PacBio::BAM::FastaSequence>& retAllSeqs)
 {
@@ -120,13 +118,37 @@ void HelperLoadBatchData(
             bd.querySeqs.AddRecord(std::move(newFsc));
         }
 
-        // Set the seed parameter settings and create a mapper.
-        bd.mapSettings.freqPercentile = freqPercentile;
-        bd.mapSettings.seedParams = seedParamsPrimary;
-        bd.mapSettings.seedParamsFallback = seedParamsFallback;
+        bd.mapSettings = mapSettings;
 
         retBatchData.emplace_back(std::move(bd));
     }
+}
+
+void HelperLoadBatchData(
+    const std::vector<std::pair<std::string, std::string>>& batchDataSequenceFiles,
+    const int32_t seqIdOffset, const double freqPercentile,
+    const PacBio::Pancake::SeedDBParameters& seedParamsPrimary,
+    const PacBio::Pancake::SeedDBParameters& seedParamsFallback,
+    std::vector<PacBio::Pancake::MapperBatchChunk>& retBatchData,
+    std::vector<PacBio::BAM::FastaSequence>& retAllSeqs)
+{
+    /*
+     * This function takes a vector of pairs, where each pair is a pair of filename paths, one
+     * for the target sequences and one for the query sequences; and then loads the sequences.
+     * One pair is what a single MapperCLR::MapAndAlign would be run on.
+     * Here, the MapperBatchCPU will take a vector of those chunks and align them at once.
+     *
+     * This function returns a flat vector of all sequences that were loaded (targets and queries),
+     * and a vector of MapperBatchChunk.
+     * The flat vector is needed because MapperBatchChunk uses FastaSequenceCached which uses pointers
+     * to those sequences, so the life span of the original data needs to be ensured.
+    */
+
+    PacBio::Pancake::MapperCLRMapSettings mapSettings;
+    mapSettings.freqPercentile = freqPercentile;
+    mapSettings.seedParams = seedParamsPrimary;
+    mapSettings.seedParamsFallback = seedParamsFallback;
+    HelperLoadBatchData(batchDataSequenceFiles, seqIdOffset, mapSettings, retBatchData, retAllSeqs);
 }
 
 void HelperLoadBatchData(
@@ -204,11 +226,54 @@ std::vector<std::vector<std::string>> HelperFormatBatchMappingResults(
 
                 chunkResults.emplace_back(PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(
                     *mapping->mapping, "", "", true, false));
+
+                std::cerr << "\"" << chunkResults.back() << "\",\n";
             }
         }
         resultsStr.emplace_back(std::move(chunkResults));
     }
     return resultsStr;
+}
+
+PacBio::Pancake::MapperCLRSettings HelperInitPancakeSettingsSubread()
+{
+    PacBio::Pancake::MapperCLRSettings settings;
+
+    settings.map.seedParams.KmerSize = 15;
+    settings.map.seedParams.MinimizerWindow = 5;
+    settings.map.seedParams.Spacing = 0;
+    settings.map.seedParams.UseHPCForSeedsOnly = true;
+
+    settings.map.secondaryAllowedOverlapFractionQuery = 0.0;
+    settings.map.secondaryAllowedOverlapFractionTarget = 0.05;
+
+    settings.map.seedParamsFallback = settings.map.seedParams;
+    settings.map.seedParamsFallback.KmerSize = 10;
+    settings.map.seedParamsFallback.MinimizerWindow = 5;
+
+    settings.map.freqPercentile = 0.000;
+    settings.map.seedJoinDist = 10000;
+    settings.map.longMergeBandwidth = 10000;
+    settings.map.maxFlankExtensionDist = settings.map.seedJoinDist;
+    settings.map.minAlignmentSpan = 200;
+
+    settings.align.alnParamsGlobal.zdrop = 400;
+    settings.align.alnParamsGlobal.zdrop2 = 200;
+    settings.align.alnParamsGlobal.alignBandwidth = 500;
+    settings.align.alnParamsGlobal.endBonus = 1000;
+    settings.align.alnParamsGlobal.matchScore = 2;
+    settings.align.alnParamsGlobal.mismatchPenalty = 4;
+    settings.align.alnParamsGlobal.gapOpen1 = 4;
+    settings.align.alnParamsGlobal.gapExtend1 = 2;
+    settings.align.alnParamsGlobal.gapOpen2 = 24;
+    settings.align.alnParamsGlobal.gapExtend2 = 1;
+
+    settings.align.alignerTypeGlobal = PacBio::Pancake::AlignerType::KSW2;
+
+    settings.align.alignerTypeExt = PacBio::Pancake::AlignerType::KSW2;
+    settings.align.alnParamsExt = settings.align.alnParamsGlobal;
+
+    return settings;
 }
 
 }  // namespace PancakeTests

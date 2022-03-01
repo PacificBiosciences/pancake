@@ -95,7 +95,9 @@ if not meson.is_subproject()
       install_headers(
         files([
           'pancake/AlignerBatchGPU.hpp',
+          'pancake/AlignerBatchGPUEdelweiss.hpp',
           'pancake/MapperBatchGPU.hpp',
+          'pancake/MapperBatchGPUEdelweiss.hpp',
           ]),
           subdir : 'pancake')
   endif

@@ -52,6 +52,17 @@ conf-debug2:
 
 debug2: conf-debug2 build-debug2
 
+
+
+build-debug3:
+	mkdir -p ${CURRENT_DEBUG_BUILD_DIR} && ninja -C "${CURRENT_DEBUG_BUILD_DIR}" -v test
+
+conf-debug3:
+	rm -rf "${CURRENT_DEBUG_BUILD_DIR}"
+	meson --buildtype=debugoptimized --default-library shared --libdir lib -Dtests="true" -Dgpu-cuda="false" -Dsse41="true" -Dcpp_debugstl="true" "${CURRENT_DEBUG_BUILD_DIR}"
+
+debug3: conf-debug3 build-debug3
+
 ##############
 ### Tests. ###
 ##############

@@ -7,6 +7,7 @@ project(
     'warning_level=3',
     'cpp_std=c++20',
     'c_std=c17',
+    'cuda_std=c++17',
     'b_ndebug=if-release'],
   license : 'BSD-3',
   meson_version : '>= 0.57.0')
@@ -100,8 +101,10 @@ if opt_cuda
     nvcc = meson.get_compiler('cuda')
     add_project_arguments('-DGW_ENABLE_CACHING_ALLOCATOR', language : ['cpp', 'cuda'])
     pancake_gw_dep = dependency('genomeworks', fallback : ['genomeworks', 'genomeworks_dep'])
+    pbedelweiss_dep = dependency('pbedelweiss', fallback : ['pbedelweiss', 'pbedelweiss_dep'])
     pancake_lib_deps += [
         pancake_gw_dep,
+        pbedelweiss_dep,
     ]
 endif
 
