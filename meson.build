@@ -64,19 +64,19 @@ endif
 ################
 
 # Threads.
-pancake_thread_dep = dependency('threads', required : true)
+pancake_thread_dep = dependency('threads')
 
 # boost
-pancake_boost_dep = dependency('boost', required : true, include_type : 'system')
+pancake_boost_dep = dependency('boost', include_type : 'system')
 
 # zlib
-pancacke_zlib_dep = dependency('zlib', required : true, fallback : ['zlib', 'zlib_dep'])
+pancacke_zlib_dep = dependency('zlib', include_type : 'system', fallback : ['zlib', 'zlib_dep'])
 
 # htslib
-pancake_htslib_dep = dependency('htslib', required : true, version : '>=1.4', fallback : ['htslib', 'htslib_dep'])
+pancake_htslib_dep = dependency('htslib', include_type : 'system', version : '>=1.4', fallback : ['htslib', 'htslib_dep'])
 
 # pbcopper
-pancake_pbcopper_dep = dependency('pbcopper', required : true, fallback : ['pbcopper', 'pbcopper_dep'])
+pancake_pbcopper_dep = dependency('pbcopper', fallback : ['pbcopper', 'pbcopper_dep'])
 
 # pbbam
 pancake_pbbam_dep = dependency('pbbam', fallback : ['pbbam', 'pbbam_dep'])
@@ -129,7 +129,7 @@ if not meson.is_subproject()
     pancake_cram_script = find_program('cram', required : false)
     if not pancake_cram_script.found()
       warning('Using bundled cram script')
-      pancake_cram_script = find_program('scripts/cram', required : true)
+      pancake_cram_script = find_program('scripts/cram')
     endif
 
     subdir('tests')
