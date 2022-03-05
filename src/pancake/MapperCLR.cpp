@@ -333,7 +333,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                     << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
 
         const std::vector<std::pair<int64_t, int64_t>> debugSeedHist =
-            PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(&querySeeds[0], querySeeds.size(),
+            PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(querySeeds.data(), querySeeds.size(),
                                                              index.GetHash());
 
         int64_t totalHits = 0;
@@ -356,7 +356,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     std::vector<std::pair<int64_t, int64_t>> seedHitHistogram;
     if (settings.map.seedOccurrenceMaxMemory > 0) {
         seedHitHistogram = PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(
-            &querySeeds[0], querySeeds.size(), index.GetHash());
+            querySeeds.data(), querySeeds.size(), index.GetHash());
     }
 
     const int64_t occThreshold = ComputeOccurrenceThreshold(
@@ -367,7 +367,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
 
     // Collect seed hits.
     auto& hits = ssSeedHits;
-    index.CollectHits(&querySeeds[0], querySeeds.size(), queryLen, hits, occThreshold);
+    index.CollectHits(querySeeds.data(), querySeeds.size(), queryLen, hits, occThreshold);
     LogTicToc("map-L1-02-collect", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
@@ -669,8 +669,8 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
 
             // Use a custom aligner to align.
             auto newOvl = AlignmentSeeded(ovl, mappingResult.mappings[i]->regionsForAln,
-                                          tSeqFwd.c_str(), tSeqFwd.size(), &querySeq.c_str()[0],
-                                          &querySeqRev[0], queryLen, alignerGlobal, alignerExt);
+                                          tSeqFwd.c_str(), tSeqFwd.size(), querySeq.data(),
+                                          querySeqRev.data(), queryLen, alignerGlobal, alignerExt);
 
             auto newChainedRegion = std::make_unique<ChainedRegion>();
             newChainedRegion->chain = chain;
@@ -1010,7 +1010,7 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 
             // DP Chaining of the filtered hits to remove outliers.
             double timeChaining = 0.0, timeBacktrack = 0.0;
-            chains = ChainHits(&lisHits[0], lisHits.size(), chainMaxSkip, chainMaxPredecessors,
+            chains = ChainHits(lisHits.data(), lisHits.size(), chainMaxSkip, chainMaxPredecessors,
                                seedJoinDist, chainBandwidth, minNumSeeds, minCoveredBases,
                                minDPScore, timeChaining, timeBacktrack, ssChain);
 
@@ -1038,9 +1038,9 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 #endif
         } else {
             double timeChaining = 0.0, timeBacktrack = 0.0;
-            chains = ChainHits(&groupHits[0], groupHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               seedJoinDist, chainBandwidth, minNumSeeds, minCoveredBases,
-                               minDPScore, timeChaining, timeBacktrack, ssChain);
+            chains = ChainHits(groupHits.data(), groupHits.size(), chainMaxSkip,
+                               chainMaxPredecessors, seedJoinDist, chainBandwidth, minNumSeeds,
+                               minCoveredBases, minDPScore, timeChaining, timeBacktrack, ssChain);
 
             const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);

@@ -487,9 +487,9 @@ std::vector<ChainedHits> ChainHitsSimd(
     ////////////////////
     /// Backtrack.   ///
     ////////////////////
-    const int32_t* dpInt32 = reinterpret_cast<int32_t*>(&dp[0]);
-    const int32_t* predInt32 = reinterpret_cast<int32_t*>(&pred[0]);
-    const int32_t* chainIdInt32 = &chainId[0];
+    const int32_t* dpInt32 = reinterpret_cast<int32_t*>(dp.data());
+    const int32_t* predInt32 = reinterpret_cast<int32_t*>(pred.data());
+    const int32_t* chainIdInt32 = chainId.data();
 
     std::vector<ChainedHits> chains =
         ChainHitsBacktrack(hits, hitsSize, dpInt32, predInt32, chainIdInt32, numChains, minNumSeeds,

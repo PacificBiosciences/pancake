@@ -87,7 +87,7 @@ AlignmentResult AlignerKSW2::Global(const char* qseq, int64_t qlen, const char* 
         ret = AlignmentResult{};
         ksw_extz_t ez;
         memset(&ez, 0, sizeof(ksw_extz_t));
-        AlignPair_(buffer_->km, qlen, &qseqInt[0], tlen, &tseqInt[0], mat_, curBw, -1, -1,
+        AlignPair_(buffer_->km, qlen, qseqInt.data(), tlen, tseqInt.data(), mat_, curBw, -1, -1,
                    extra_flag | KSW_EZ_APPROX_MAX, &ez, opt_.gapOpen1, opt_.gapExtend1,
                    opt_.gapOpen2, opt_.gapExtend2);
 
@@ -146,7 +146,7 @@ AlignmentResult AlignerKSW2::Extend(const char* qseq, int64_t qlen, const char* 
     const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet_(qseq, qlen, &BaseToTwobit[0]);
     const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet_(tseq, tlen, &BaseToTwobit[0]);
 
-    AlignPair_(buffer_->km, qlen, &qseqInt[0], tlen, &tseqInt[0], mat_, bw, opt_.endBonus,
+    AlignPair_(buffer_->km, qlen, qseqInt.data(), tlen, tseqInt.data(), mat_, bw, opt_.endBonus,
                opt_.zdrop, extra_flag | KSW_EZ_EXTZ_ONLY | KSW_EZ_RIGHT, &ez, opt_.gapOpen1,
                opt_.gapExtend1, opt_.gapOpen2, opt_.gapExtend2);
 

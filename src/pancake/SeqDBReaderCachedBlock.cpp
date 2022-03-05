@@ -98,7 +98,7 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
         const int64_t itemsToRead = (part.endOffset - part.startOffset);
         std::vector<uint8_t> tempData;
         tempData.resize(itemsToRead);
-        const int64_t numItemsRead = fread(&tempData[0], sizeof(uint8_t), itemsToRead, fp.get());
+        const int64_t numItemsRead = fread(tempData.data(), sizeof(uint8_t), itemsToRead, fp.get());
         if (itemsToRead != numItemsRead) {
             std::ostringstream oss;
             oss << "(SeqDBReaderCachedBlock) Could not read data for the following part: "

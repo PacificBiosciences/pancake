@@ -158,15 +158,16 @@ int64_t SeedIndex::GetSeeds(uint64_t key,
 bool SeedIndex::CollectHits(const std::vector<PacBio::Pancake::SeedDB::SeedRaw>& querySeeds,
                             int32_t queryLen, std::vector<SeedHit>& hits, int64_t freqCutoff) const
 {
-    return CollectHits(&querySeeds[0], querySeeds.size(), queryLen, hits, freqCutoff);
+    return CollectHits(querySeeds.data(), querySeeds.size(), queryLen, hits, freqCutoff);
 }
 
 bool SeedIndex::CollectHits(const PacBio::Pancake::SeedDB::SeedRaw* querySeeds,
                             int64_t querySeedsSize, int32_t queryLen, std::vector<SeedHit>& hits,
                             int64_t freqCutoff) const
 {
-    return PacBio::Pancake::SeedDB::CollectSeedHits<SeedHashType>(
-        hits, querySeeds, querySeedsSize, queryLen, hash_, &seeds_[0], seeds_.size(), freqCutoff);
+    return PacBio::Pancake::SeedDB::CollectSeedHits<SeedHashType>(hits, querySeeds, querySeedsSize,
+                                                                  queryLen, hash_, seeds_.data(),
+                                                                  seeds_.size(), freqCutoff);
 }
 
 }  // namespace Pancake

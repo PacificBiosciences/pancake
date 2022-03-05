@@ -885,8 +885,8 @@ void NormalizeAlignmentInPlace(std::string& queryAln, std::string& targetAln)
     int64_t len = queryAln.size();
 
     // Avoid getters for speed.
-    char* query = &queryAln[0];
-    char* target = &targetAln[0];
+    char* query = queryAln.data();
+    char* target = targetAln.data();
 
     for (int64_t i = 0; i < (len - 1); ++i) {
         if (query[i] == '-' && target[i] == '-') {
