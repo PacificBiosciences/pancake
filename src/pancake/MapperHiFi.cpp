@@ -1243,7 +1243,7 @@ std::vector<MapperResult> MapHiFi(const FastaSequenceCachedStore& targetSeqs,
             throw std::runtime_error("Generating minimizers failed for the query sequence i = " +
                                      std::to_string(i) + ", id = " + std::to_string(queryId));
         }
-        SequenceSeedsCached querySeedsCached("", &querySeeds[0], querySeeds.size(), queryId);
+        SequenceSeedsCached querySeedsCached("", querySeeds.data(), querySeeds.size(), queryId);
 
         // Map/align.
         MapperResult queryResults = mapper.Map(targetSeqs, *seedIndex, query, querySeedsCached,

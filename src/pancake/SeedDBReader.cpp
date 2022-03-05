@@ -232,7 +232,7 @@ void SeedDBReader::LoadSeedsForSequence_(
 
     std::vector<PacBio::Pancake::Int128t> seeds(sl.numSeeds);
     int64_t n =
-        fread(&seeds[0], sizeof(PacBio::Pancake::Int128t), sl.numSeeds, fileHandler.fp.get());
+        fread(seeds.data(), sizeof(PacBio::Pancake::Int128t), sl.numSeeds, fileHandler.fp.get());
     if (n != sl.numSeeds || n * 16 != sl.numBytes) {
         std::ostringstream oss;
         oss << "Could not read seeds for sequence '" << sl.header

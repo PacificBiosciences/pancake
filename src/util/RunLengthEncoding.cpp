@@ -18,7 +18,7 @@ void RunLengthEncoding(const char* seq, int64_t seqLen, std::string& encodedSeq,
     runLengths.clear();
     if (seq == NULL || seqLen == 0) return;
 
-    int64_t outSeqLen = RunLengthEncoding(&encodedSeq[0], seqLen, runLengths);
+    int64_t outSeqLen = RunLengthEncoding(encodedSeq.data(), seqLen, runLengths);
     encodedSeq[outSeqLen] = '\n';
     encodedSeq.resize(outSeqLen);
 }
@@ -62,7 +62,8 @@ void RunLengthEncoding(const char* seq, int64_t seqLen, std::string& encodedSeq,
     hpcToSeqCoords.clear();
     if (seq == NULL || seqLen == 0) return;
 
-    int64_t outSeqLen = RunLengthEncoding(&encodedSeq[0], seqLen, seqToHPCCoords, hpcToSeqCoords);
+    int64_t outSeqLen =
+        RunLengthEncoding(encodedSeq.data(), seqLen, seqToHPCCoords, hpcToSeqCoords);
     encodedSeq[outSeqLen] = '\n';
     encodedSeq.resize(outSeqLen);
 }
@@ -119,7 +120,7 @@ int64_t RunLengthEncoding(const char* seq, int64_t seqLen, std::vector<char>& de
 
     int64_t prev = 0;
     int64_t count = 0;
-    char* destRaw = &destHPC[0];
+    char* destRaw = destHPC.data();
 
     for (int64_t i = 0; i < seqLen; ++i) {
         if (destRaw[prev] != seq[i]) {

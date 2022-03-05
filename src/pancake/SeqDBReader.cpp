@@ -271,7 +271,7 @@ void SeqDBReader::LoadAndUnpackSequence_(
 
     } else {
         std::string bases(sl.numBytes, '\0');
-        int32_t n = fread(&bases[0], sizeof(char), sl.numBytes, fileHandler.fp.get());
+        int32_t n = fread(bases.data(), sizeof(char), sl.numBytes, fileHandler.fp.get());
         fileHandler.pos += n;
         if (n != sl.numBytes) {
             std::ostringstream oss;
