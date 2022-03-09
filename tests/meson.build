@@ -102,7 +102,8 @@ test(
     '--gtest_output=xml:' + join_paths(meson.project_build_root(), 'pancake-gtest-unittests.xml')],
   env : [
     'ARGS=-V',
-    'VERBOSE=1'])
+    'VERBOSE=1'],
+  timeout: 120)
 
 test(
   'pancake cram test',
