@@ -8,15 +8,15 @@
 //
 // Authors: Ivan Sovic
 
-#include <pacbio/alignment/AlignmentTools.h>
-#include <pacbio/pancake/AlignerBatchGPU.h>
-#include <pacbio/pancake/AlignerBatchGPUGenomeWorksInterface.h>
-#include <pacbio/util/Util.h>
 #include <claraparabricks/genomeworks/utils/device_buffer.hpp>
 #include <claraparabricks/genomeworks/utils/pinned_host_vector.hpp>
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <pancake/AlignerBatchGPU.hpp>
+#include <pancake/AlignerBatchGPUGenomeWorksInterface.hpp>
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/util/Util.hpp>
 #include <sstream>
 
 namespace PacBio {

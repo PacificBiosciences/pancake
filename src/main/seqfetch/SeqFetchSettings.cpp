@@ -4,7 +4,7 @@
 
 #include <limits>
 
-#include <pacbio/Version.h>
+#include <pancake/Version.hpp>
 
 namespace PacBio {
 namespace Pancake {

@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#include <pacbio/Version.h>
-#include <pacbio/overlaphifi/OverlapHifiSettings.h>
+#include <pancake/OverlapHifiSettings.hpp>
+#include <pancake/Version.hpp>
 
 namespace PacBio {
 namespace Pancake {

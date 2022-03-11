@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
 #include "SeqFetchWorkflow.h"
-#include <pacbio/util/FileIO.h>
+#include <pancake/util/FileIO.hpp>
 #include "SeqFetchSettings.h"
 
 #include <algorithm>
@@ -13,9 +13,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include <pacbio/pancake/SeqDBIndexCache.h>
-#include <pacbio/pancake/SeqDBReader.h>
-#include <pacbio/util/RunLengthEncoding.h>
 #include <pbbam/BamReader.h>
 #include <pbbam/DataSet.h>
 #include <pbbam/IndexedFastaReader.h>
@@ -23,6 +20,9 @@
 #include <pbbam/PbiFilterQuery.h>
 #include <pbbam/PbiFilterTypes.h>
 #include <boost/algorithm/string/predicate.hpp>
+#include <pancake/SeqDBIndexCache.hpp>
+#include <pancake/SeqDBReader.hpp>
+#include <pancake/util/RunLengthEncoding.hpp>
 
 #include <pbcopper/logging/LogLevel.h>
 #include <pbcopper/logging/Logging.h>

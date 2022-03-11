@@ -1,12 +1,12 @@
 Test construction of the DB from a small test FASTA file. Store each sequence into a separate 2-bit compressed file.
   $ rm -f test-1.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-1 ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta --block-size 0 --buffer-size 1024 --split-blocks
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.0.seq test-1.seqdb.0.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.1.seq test-1.seqdb.1.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.2.seq test-1.seqdb.2.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.3.seq test-1.seqdb.3.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.4.seq test-1.seqdb.4.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.seqdb
+  > ${BIN_DIR}/pancake seqdb test-1 ${TEST_DATA_DIR}/seqdb-writer/in.fasta --block-size 0 --buffer-size 1024 --split-blocks
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.0.seq test-1.seqdb.0.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.1.seq test-1.seqdb.1.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.2.seq test-1.seqdb.2.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.3.seq test-1.seqdb.3.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.4.seq test-1.seqdb.4.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.seqdb
   > ls -1 test-1.seqdb*
   test-1.seqdb
   test-1.seqdb.0.seq
@@ -17,11 +17,11 @@ Test construction of the DB from a small test FASTA file. Store each sequence in
 
 Test construction of the DB from a small test FASTA file, and split blocks but this time more than 1 sequence per block.
   $ rm -f test-1.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-11-split-blocks ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta --block-size 0.015 --buffer-size 1024 --split-blocks
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-11-split-blocks.seqdb test-11-split-blocks.seqdb
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-11-split-blocks.seqdb.0.seq test-11-split-blocks.seqdb.0.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-11-split-blocks.seqdb.1.seq test-11-split-blocks.seqdb.1.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-11-split-blocks.seqdb.2.seq test-11-split-blocks.seqdb.2.seq
+  > ${BIN_DIR}/pancake seqdb test-11-split-blocks ${TEST_DATA_DIR}/seqdb-writer/in.fasta --block-size 0.015 --buffer-size 1024 --split-blocks
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-11-split-blocks.seqdb test-11-split-blocks.seqdb
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-11-split-blocks.seqdb.0.seq test-11-split-blocks.seqdb.0.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-11-split-blocks.seqdb.1.seq test-11-split-blocks.seqdb.1.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-11-split-blocks.seqdb.2.seq test-11-split-blocks.seqdb.2.seq
   > ls -1 test-11-split-blocks.seqdb*
   test-11-split-blocks.seqdb
   test-11-split-blocks.seqdb.0.seq
@@ -34,13 +34,13 @@ This test is exactly the same as the previous one, the only difference is that t
 That is why we can reuse the output files from the previous test, even though the input is now "in.fastq" instead of "in.fasta".
 Note: the FASTQ here contains identical sequences to the "in.fasta", and the quality values are just dummy values added to create a FASTQ.
   $ rm -f test-1.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-1 ${PROJECT_DIR}/test-data/seqdb-writer/in.fastq --block-size 0 --buffer-size 1024 --split-blocks
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.0.seq test-1.seqdb.0.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.1.seq test-1.seqdb.1.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.2.seq test-1.seqdb.2.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.3.seq test-1.seqdb.3.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.4.seq test-1.seqdb.4.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.seqdb
+  > ${BIN_DIR}/pancake seqdb test-1 ${TEST_DATA_DIR}/seqdb-writer/in.fastq --block-size 0 --buffer-size 1024 --split-blocks
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.0.seq test-1.seqdb.0.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.1.seq test-1.seqdb.1.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.2.seq test-1.seqdb.2.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.3.seq test-1.seqdb.3.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.4.seq test-1.seqdb.4.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.seqdb
   > ls -1 test-1.seqdb*
   test-1.seqdb
   test-1.seqdb.0.seq
@@ -54,14 +54,14 @@ Test construction of the DB from a small test FASTQ file. Store each sequence in
 This test is exactly the same as the previous one, the only difference is that the input is in the FOFN format instead of FASTA.
 That is why we can reuse the output files from the previous test, even though the input is now "in.fofn" instead of "in.fasta".
   $ rm -f test-1.seqdb*
-  > echo "${PROJECT_DIR}/test-data/seqdb-writer/in.fasta" > in.fofn
+  > echo "${TEST_DATA_DIR}/seqdb-writer/in.fasta" > in.fofn
   > ${BIN_DIR}/pancake seqdb test-1 in.fofn --block-size 0 --buffer-size 1024 --split-blocks
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.0.seq test-1.seqdb.0.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.1.seq test-1.seqdb.1.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.2.seq test-1.seqdb.2.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.3.seq test-1.seqdb.3.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.4.seq test-1.seqdb.4.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.seqdb
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.0.seq test-1.seqdb.0.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.1.seq test-1.seqdb.1.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.2.seq test-1.seqdb.2.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.3.seq test-1.seqdb.3.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.4.seq test-1.seqdb.4.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.seqdb
   > ls -1 test-1.seqdb*
   test-1.seqdb
   test-1.seqdb.0.seq
@@ -72,13 +72,13 @@ That is why we can reuse the output files from the previous test, even though th
 
 Same as before, but test writing to a different folder. The file paths should be local.
   $ mkdir -p out
-  > ${BIN_DIR}/pancake seqdb out/test-1 ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta --block-size 0 --buffer-size 1024 --split-blocks
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.0.seq out/test-1.seqdb.0.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.1.seq out/test-1.seqdb.1.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.2.seq out/test-1.seqdb.2.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.3.seq out/test-1.seqdb.3.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.4.seq out/test-1.seqdb.4.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.seqdb
+  > ${BIN_DIR}/pancake seqdb out/test-1 ${TEST_DATA_DIR}/seqdb-writer/in.fasta --block-size 0 --buffer-size 1024 --split-blocks
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.0.seq out/test-1.seqdb.0.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.1.seq out/test-1.seqdb.1.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.2.seq out/test-1.seqdb.2.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.3.seq out/test-1.seqdb.3.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.4.seq out/test-1.seqdb.4.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.seqdb
   > ls -1 out/test-1.seqdb*
   out/test-1.seqdb
   out/test-1.seqdb.0.seq
@@ -89,8 +89,8 @@ Same as before, but test writing to a different folder. The file paths should be
 
 Write the SeqDB like before, but store all sequences into the same single 2-bit compressed file.
   $ rm -f out.seqdb*
-  > ${BIN_DIR}/pancake seqdb out ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta --block-size 1024 --buffer-size 1024
-  > cat ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.*.seq > expected.seq
+  > ${BIN_DIR}/pancake seqdb out ${TEST_DATA_DIR}/seqdb-writer/in.fasta --block-size 1024 --buffer-size 1024
+  > cat ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.*.seq > expected.seq
   > cat out.seqdb
   > diff expected.seq out.seqdb.0.seq
   > ls -1 out.seqdb*
@@ -108,8 +108,8 @@ Write the SeqDB like before, but store all sequences into the same single 2-bit 
 
 Using any size buffer should not impact the results, only perhaps the speed of writing. This will write out one read at a time.
   $ rm -f out.seqdb*
-  > ${BIN_DIR}/pancake seqdb out ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta --block-size 1024 --buffer-size 0
-  > cat ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.*.seq > expected.seq
+  > ${BIN_DIR}/pancake seqdb out ${TEST_DATA_DIR}/seqdb-writer/in.fasta --block-size 1024 --buffer-size 0
+  > cat ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.*.seq > expected.seq
   > cat out.seqdb
   > diff expected.seq out.seqdb.0.seq
   > ls -1 out.seqdb*
@@ -127,13 +127,13 @@ Using any size buffer should not impact the results, only perhaps the speed of w
 
 Uncompressed SeqDB construction, each sequence in one block.
   $ rm -f test-3.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-3 ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta --compression 0 --block-size 0 --buffer-size 1024 --split-blocks
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-3.seqdb.0.seq test-3.seqdb.0.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-3.seqdb.1.seq test-3.seqdb.1.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-3.seqdb.2.seq test-3.seqdb.2.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-3.seqdb.3.seq test-3.seqdb.3.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-3.seqdb.4.seq test-3.seqdb.4.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-3-uncompressed-each-seq-one-block-and-file.seqdb test-3.seqdb
+  > ${BIN_DIR}/pancake seqdb test-3 ${TEST_DATA_DIR}/seqdb-writer/in.fasta --compression 0 --block-size 0 --buffer-size 1024 --split-blocks
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-3.seqdb.0.seq test-3.seqdb.0.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-3.seqdb.1.seq test-3.seqdb.1.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-3.seqdb.2.seq test-3.seqdb.2.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-3.seqdb.3.seq test-3.seqdb.3.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-3.seqdb.4.seq test-3.seqdb.4.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-3-uncompressed-each-seq-one-block-and-file.seqdb test-3.seqdb
   > ls -1 test-3.seqdb*
   test-3.seqdb
   test-3.seqdb.0.seq
@@ -144,8 +144,8 @@ Uncompressed SeqDB construction, each sequence in one block.
 
 Uncompressed SeqDB construction, single block.
   $ rm -f out.seqdb*
-  > ${BIN_DIR}/pancake seqdb out ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta --compression 0 --block-size 1024 --buffer-size 1024
-  > cat ${PROJECT_DIR}/test-data/seqdb-writer/test-3.seqdb.*.seq > expected.seq
+  > ${BIN_DIR}/pancake seqdb out ${TEST_DATA_DIR}/seqdb-writer/in.fasta --compression 0 --block-size 1024 --buffer-size 1024
+  > cat ${TEST_DATA_DIR}/seqdb-writer/test-3.seqdb.*.seq > expected.seq
   > cat out.seqdb
   > diff expected.seq out.seqdb.0.seq
   > ls -1 out.seqdb*
@@ -163,21 +163,21 @@ Uncompressed SeqDB construction, single block.
 
 Create only one sequence file because all sequences fit into one block.
   $ rm -f test-6.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-6 ${PROJECT_DIR}/test-data/seqdb-writer/in.fasta --split-blocks
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-6.seqdb.0.seq test-6.seqdb.0.seq
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-6.seqdb test-6.seqdb
+  > ${BIN_DIR}/pancake seqdb test-6 ${TEST_DATA_DIR}/seqdb-writer/in.fasta --split-blocks
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-6.seqdb.0.seq test-6.seqdb.0.seq
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-6.seqdb test-6.seqdb
   > ls -1 test-6.seqdb*
   test-6.seqdb
   test-6.seqdb.0.seq
 
 Test an unsupported input format.
   $ rm -f test-1.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-1 ${PROJECT_DIR}/test-data/seqdb-writer/README.md --block-size 0 --buffer-size 1024 --split-blocks 2>&1 | grep "Unknown input file extension for file" | wc -l | awk '{ print $1 }'
+  > ${BIN_DIR}/pancake seqdb test-1 ${TEST_DATA_DIR}/seqdb-writer/README.md --block-size 0 --buffer-size 1024 --split-blocks 2>&1 | grep "Unknown input file extension for file" | wc -l | awk '{ print $1 }'
   1
 
 Test BAM input.
   $ rm -f test-input-bam.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-input-bam ${PROJECT_DIR}/test-data/seqdb-writer/bam/subreads1.bam --block-size 1024 --buffer-size 1024 --split-blocks
+  > ${BIN_DIR}/pancake seqdb test-input-bam ${TEST_DATA_DIR}/seqdb-writer/bam/subreads1.bam --block-size 1024 --buffer-size 1024 --split-blocks
   > cat test-input-bam.seqdb
   > ls -1 test-input-bam.seqdb*
   V	0.1.0
@@ -194,7 +194,7 @@ Test BAM input.
 
 Test XML input.
   $ rm -f test-input-xml.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-input-xml ${PROJECT_DIR}/test-data/seqdb-writer/bam/subreadset.xml --block-size 1024 --buffer-size 1024 --split-blocks
+  > ${BIN_DIR}/pancake seqdb test-input-xml ${TEST_DATA_DIR}/seqdb-writer/bam/subreadset.xml --block-size 1024 --buffer-size 1024 --split-blocks
   > cat test-input-xml.seqdb
   > ls -1 test-input-xml.seqdb*
   V	0.1.0
@@ -221,7 +221,7 @@ Test XML input.
 
 Test filtered XML input.
   $ rm -f test-input-xml.seqdb*
-  > ${BIN_DIR}/pancake seqdb test-input-xml ${PROJECT_DIR}/test-data/seqdb-writer/bam/filtered.subreadset.xml --block-size 1024 --buffer-size 1024 --split-blocks
+  > ${BIN_DIR}/pancake seqdb test-input-xml ${TEST_DATA_DIR}/seqdb-writer/bam/filtered.subreadset.xml --block-size 1024 --buffer-size 1024 --split-blocks
   > cat test-input-xml.seqdb
   > ls -1 test-input-xml.seqdb*
   V	0.1.0

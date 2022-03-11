@@ -36,8 +36,6 @@ pancake_version_sources = [
 ###########
 
 pancake_cpp_sources = files([
-    'alignment/AlignmentTools.cpp',
-    'alignment/SesDistanceBanded.cpp',
     'main/dbfilter/DBFilterSettings.cpp',
     'main/dbfilter/DBFilterWorkflow.cpp',
     'main/overlaphifi/OverlapHifiSettings.cpp',
@@ -52,6 +50,7 @@ pancake_cpp_sources = files([
     'main/seqdbinfo/SeqDBInfoWorkflow.cpp',
     'main/seqfetch/SeqFetchSettings.cpp',
     'main/seqfetch/SeqFetchWorkflow.cpp',
+    'pancake/AlignmentTools.cpp',
     'pancake/AlignerBase.cpp',
     'pancake/AlignerBatchCPU.cpp',
     'pancake/AlignerKSW2.cpp',
@@ -93,11 +92,12 @@ pancake_cpp_sources = files([
     'pancake/SeqDBWriter.cpp',
     'pancake/SequenceSeeds.cpp',
     'pancake/SequenceSeedsCached.cpp',
+    'pancake/SesDistanceBanded.cpp',
     'pancake/Twobit.cpp',
-    'util/FileIO.cpp',
-    'util/RunLengthEncoding.cpp',
-    'util/SeqLengthStats.cpp',
-    'util/TicToc.cpp',
+    'pancake/util/FileIO.cpp',
+    'pancake/util/RunLengthEncoding.cpp',
+    'pancake/util/SeqLengthStats.cpp',
+    'pancake/util/TicToc.cpp',
 ])
 
 if opt_cuda
@@ -144,7 +144,7 @@ if opt_cuda
       version : meson.project_version(),
       install : pancake_lib_install,
       dependencies : pancake_lib_deps,
-      include_directories : pancake_include_directories,
+      include_directories : [pancake_include_directories, pancake_third_party_include_directories],
       cpp_args : pancake_flags,
       cuda_args : pancake_cuda_flags,
       override_options : ['warning_level=2'])
@@ -156,7 +156,7 @@ else
       version : meson.project_version(),
       install : pancake_lib_install,
       dependencies : pancake_lib_deps,
-      include_directories : pancake_include_directories,
+      include_directories : [pancake_include_directories, pancake_third_party_include_directories],
       cpp_args : pancake_flags)
 endif
 
@@ -171,7 +171,7 @@ if not meson.is_subproject()
     ]),
     install : true,
     dependencies : pancake_lib_deps,
-    include_directories : pancake_include_directories,
+    include_directories : [pancake_include_directories, pancake_third_party_include_directories],
     link_with : pancake_lib,
     cpp_args : pancake_flags)
 endif

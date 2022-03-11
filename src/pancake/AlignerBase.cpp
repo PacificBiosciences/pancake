@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/alignment/AlignmentTools.h>
-#include <pacbio/pancake/AlignerBase.h>
+#include <pancake/AlignerBase.hpp>
+#include <pancake/AlignmentTools.hpp>
 
 namespace PacBio {
 namespace Pancake {

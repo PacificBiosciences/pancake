@@ -1,14 +1,14 @@
 // Authors: Ivan Sovic
 
 #include "SeqDBWorkflow.h"
-#include <pacbio/pancake/SeqDBWriter.h>
-#include <pacbio/util/FileIO.h>
 #include <pbbam/BamReader.h>
 #include <pbbam/DataSet.h>
 #include <pbbam/FastaReader.h>
 #include <pbbam/FastqReader.h>
 #include <pbbam/PbiIndexedBamReader.h>
 #include <boost/algorithm/string/predicate.hpp>
+#include <pancake/SeqDBWriter.hpp>
+#include <pancake/util/FileIO.hpp>
 #include "SeqDBSettings.h"
 
 #include <string>

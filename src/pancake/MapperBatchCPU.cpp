@@ -1,17 +1,17 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/alignment/AlignmentTools.h>
-#include <pacbio/pancake/AlignerBase.h>
-#include <pacbio/pancake/MapperBatchCPU.h>
-#include <pacbio/pancake/MapperBatchUtility.h>
-#include <pacbio/pancake/OverlapWriterFactory.h>
-#include <pacbio/util/TicToc.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/parallel/FireAndForget.h>
 #include <pbcopper/parallel/WorkQueue.h>
 #include <algorithm>
 #include <array>
 #include <iostream>
+#include <pancake/AlignerBase.hpp>
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/MapperBatchCPU.hpp>
+#include <pancake/MapperBatchUtility.hpp>
+#include <pancake/OverlapWriterFactory.hpp>
+#include <pancake/util/TicToc.hpp>
 #include <sstream>
 #include <tuple>
 

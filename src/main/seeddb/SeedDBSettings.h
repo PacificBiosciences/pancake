@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <string>
 
-#include <pacbio/pancake/SeedDBParameters.h>
 #include <pbcopper/cli2/CLI.h>
+#include <pancake/SeedDBParameters.hpp>
 
 namespace PacBio {
 namespace Pancake {

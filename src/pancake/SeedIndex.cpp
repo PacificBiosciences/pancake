@@ -1,14 +1,14 @@
 // Authors: Ivan Sovic
 
-#include <lib/kxsort/kxsort.h>
-#include <pacbio/pancake/Minimizers.h>
-#include <pacbio/pancake/Seed.h>
-#include <pacbio/pancake/SeedIndex.h>
-#include <pacbio/util/TicToc.h>
+#include <kxsort/kxsort.h>
 #include <pbcopper/logging/Logging.h>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <pancake/Minimizers.hpp>
+#include <pancake/Seed.hpp>
+#include <pancake/SeedIndex.hpp>
+#include <pancake/util/TicToc.hpp>
 #include <sstream>
 
 namespace PacBio {

@@ -1,10 +1,10 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/alignment/AlignmentTools.h>
-#include <pacbio/pancake/AlignmentSeeded.h>
-#include <pacbio/pancake/OverlapWriterBase.h>
 #include <pbcopper/logging/Logging.h>
 #include <iostream>
+#include <pancake/AlignmentSeeded.hpp>
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/OverlapWriterBase.hpp>
 
 namespace PacBio {
 namespace Pancake {

@@ -6,9 +6,9 @@
 
 #include <pbcopper/cli2/CLI.h>
 
-#include <pacbio/Version.h>
+#include <pancake/Version.hpp>
 
-#include <pacbio/overlaphifi/OverlapHifiSettings.h>
+#include <pancake/OverlapHifiSettings.hpp>
 #include "dbfilter/DBFilterSettings.h"
 #include "dbfilter/DBFilterWorkflow.h"
 #include "overlaphifi/OverlapHifiWorkflow.h"

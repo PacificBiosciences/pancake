@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 
-#include <pacbio/pancake/SeqDBIndexCache.h>
-#include <pacbio/util/SeqLengthStats.h>
 #include <pbcopper/logging/LogLevel.h>
 #include <pbcopper/logging/Logging.h>
+#include <pancake/SeqDBIndexCache.hpp>
+#include <pancake/util/SeqLengthStats.hpp>
 
 namespace PacBio {
 namespace Pancake {

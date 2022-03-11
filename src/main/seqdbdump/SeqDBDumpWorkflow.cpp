@@ -8,12 +8,12 @@
 #include <string>
 #include <vector>
 
-#include <pacbio/pancake/SeqDBIndexCache.h>
-#include <pacbio/pancake/SeqDBReader.h>
-#include <pacbio/pancake/SeqDBReaderCachedBlock.h>
-#include <pacbio/util/FileIO.h>
 #include <pbcopper/logging/LogLevel.h>
 #include <pbcopper/logging/Logging.h>
+#include <pancake/SeqDBIndexCache.hpp>
+#include <pancake/SeqDBReader.hpp>
+#include <pancake/SeqDBReaderCachedBlock.hpp>
+#include <pancake/util/FileIO.hpp>
 
 namespace PacBio {
 namespace Pancake {

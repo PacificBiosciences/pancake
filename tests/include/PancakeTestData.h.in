@@ -8,7 +8,7 @@
 namespace PacBio {
 namespace PancakeTestsConfig {
 
-const std::string Data_Dir = std::string("@pancake_TestsDir@/../test-data");
+const std::string Data_Dir = std::string("@pancake_TestsDir@/data");
 const std::string Generated_Dir = std::string("@GeneratedDir@");
 const std::string GeneratedData_Dir = std::string("@GeneratedTestDataDir@");
 

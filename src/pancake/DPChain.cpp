@@ -7,11 +7,11 @@
  * Originally implemented in the Raptor graph-based mapper.
  */
 
-#include <pacbio/pancake/DPChain.h>
-#include <pacbio/util/TicToc.h>
 #include <cassert>
 #include <iostream>
-#include <lib/math.hpp>
+#include <pancake/DPChain.hpp>
+#include <pancake/util/Math.hpp>
+#include <pancake/util/TicToc.hpp>
 #include <sstream>
 
 // #define DPCHAIN_DEBUG
@@ -94,7 +94,7 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
             }
 
             const int32_t linPart = (gapDist * linFactor);
-            const int32_t logPart = ((gapDist == 0) ? 0 : raptor::utility::ilog2_32(gapDist));
+            const int32_t logPart = ((gapDist == 0) ? 0 : ilog2_32(gapDist));
             const int32_t edge_score = linPart + (logPart / 2.0);
             const int32_t matchScore =
                 std::min(hjQuerySpan, std::min<int32_t>(abs(distQuery), abs(distTarget)));

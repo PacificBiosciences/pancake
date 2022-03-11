@@ -1,6 +1,6 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/CompressedSequence.h>
+#include <pancake/CompressedSequence.hpp>
 
 namespace PacBio {
 namespace Pancake {

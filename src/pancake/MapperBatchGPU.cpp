@@ -7,14 +7,9 @@
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 //
 // Authors: Ivan Sovic
-#include <pacbio/pancake/AlignerBatchGPU.h>
-#include <pacbio/pancake/MapperBatchGPU.h>
+#include <pancake/AlignerBatchGPU.hpp>
+#include <pancake/MapperBatchGPU.hpp>
 
-#include <pacbio/alignment/AlignmentTools.h>
-#include <pacbio/pancake/AlignerBase.h>
-#include <pacbio/pancake/AlignmentSeeded.h>
-#include <pacbio/pancake/OverlapWriterFactory.h>
-#include <pacbio/util/TicToc.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/parallel/FireAndForget.h>
 #include <pbcopper/parallel/WorkQueue.h>
@@ -23,6 +18,11 @@
 #include <cassert>
 #include <claraparabricks/genomeworks/utils/allocator.hpp>
 #include <iostream>
+#include <pancake/AlignerBase.hpp>
+#include <pancake/AlignmentSeeded.hpp>
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/OverlapWriterFactory.hpp>
+#include <pancake/util/TicToc.hpp>
 #include <sstream>
 #include <tuple>
 

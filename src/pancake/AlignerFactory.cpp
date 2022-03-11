@@ -1,6 +1,6 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/AlignerFactory.h>
+#include <pancake/AlignerFactory.hpp>
 
 namespace PacBio {
 namespace Pancake {

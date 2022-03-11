@@ -1,28 +1,28 @@
 // Authors: Ivan Sovic
 
-#include <lib/kxsort/kxsort.h>
-#include <pacbio/alignment/AlignmentTools.h>
-#include <pacbio/alignment/DiffCounts.h>
-#include <pacbio/alignment/SesDistanceBanded.h>
-#include <pacbio/pancake/AlignmentSeeded.h>
-#include <pacbio/pancake/DPChain.h>
-#include <pacbio/pancake/DPChainSimd.h>
-#include <pacbio/pancake/MapperCLR.h>
-#include <pacbio/pancake/MapperUtility.h>
-#include <pacbio/pancake/Minimizers.h>
-#include <pacbio/pancake/OverlapWriterBase.h>
-#include <pacbio/pancake/Secondary.h>
-#include <pacbio/pancake/SeedHitWriter.h>
-#include <pacbio/util/RunLengthEncoding.h>
-#include <pacbio/util/Util.h>
+#include <kxsort/kxsort.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/third-party/edlib.h>
-#include <util/TicToc.h>
 #include <algorithm>
 #include <array>
 #include <cstring>
 #include <iostream>
-#include <lib/istl/lis.hpp>
+#include <istl/lis.hpp>
+#include <pancake/AlignmentSeeded.hpp>
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/DPChain.hpp>
+#include <pancake/DPChainSimd.hpp>
+#include <pancake/DiffCounts.hpp>
+#include <pancake/MapperCLR.hpp>
+#include <pancake/MapperUtility.hpp>
+#include <pancake/Minimizers.hpp>
+#include <pancake/OverlapWriterBase.hpp>
+#include <pancake/Secondary.hpp>
+#include <pancake/SeedHitWriter.hpp>
+#include <pancake/SesDistanceBanded.hpp>
+#include <pancake/util/RunLengthEncoding.hpp>
+#include <pancake/util/TicToc.hpp>
+#include <pancake/util/Util.hpp>
 #include <sstream>
 #include <tuple>
 #include "pdqsort.h"
@@ -35,7 +35,7 @@
 // #define PANCAKE_MAP_CLR_DEBUG_PRINT_CHAINED_REGIONS
 // #define PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
 
-#include <util/DebugTools.h>
+#include <pancake/util/DebugTools.hpp>
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
 #include <pbcopper/utility/MemoryConsumption.h>

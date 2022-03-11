@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/SeedDBReader.h>
-#include <pacbio/pancake/SeedDBReaderCached.h>
+#include <pancake/SeedDBReader.hpp>
+#include <pancake/SeedDBReaderCached.hpp>
 #include <sstream>
 
 namespace PacBio {
