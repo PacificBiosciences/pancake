@@ -3,10 +3,11 @@
 #ifndef PANCAKE_COMPRESSED_SEQUENCE_H
 #define PANCAKE_COMPRESSED_SEQUENCE_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/Range.hpp>
 #include <pancake/Twobit.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {

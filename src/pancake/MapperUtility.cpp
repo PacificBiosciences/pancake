@@ -1,8 +1,10 @@
 // Authors: Ivan Sovic
 
-#include <pbcopper/logging/Logging.h>
-#include <iostream>
 #include <pancake/MapperUtility.hpp>
+
+#include <pbcopper/logging/Logging.h>
+
+#include <iostream>
 #include <sstream>
 
 namespace PacBio {

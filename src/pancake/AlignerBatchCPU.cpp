@@ -1,10 +1,13 @@
 // Authors: Ivan Sovic
 
+#include <pancake/AlignerBatchCPU.hpp>
+
+#include <pancake/util/Util.hpp>
+
 #include <pbcopper/parallel/WorkQueue.h>
+
 #include <cstring>
 #include <iostream>
-#include <pancake/AlignerBatchCPU.hpp>
-#include <pancake/util/Util.hpp>
 #include <sstream>
 
 namespace PacBio {

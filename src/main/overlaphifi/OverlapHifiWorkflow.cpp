@@ -1,10 +1,7 @@
 // Authors: Ivan Sovic
 
 #include "OverlapHifiWorkflow.h"
-#include <pbcopper/logging/LogLevel.h>
-#include <pbcopper/logging/Logging.h>
-#include <pbcopper/parallel/FireAndForget.h>
-#include <pbcopper/parallel/WorkQueue.h>
+
 #include <pancake/MapperHiFi.hpp>
 #include <pancake/OverlapHifiSettings.hpp>
 #include <pancake/OverlapWriterFactory.hpp>
@@ -16,6 +13,12 @@
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBReaderCached.hpp>
 #include <pancake/util/TicToc.hpp>
+
+#include <pbcopper/logging/LogLevel.h>
+#include <pbcopper/logging/Logging.h>
+#include <pbcopper/parallel/FireAndForget.h>
+#include <pbcopper/parallel/WorkQueue.h>
+
 #include <sstream>
 
 namespace PacBio {

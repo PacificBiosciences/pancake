@@ -3,17 +3,17 @@
 #include "SeqDBDumpWorkflow.h"
 #include "SeqDBDumpSettings.h"
 
-#include <algorithm>
-#include <iostream>
-#include <string>
-#include <vector>
-
 #include <pbcopper/logging/LogLevel.h>
 #include <pbcopper/logging/Logging.h>
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBReader.hpp>
 #include <pancake/SeqDBReaderCachedBlock.hpp>
 #include <pancake/util/FileIO.hpp>
+
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <vector>
 
 namespace PacBio {
 namespace Pancake {

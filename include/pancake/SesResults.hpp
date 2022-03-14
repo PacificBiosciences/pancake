@@ -3,12 +3,14 @@
 #ifndef PANCAKE_ALIGNMENT_SES_RESULTS_H
 #define PANCAKE_ALIGNMENT_SES_RESULTS_H
 
+#include <pancake/DiffCounts.hpp>
+
 #include <pbbam/Cigar.h>
 #include <pbbam/CigarOperation.h>
+
 #include <cstdint>
 #include <limits>
 #include <memory>
-#include <pancake/DiffCounts.hpp>
 #include <sstream>
 
 namespace PacBio {

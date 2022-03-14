@@ -10,12 +10,13 @@
 #ifndef PANCAKE_SEQDB_READER_CACHED_BLOCK_H
 #define PANCAKE_SEQDB_READER_CACHED_BLOCK_H
 
-#include <memory>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceCachedStore.hpp>
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBReaderCachedBlock.hpp>
+
+#include <memory>
 #include <string>
 #include <vector>
 

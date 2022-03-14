@@ -3,16 +3,17 @@
 #include "SeqDBInfoWorkflow.h"
 #include "SeqDBInfoSettings.h"
 
+#include <pancake/util/SeqLengthStats.hpp>
+
+#include <pbcopper/logging/LogLevel.h>
+#include <pbcopper/logging/Logging.h>
+#include <pancake/SeqDBIndexCache.hpp>
+
 #include <algorithm>
 #include <cstdio>
 #include <iostream>
 #include <string>
 #include <vector>
-
-#include <pbcopper/logging/LogLevel.h>
-#include <pbcopper/logging/Logging.h>
-#include <pancake/SeqDBIndexCache.hpp>
-#include <pancake/util/SeqLengthStats.hpp>
 
 namespace PacBio {
 namespace Pancake {

@@ -10,15 +10,15 @@
 #ifndef PANCAKE_DP_CHAIN_H
 #define PANCAKE_DP_CHAIN_H
 
-#ifdef PANCAKE_USE_SSE41
-#include <emmintrin.h>
-#endif
+#include <pancake/Range.hpp>
+#include <pancake/SeedHit.hpp>
 
 #include <cstdint>
 #include <memory>
-#include <pancake/Range.hpp>
-#include <pancake/SeedHit.hpp>
 #include <vector>
+#ifdef PANCAKE_USE_SSE41
+#include <emmintrin.h>
+#endif
 
 namespace PacBio {
 namespace Pancake {

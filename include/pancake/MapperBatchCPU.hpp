@@ -3,15 +3,17 @@
 #ifndef PANCAKE_MAPPER_BATCH_H
 #define PANCAKE_MAPPER_BATCH_H
 
-#include <pbcopper/parallel/FireAndForget.h>
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignerBatchCPU.hpp>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/MapperBase.hpp>
 #include <pancake/MapperBatchBase.hpp>
 #include <pancake/MapperBatchUtility.hpp>
 #include <pancake/MapperCLR.hpp>
+
+#include <pbcopper/parallel/FireAndForget.h>
+
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 

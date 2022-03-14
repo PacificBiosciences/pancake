@@ -3,12 +3,13 @@
 #ifndef PANCAKE_MAPPER_UTILITY_H
 #define PANCAKE_MAPPER_UTILITY_H
 
-#include <cstdint>
 #include <pancake/FastaSequenceCachedStore.hpp>
 #include <pancake/Minimizers.hpp>
 #include <pancake/Overlap.hpp>
 #include <pancake/SeedHit.hpp>
 #include <pancake/SeedIndex.hpp>
+
+#include <cstdint>
 #include <vector>
 
 namespace PacBio {

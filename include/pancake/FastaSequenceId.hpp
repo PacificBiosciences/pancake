@@ -10,6 +10,7 @@
 #define PANCAKE_FASTASEQUENCE_H
 
 #include <pbbam/FastaSequence.h>
+
 #include <string>
 
 namespace PacBio {

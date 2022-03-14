@@ -2,14 +2,13 @@
 
 #include <pancake/FastaSequenceId.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #include <cassert>
 #include <cstdio>
-
 #include <exception>
 #include <tuple>
 #include <type_traits>
-
-#include <boost/algorithm/string.hpp>
 
 namespace PacBio {
 namespace Pancake {

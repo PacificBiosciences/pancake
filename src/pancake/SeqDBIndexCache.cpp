@@ -1,6 +1,7 @@
 // Authors: Ivan Sovic
 
 #include <pancake/SeqDBIndexCache.hpp>
+
 #include <pancake/util/Util.hpp>
 
 #include <array>

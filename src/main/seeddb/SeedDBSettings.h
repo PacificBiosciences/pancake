@@ -3,11 +3,12 @@
 #ifndef PANCAKE_SEEDDB_SETTINGS_H
 #define PANCAKE_SEEDDB_SETTINGS_H
 
-#include <cstdint>
-#include <string>
+#include <pancake/SeedDBParameters.hpp>
 
 #include <pbcopper/cli2/CLI.h>
-#include <pancake/SeedDBParameters.hpp>
+
+#include <cstdint>
+#include <string>
 
 namespace PacBio {
 namespace Pancake {

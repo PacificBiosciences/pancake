@@ -3,11 +3,12 @@
 #ifndef PANCAKE_SEEDDB_READER_RAW_BLOCK_H
 #define PANCAKE_SEEDDB_READER_RAW_BLOCK_H
 
-#include <memory>
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Seed.hpp>
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <memory>
 #include <string>
 #include <vector>
 

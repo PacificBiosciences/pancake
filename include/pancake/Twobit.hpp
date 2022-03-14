@@ -4,6 +4,7 @@
 #define PANCAKE_TWOBIT_H
 
 #include <pancake/Range.hpp>
+
 #include <string>
 #include <vector>
 

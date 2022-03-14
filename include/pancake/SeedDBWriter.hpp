@@ -3,14 +3,15 @@
 #ifndef PANCAKE_SEEDDB_WRITER_COMPRESSED_H
 #define PANCAKE_SEEDDB_WRITER_COMPRESSED_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SeedDBParameters.hpp>
 #include <pancake/util/CommonTypes.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 

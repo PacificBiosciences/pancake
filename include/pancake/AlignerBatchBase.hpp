@@ -3,8 +3,9 @@
 #ifndef PANCAKE_ALIGNER_BATCH_GPU_BASE_H
 #define PANCAKE_ALIGNER_BATCH_GPU_BASE_H
 
-#include <cstdint>
 #include <pancake/AlignmentResult.hpp>
+
+#include <cstdint>
 #include <vector>
 
 namespace PacBio {

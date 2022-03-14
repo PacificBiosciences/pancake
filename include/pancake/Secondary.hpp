@@ -3,12 +3,14 @@
 #ifndef PANCAKE_OVERLAPHIFI_SECONDARY_H
 #define PANCAKE_OVERLAPHIFI_SECONDARY_H
 
+#include <pancake/Overlap.hpp>
+
 #include <pancake/third-party/intervaltree/IntervalTree.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <memory>
-#include <pancake/Overlap.hpp>
 #include <unordered_map>
 #include <vector>
 

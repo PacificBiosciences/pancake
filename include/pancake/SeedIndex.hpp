@@ -3,11 +3,12 @@
 #ifndef PANCAKE_OVERLAPHIFI_SEEDINDEX_H
 #define PANCAKE_OVERLAPHIFI_SEEDINDEX_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/Seed.hpp>
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SeedHit.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 

@@ -3,8 +3,6 @@
 #ifndef PANCAKE_OVERLAPHIFI_OVERLAPPER_H
 #define PANCAKE_OVERLAPHIFI_OVERLAPPER_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceCachedStore.hpp>
 #include <pancake/Overlap.hpp>
@@ -16,6 +14,9 @@
 #include <pancake/SequenceSeedsCached.hpp>
 #include <pancake/SesResults.hpp>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 

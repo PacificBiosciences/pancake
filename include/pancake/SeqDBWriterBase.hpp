@@ -3,8 +3,9 @@
 #ifndef PANCAKE_SEQDB_WRITER_BASE_H
 #define PANCAKE_SEQDB_WRITER_BASE_H
 
-#include <ostream>
 #include <pancake/CompressedSequence.hpp>
+
+#include <ostream>
 #include <string>
 
 namespace PacBio {

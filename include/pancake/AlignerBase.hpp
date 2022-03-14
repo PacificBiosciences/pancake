@@ -3,10 +3,11 @@
 #ifndef PANCAKE_ALIGNER_BASE_H
 #define PANCAKE_ALIGNER_BASE_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignmentParameters.hpp>
 #include <pancake/AlignmentResult.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {

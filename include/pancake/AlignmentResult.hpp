@@ -3,9 +3,11 @@
 #ifndef PANCAKE_ALIGNMENT_RESULT_H
 #define PANCAKE_ALIGNMENT_RESULT_H
 
-#include <pbbam/Cigar.h>
-#include <ostream>
 #include <pancake/DiffCounts.hpp>
+
+#include <pbbam/Cigar.h>
+
+#include <ostream>
 
 namespace PacBio {
 namespace Pancake {

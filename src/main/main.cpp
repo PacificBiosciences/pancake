@@ -1,14 +1,7 @@
 // Author: Ivan Sovic
 
-#include <cstdlib>
-#include <iostream>
-#include <stdexcept>
-
-#include <pbcopper/cli2/CLI.h>
-
-#include <pancake/Version.hpp>
-
 #include <pancake/OverlapHifiSettings.hpp>
+#include <pancake/Version.hpp>
 #include "dbfilter/DBFilterSettings.h"
 #include "dbfilter/DBFilterWorkflow.h"
 #include "overlaphifi/OverlapHifiWorkflow.h"
@@ -22,6 +15,12 @@
 #include "seqdbinfo/SeqDBInfoWorkflow.h"
 #include "seqfetch/SeqFetchSettings.h"
 #include "seqfetch/SeqFetchWorkflow.h"
+
+#include <pbcopper/cli2/CLI.h>
+
+#include <cstdlib>
+#include <iostream>
+#include <stdexcept>
 
 PacBio::CLI_v2::MultiToolInterface CreateMultiInterface()
 {

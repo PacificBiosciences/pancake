@@ -4,6 +4,7 @@
 #define PANCAKE_SEED_HIT_WRITER_H
 
 #include <pancake/SeedHit.hpp>
+
 #include <string>
 #include <vector>
 

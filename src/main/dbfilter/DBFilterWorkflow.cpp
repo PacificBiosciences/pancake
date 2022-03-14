@@ -1,18 +1,7 @@
 // Authors: Ivan Sovic
 
 #include "DBFilterWorkflow.h"
-
-#include <algorithm>
-#include <iostream>
-#include <random>
-#include <string>
-#include <unordered_set>
-#include <vector>
-
-#include <pbcopper/logging/LogLevel.h>
-#include <pbcopper/logging/Logging.h>
-
-#include <boost/algorithm/string/predicate.hpp>
+#include "DBFilterSettings.h"
 
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
@@ -21,7 +10,16 @@
 #include <pancake/util/TicToc.hpp>
 #include <pancake/util/Util.hpp>
 
-#include "DBFilterSettings.h"
+#include <pbcopper/logging/LogLevel.h>
+#include <pbcopper/logging/Logging.h>
+#include <boost/algorithm/string/predicate.hpp>
+
+#include <algorithm>
+#include <iostream>
+#include <random>
+#include <string>
+#include <unordered_set>
+#include <vector>
 
 namespace PacBio {
 namespace Pancake {

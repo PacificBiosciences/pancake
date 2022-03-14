@@ -2,9 +2,9 @@
 
 #include "SeqDBInfoSettings.h"
 
-#include <limits>
-
 #include <pancake/Version.hpp>
+
+#include <limits>
 
 namespace PacBio {
 namespace Pancake {

@@ -3,12 +3,15 @@
 #ifndef PANCAKE_ALIGNER_SES1_H
 #define PANCAKE_ALIGNER_SES1_H
 
+#include <pancake/AlignerBase.hpp>
+#include <pancake/AlignmentParameters.hpp>
+#include <pancake/SesResults.hpp>
+
 #include <pbbam/Cigar.h>
+
 #include <array>
 #include <cstdint>
 #include <memory>
-#include <pancake/AlignerBase.hpp>
-#include <pancake/SesResults.hpp>
 #include <vector>
 
 namespace PacBio {

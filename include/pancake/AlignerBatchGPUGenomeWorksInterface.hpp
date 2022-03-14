@@ -15,6 +15,7 @@
 #include <cuda_runtime_api.h>
 #include <pbcopper/data/Cigar.h>
 #include <claraparabricks/genomeworks/cudaaligner/aligner.hpp>
+
 #include <cstdint>
 
 namespace PacBio {

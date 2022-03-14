@@ -3,9 +3,6 @@
 #ifndef PANCAKE_MAPPER_CLR_H
 #define PANCAKE_MAPPER_CLR_H
 
-#include <pancake/third-party/intervaltree/IntervalTree.h>
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignerFactory.hpp>
 #include <pancake/AlignmentParameters.hpp>
@@ -22,6 +19,11 @@
 #include <pancake/SeqDBReaderCachedBlock.hpp>
 #include <pancake/SequenceSeedsCached.hpp>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <pancake/third-party/intervaltree/IntervalTree.h>
+
+#include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 

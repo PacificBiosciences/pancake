@@ -1,20 +1,21 @@
 // Authors: Ivan Sovic
 
 #include "SeqDBWorkflow.h"
+#include "SeqDBSettings.h"
+
+#include <pancake/SeqDBWriter.hpp>
+#include <pancake/util/FileIO.hpp>
+
 #include <pbbam/BamReader.h>
 #include <pbbam/DataSet.h>
 #include <pbbam/FastaReader.h>
 #include <pbbam/FastqReader.h>
 #include <pbbam/PbiIndexedBamReader.h>
 #include <boost/algorithm/string/predicate.hpp>
-#include <pancake/SeqDBWriter.hpp>
-#include <pancake/util/FileIO.hpp>
-#include "SeqDBSettings.h"
-
-#include <string>
-#include <vector>
 
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace PacBio {
 namespace Pancake {

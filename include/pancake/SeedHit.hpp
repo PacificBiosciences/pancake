@@ -3,9 +3,10 @@
 #ifndef PANCAKE_OVERLAPHIFI_SEEDHIT_H
 #define PANCAKE_OVERLAPHIFI_SEEDHIT_H
 
+#include <pancake/util/CommonTypes.hpp>
+
 #include <cstdint>
 #include <ostream>
-#include <pancake/util/CommonTypes.hpp>
 #include <vector>
 
 namespace PacBio {

@@ -3,8 +3,9 @@
 #ifndef PANCAKE_COMMON_H
 #define PANCAKE_COMMON_H
 
-#include <cstdint>
 #include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
+
+#include <cstdint>
 #include <string>
 
 namespace PacBio {

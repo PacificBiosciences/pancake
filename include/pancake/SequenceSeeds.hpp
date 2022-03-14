@@ -8,8 +8,9 @@
 #ifndef PANCAKE_SEQUENCE_SEEDS_H
 #define PANCAKE_SEQUENCE_SEEDS_H
 
-#include <cstdint>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <cstdint>
 #include <string>
 #include <vector>
 

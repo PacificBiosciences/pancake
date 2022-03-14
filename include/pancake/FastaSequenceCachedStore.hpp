@@ -8,9 +8,10 @@
 #ifndef PANCAKE_FASTA_SEQUENCE_CACHED_STORE_H
 #define PANCAKE_FASTA_SEQUENCE_CACHED_STORE_H
 
-#include <cstdint>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceId.hpp>
+
+#include <cstdint>
 #include <sstream>
 #include <string>
 #include <unordered_map>

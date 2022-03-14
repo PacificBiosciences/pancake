@@ -1,9 +1,11 @@
 // Authors: Ivan Sovic
 
+#include <pancake/SeedDBReaderRawBlock.hpp>
+
+#include <pancake/SeedDBReader.hpp>
+
 #include <functional>
 #include <iostream>
-#include <pancake/SeedDBReader.hpp>
-#include <pancake/SeedDBReaderRawBlock.hpp>
 #include <sstream>
 
 namespace PacBio {

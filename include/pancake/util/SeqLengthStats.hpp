@@ -3,10 +3,12 @@
 #ifndef PANCAKE_UTIL_SEQ_LENGTH_STATS_H
 #define PANCAKE_UTIL_SEQ_LENGTH_STATS_H
 
+#include <pancake/util/GenomicUnit.hpp>
+
 #include <pbcopper/json/JSON.h>
+
 #include <memory>
 #include <ostream>
-#include <pancake/util/GenomicUnit.hpp>
 #include <vector>
 
 namespace PacBio {

@@ -3,12 +3,13 @@
 #ifndef PANCAKE_SEQDB_READER_H
 #define PANCAKE_SEQDB_READER_H
 
-#include <memory>
-#include <ostream>
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeqDBReaderBase.hpp>
 #include <pancake/SeqDBWriterBase.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <memory>
+#include <ostream>
 #include <string>
 
 namespace PacBio {

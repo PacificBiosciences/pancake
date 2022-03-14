@@ -3,10 +3,10 @@
 #ifndef PANCAKE_SEQDB_SETTINGS_H
 #define PANCAKE_SEQDB_SETTINGS_H
 
+#include <pbcopper/cli2/CLI.h>
+
 #include <cstdint>
 #include <string>
-
-#include <pbcopper/cli2/CLI.h>
 
 namespace PacBio {
 namespace Pancake {

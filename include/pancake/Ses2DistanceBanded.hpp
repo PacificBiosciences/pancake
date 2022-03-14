@@ -3,6 +3,9 @@
 #ifndef PANCAKE_ALIGNMENT_SES2_DISTANCE_BANDED_H
 #define PANCAKE_ALIGNMENT_SES2_DISTANCE_BANDED_H
 
+#include <pancake/SesOptions.hpp>
+#include <pancake/SesResults.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -11,9 +14,6 @@
 #include <memory>
 #include <sstream>
 #include <vector>
-
-#include <pancake/SesOptions.hpp>
-#include <pancake/SesResults.hpp>
 
 // #define SES2_DEBUG
 

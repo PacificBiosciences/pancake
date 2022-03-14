@@ -1,13 +1,14 @@
 // Authors: Ivan Sovic
 
 #include "SeedDBWorkflow.h"
+#include "SeedDBSettings.h"
+
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/Minimizers.hpp>
 #include <pancake/Seed.hpp>
 #include <pancake/SeedDBWriter.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBReaderCachedBlock.hpp>
-#include "SeedDBSettings.h"
 
 #include <pbcopper/parallel/FireAndForget.h>
 #include <pbcopper/parallel/WorkQueue.h>

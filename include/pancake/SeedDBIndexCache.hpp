@@ -3,14 +3,15 @@
 #ifndef PANCAKE_SEEDDB_INDEX_CACHE_H
 #define PANCAKE_SEEDDB_INDEX_CACHE_H
 
-#include <cstdint>
-#include <fstream>
-#include <memory>
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Range.hpp>
 #include <pancake/SeedDBParameters.hpp>
 #include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <cstdint>
+#include <fstream>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>

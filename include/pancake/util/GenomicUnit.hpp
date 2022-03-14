@@ -3,9 +3,10 @@
 #ifndef PANCAKE_UTIL_GENOMIC_UNIT_H
 #define PANCAKE_UTIL_GENOMIC_UNIT_H
 
+#include <pancake/Lookups.hpp>
+
 #include <cstdio>
 #include <memory>
-#include <pancake/Lookups.hpp>
 #include <sstream>
 #include <vector>
 

@@ -1,6 +1,7 @@
 // Authors: Ivan Sovic
 
 #include <pancake/OverlapWriterFactory.hpp>
+
 #include <pancake/OverlapWriterM4.hpp>
 #include <pancake/OverlapWriterPAF.hpp>
 #include <pancake/OverlapWriterSAM.hpp>

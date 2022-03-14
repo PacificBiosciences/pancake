@@ -1,9 +1,11 @@
 // Authors: Ivan Sovic
 
-#include <pbcopper/third-party/edlib.h>
 #include <pancake/AlignerSES1.hpp>
+
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/SesAlignBanded.hpp>
+
+#include <pbcopper/third-party/edlib.h>
 
 namespace PacBio {
 namespace Pancake {

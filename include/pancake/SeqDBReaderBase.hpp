@@ -5,6 +5,7 @@
 
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
+
 #include <string>
 #include <vector>
 

@@ -1,8 +1,10 @@
 // Authors: Ivan Sovic
 
-#include <pbcopper/utility/StringUtils.h>
 #include <pancake/SeedDBIndexCache.hpp>
+
 #include <pancake/util/Util.hpp>
+
+#include <pbcopper/utility/StringUtils.h>
 
 #include <cinttypes>
 #include <limits>

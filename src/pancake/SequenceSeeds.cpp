@@ -1,9 +1,10 @@
 // Author: Ivan Sovic
 
+#include <pancake/SequenceSeeds.hpp>
+
 #include <cassert>
 #include <cstdio>
 #include <exception>
-#include <pancake/SequenceSeeds.hpp>
 #include <type_traits>
 
 namespace PacBio {

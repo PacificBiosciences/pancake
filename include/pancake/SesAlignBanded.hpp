@@ -3,19 +3,18 @@
 #ifndef PANCAKE_ALIGNMENT_SES_ALIGN_BANDED_H
 #define PANCAKE_ALIGNMENT_SES_ALIGN_BANDED_H
 
-#include <cstdint>
-
-#include <iostream>
-#include <limits>
-#include <memory>
-#include <sstream>
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/SesOptions.hpp>
+#include <pancake/SesResults.hpp>
 
 #include <pbbam/Cigar.h>
 #include <pbbam/CigarOperation.h>
 
-#include <pancake/AlignmentTools.hpp>
-#include <pancake/SesOptions.hpp>
-#include <pancake/SesResults.hpp>
+#include <cstdint>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <sstream>
 
 namespace PacBio {
 namespace Pancake {

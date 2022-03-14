@@ -3,13 +3,14 @@
 #ifndef PANCAKE_SEEDDB_MINIMIZERS_H
 #define PANCAKE_SEEDDB_MINIMIZERS_H
 
-#include <array>
-#include <cstdint>
-#include <deque>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/Seed.hpp>
 #include <pancake/SeedHit.hpp>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <array>
+#include <cstdint>
+#include <deque>
 #include <unordered_map>
 #include <vector>
 

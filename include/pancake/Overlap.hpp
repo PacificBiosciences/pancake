@@ -3,11 +3,13 @@
 #ifndef PANCAKE_OVERLAPHIFI_OVERLAP_H
 #define PANCAKE_OVERLAPHIFI_OVERLAP_H
 
+#include <pancake/util/Util.hpp>
+
 #include <pbbam/Cigar.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <memory>
-#include <pancake/util/Util.hpp>
 #include <string>
 
 namespace PacBio {

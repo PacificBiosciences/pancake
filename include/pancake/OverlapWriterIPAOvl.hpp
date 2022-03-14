@@ -3,14 +3,15 @@
 #ifndef PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_IPA_OVL_H
 #define PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_IPA_OVL_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/Overlap.hpp>
 #include <pancake/OverlapWriterBase.hpp>
 #include <pancake/SeqDBReaderCached.hpp>
 #include <pancake/SeqDBReaderCachedBlock.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 

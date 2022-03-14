@@ -7,11 +7,13 @@
  * Originally implemented in the Raptor graph-based mapper.
  */
 
-#include <cassert>
-#include <iostream>
 #include <pancake/DPChain.hpp>
+
 #include <pancake/util/Math.hpp>
 #include <pancake/util/TicToc.hpp>
+
+#include <cassert>
+#include <iostream>
 #include <sstream>
 
 // #define DPCHAIN_DEBUG

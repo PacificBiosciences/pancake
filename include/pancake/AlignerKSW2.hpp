@@ -3,15 +3,17 @@
 #ifndef PANCAKE_ALIGNER_KSW2_H
 #define PANCAKE_ALIGNER_KSW2_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignerBase.hpp>
-#include <vector>
+#include <pancake/AlignmentParameters.hpp>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <pbcopper/third-party/ksw2/ksw2.h>
 #pragma GCC diagnostic pop
+
+#include <cstdint>
+#include <memory>
+#include <vector>
 
 namespace PacBio {
 namespace Pancake {

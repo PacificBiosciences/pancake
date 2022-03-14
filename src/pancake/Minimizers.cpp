@@ -8,12 +8,14 @@
  *      Author: Ivan Sovic
  */
 
-#include <deque>
-#include <iostream>
-#include <pancake/Lookups.hpp>
 #include <pancake/Minimizers.hpp>
+
+#include <pancake/Lookups.hpp>
 #include <pancake/Seed.hpp>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <deque>
+#include <iostream>
 
 namespace PacBio {
 namespace Pancake {

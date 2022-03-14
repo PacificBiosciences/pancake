@@ -3,8 +3,9 @@
 #ifndef PANCAKE_DEBUG_TOOLS_H
 #define PANCAKE_DEBUG_TOOLS_H
 
-#include <cstdint>
 #include <pancake/util/TicToc.hpp>
+
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 

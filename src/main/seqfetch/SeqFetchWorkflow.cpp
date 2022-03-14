@@ -1,8 +1,22 @@
 // Authors: Ivan Sovic
 
 #include "SeqFetchWorkflow.h"
-#include <pancake/util/FileIO.hpp>
 #include "SeqFetchSettings.h"
+
+#include <pancake/SeqDBIndexCache.hpp>
+#include <pancake/SeqDBReader.hpp>
+#include <pancake/util/FileIO.hpp>
+#include <pancake/util/RunLengthEncoding.hpp>
+
+#include <pbbam/BamReader.h>
+#include <pbbam/DataSet.h>
+#include <pbbam/IndexedFastaReader.h>
+#include <pbbam/IndexedFastqReader.h>
+#include <pbbam/PbiFilterQuery.h>
+#include <pbbam/PbiFilterTypes.h>
+#include <pbcopper/logging/LogLevel.h>
+#include <pbcopper/logging/Logging.h>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <algorithm>
 #include <cinttypes>
@@ -12,20 +26,6 @@
 #include <tuple>
 #include <unordered_set>
 #include <vector>
-
-#include <pbbam/BamReader.h>
-#include <pbbam/DataSet.h>
-#include <pbbam/IndexedFastaReader.h>
-#include <pbbam/IndexedFastqReader.h>
-#include <pbbam/PbiFilterQuery.h>
-#include <pbbam/PbiFilterTypes.h>
-#include <boost/algorithm/string/predicate.hpp>
-#include <pancake/SeqDBIndexCache.hpp>
-#include <pancake/SeqDBReader.hpp>
-#include <pancake/util/RunLengthEncoding.hpp>
-
-#include <pbcopper/logging/LogLevel.h>
-#include <pbcopper/logging/Logging.h>
 
 namespace PacBio {
 namespace Pancake {

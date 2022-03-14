@@ -3,10 +3,11 @@
 #ifndef PANCAKE_SEQDB_READER_CACHED_H
 #define PANCAKE_SEQDB_READER_CACHED_H
 
-#include <memory>
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBReaderCached.hpp>
+
+#include <memory>
 #include <string>
 
 namespace PacBio {

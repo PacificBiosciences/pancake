@@ -1,11 +1,13 @@
 // Authors: Ivan Sovic
 
+#include <pancake/AlignerKSW2.hpp>
+
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/Lookups.hpp>
+
 #include <array>
 #include <cstring>
 #include <iostream>
-#include <pancake/AlignerKSW2.hpp>
-#include <pancake/AlignmentTools.hpp>
-#include <pancake/Lookups.hpp>
 
 namespace PacBio {
 namespace Pancake {

@@ -3,12 +3,13 @@
 #ifndef PANCAKE_SEQDB_WRITER_COMPRESSED_H
 #define PANCAKE_SEQDB_WRITER_COMPRESSED_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/CompressedSequence.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBWriterBase.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <string>
 
 /*

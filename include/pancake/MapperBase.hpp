@@ -3,8 +3,6 @@
 #ifndef PANCAKE_MAPPER_BASE_H
 #define PANCAKE_MAPPER_BASE_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/DPChain.hpp>
 #include <pancake/FastaSequenceCached.hpp>
@@ -12,6 +10,9 @@
 #include <pancake/Overlap.hpp>
 #include <pancake/OverlapWriterBase.hpp>
 #include <pancake/SeedIndex.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 

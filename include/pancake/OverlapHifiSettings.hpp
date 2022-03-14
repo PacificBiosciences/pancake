@@ -3,11 +3,12 @@
 #ifndef PANCAKE_OVERLAP_HIFI_SETTINGS_H
 #define PANCAKE_OVERLAP_HIFI_SETTINGS_H
 
-#include <cstdint>
-#include <string>
+#include <pancake/OverlapWriterFormat.hpp>
 
 #include <pbcopper/cli2/CLI.h>
-#include <pancake/OverlapWriterFormat.hpp>
+
+#include <cstdint>
+#include <string>
 
 namespace PacBio {
 namespace Pancake {

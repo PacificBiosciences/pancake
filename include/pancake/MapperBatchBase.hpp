@@ -3,6 +3,7 @@
 
 #include <pancake/MapperBase.hpp>
 #include <pancake/MapperBatchUtility.hpp>
+
 #include <vector>
 
 namespace PacBio {

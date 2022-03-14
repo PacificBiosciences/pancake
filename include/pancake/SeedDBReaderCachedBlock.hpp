@@ -3,13 +3,14 @@
 #ifndef PANCAKE_SEEDDB_READER_CACHED_BLOCK_H
 #define PANCAKE_SEEDDB_READER_CACHED_BLOCK_H
 
-#include <memory>
-#include <ostream>
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SeedDBReaderCachedBlock.hpp>
 #include <pancake/SequenceSeedsCached.hpp>
 #include <pancake/util/CommonTypes.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <memory>
+#include <ostream>
 #include <string>
 
 namespace PacBio {

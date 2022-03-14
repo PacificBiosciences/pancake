@@ -9,11 +9,12 @@
 #ifndef PANCAKE_DP_CHAIN_SIMD_H
 #define PANCAKE_DP_CHAIN_SIMD_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/DPChain.hpp>
 #include <pancake/Range.hpp>
 #include <pancake/SeedHit.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {

@@ -11,8 +11,9 @@
 #ifndef SRC_MINIMIZER_INDEX2_MINIMIZER_H_
 #define SRC_MINIMIZER_INDEX2_MINIMIZER_H_
 
-#include <cstdint>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <cstdint>
 #include <sstream>
 
 namespace PacBio {

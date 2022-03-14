@@ -3,12 +3,13 @@
 #ifndef PANCAKE_ALIGNMENT_SEEDED_H
 #define PANCAKE_ALIGNMENT_SEEDED_H
 
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignerFactory.hpp>
 #include <pancake/DPChain.hpp>
 #include <pancake/Overlap.hpp>
 #include <pancake/Seed.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {

@@ -3,10 +3,11 @@
 #ifndef PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_FACTORY_H
 #define PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_FACTORY_H
 
-#include <memory>
 #include <pancake/OverlapWriterBase.hpp>
 #include <pancake/OverlapWriterFormat.hpp>
 #include <pancake/OverlapWriterIPAOvl.hpp>
+
+#include <memory>
 
 namespace PacBio {
 namespace Pancake {

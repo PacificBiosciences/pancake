@@ -1,8 +1,10 @@
 // Author: Ivan Sovic
 
 #include "SeedDBSettings.h"
-#include <limits>
+
 #include <pancake/Version.hpp>
+
+#include <limits>
 
 namespace PacBio {
 namespace Pancake {
