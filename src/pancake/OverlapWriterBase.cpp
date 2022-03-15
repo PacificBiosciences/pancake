@@ -1,6 +1,6 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/OverlapWriterBase.h>
+#include <pancake/OverlapWriterBase.hpp>
 
 namespace PacBio {
 namespace Pancake {

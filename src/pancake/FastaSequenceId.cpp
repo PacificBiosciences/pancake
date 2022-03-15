@@ -1,6 +1,6 @@
 // Author: Ivan Sovic
 
-#include <pacbio/pancake/FastaSequenceId.h>
+#include <pancake/FastaSequenceId.hpp>
 
 #include <cassert>
 #include <cstdio>

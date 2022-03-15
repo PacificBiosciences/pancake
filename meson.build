@@ -34,7 +34,7 @@ foreach cflag: [
     endif
 endforeach
 
-pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC']
+pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC', '-D__STDC_FORMAT_MACROS']
 
 opt_tests = get_option('tests')
 opt_cuda = get_option('gpu-cuda')
@@ -106,6 +106,12 @@ if opt_cuda
 endif
 
 ###########
+# libs    #
+###########
+
+subdir('third-party')
+
+###########
 # headers #
 ###########
 
@@ -160,7 +166,7 @@ if not meson.is_subproject()
 endif
 
 pancake_dep = declare_dependency(
-  include_directories : pancake_include_directories,
+  include_directories : [pancake_include_directories, pancake_third_party_include_directories],
   link_with : pancake_lib,
   dependencies: pancake_lib_deps,
   version : meson.project_version())

@@ -4,8 +4,8 @@
 #############################################
 All hits per query/target pair.
   $ rm -rf out && mkdir -p out
-  > in_fasta=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.01.in.reads.plasmid_5kbp.ecoli_w_bc1087.fasta
-  > expected_ovl=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.01.out.all_hits.ovl
+  > in_fasta=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.01.in.reads.plasmid_5kbp.ecoli_w_bc1087.fasta
+  > expected_ovl=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.01.out.all_hits.ovl
   > ${BIN_DIR}/pancake seqdb out/reads ${in_fasta}
   > ${BIN_DIR}/pancake seeddb out/reads.seqdb out/reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 --num-threads 1 --skip-sym --write-rev --out-fmt ipa --min-idt 98 --traceback --mask-hp --mask-repeats --trim --trim-window-size 30 --trim-match-frac 0.75 out/reads out/reads 0 0 0 --out-fmt m4 | sort -k 1,1 > out/out.ovl
@@ -14,8 +14,8 @@ All hits per query/target pair.
 Marking secondary alignments and keeping only primary. Not well suited for overlapping because all overlaps are secondary, except
 potential tandem repeats and circular matches.
   $ rm -rf out && mkdir -p out
-  > in_fasta=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.01.in.reads.plasmid_5kbp.ecoli_w_bc1087.fasta
-  > expected_ovl=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.01.out.mark_secondary.ovl
+  > in_fasta=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.01.in.reads.plasmid_5kbp.ecoli_w_bc1087.fasta
+  > expected_ovl=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.01.out.mark_secondary.ovl
   > ${BIN_DIR}/pancake seqdb out/reads ${in_fasta}
   > ${BIN_DIR}/pancake seeddb out/reads.seqdb out/reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 --num-threads 1 --skip-sym --write-rev --out-fmt ipa --min-idt 98 --traceback --mask-hp --mask-repeats --trim --trim-window-size 30 --trim-match-frac 0.75 out/reads out/reads 0 0 0 --out-fmt m4 --mark-secondary --bestn 0 | sort -k 1,1 > out/out.ovl
@@ -23,8 +23,8 @@ potential tandem repeats and circular matches.
 
 Classic one-hit-per-target. This will not capture the circular matches.
   $ rm -rf out && mkdir -p out
-  > in_fasta=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.01.in.reads.plasmid_5kbp.ecoli_w_bc1087.fasta
-  > expected_ovl=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.01.out.one_hit_per_target.ovl
+  > in_fasta=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.01.in.reads.plasmid_5kbp.ecoli_w_bc1087.fasta
+  > expected_ovl=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.01.out.one_hit_per_target.ovl
   > ${BIN_DIR}/pancake seqdb out/reads ${in_fasta}
   > ${BIN_DIR}/pancake seeddb out/reads.seqdb out/reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 --num-threads 1 --skip-sym --write-rev --out-fmt ipa --min-idt 98 --traceback --mask-hp --mask-repeats --trim --trim-window-size 30 --trim-match-frac 0.75 out/reads out/reads 0 0 0 --out-fmt m4 --one-hit-per-target | sort -k 1,1 > out/out.ovl
@@ -32,8 +32,8 @@ Classic one-hit-per-target. This will not capture the circular matches.
 
 The new smart-hit-per-target. This should capture potential supplementary alignments of a query/target pair, but only on the same strand.
   $ rm -rf out && mkdir -p out
-  > in_fasta=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.01.in.reads.plasmid_5kbp.ecoli_w_bc1087.fasta
-  > expected_ovl=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.01.out.smart_hit_per_target.ovl
+  > in_fasta=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.01.in.reads.plasmid_5kbp.ecoli_w_bc1087.fasta
+  > expected_ovl=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.01.out.smart_hit_per_target.ovl
   > ${BIN_DIR}/pancake seqdb out/reads ${in_fasta}
   > ${BIN_DIR}/pancake seeddb out/reads.seqdb out/reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 --num-threads 1 --skip-sym --write-rev --out-fmt ipa --min-idt 98 --traceback --mask-hp --mask-repeats --trim --trim-window-size 30 --trim-match-frac 0.75 out/reads out/reads 0 0 0 --out-fmt m4 --smart-hit-per-target --secondary-min-ovl-frac 0.05 | sort -k 1,1 > out/out.ovl
@@ -46,8 +46,8 @@ The new smart-hit-per-target. This should capture potential supplementary alignm
 Several plasmid reads from an E. Coli W dataset.
 The new smart-hit-per-target. This should capture potential supplementary alignments of a query/target pair, but only on the same strand.
   $ rm -rf out && mkdir -p out
-  > in_fasta=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.02.in.reads.plasmid_5kbp.ecoli_w_bc1092.fasta
-  > expected_ovl=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.02.out.smart_hit_per_target.ovl
+  > in_fasta=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.02.in.reads.plasmid_5kbp.ecoli_w_bc1092.fasta
+  > expected_ovl=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.02.out.smart_hit_per_target.ovl
   > ${BIN_DIR}/pancake seqdb out/reads ${in_fasta}
   > ${BIN_DIR}/pancake seeddb out/reads.seqdb out/reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 --num-threads 1 --skip-sym --write-rev --out-fmt ipa --min-idt 98 --traceback --mask-hp --mask-repeats --trim --trim-window-size 30 --trim-match-frac 0.75 out/reads out/reads 0 0 0 --out-fmt m4 --smart-hit-per-target --secondary-min-ovl-frac 0.05 | sort -k 1,1 > out/out.ovl
@@ -56,8 +56,8 @@ The new smart-hit-per-target. This should capture potential supplementary alignm
 Several plasmid reads from a K. Pneumoniae dataset.
 The new smart-hit-per-target. This should capture potential supplementary alignments of a query/target pair, but only on the same strand.
   $ rm -rf out && mkdir -p out
-  > in_fasta=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.03.in.reads.plasmid_2kbp.kpneumoniae_bc1074.fasta
-  > expected_ovl=${PROJECT_DIR}/test-data/hifi-ovl/small-plasmids/test.03.out.smart_hit_per_target.ovl
+  > in_fasta=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.03.in.reads.plasmid_2kbp.kpneumoniae_bc1074.fasta
+  > expected_ovl=${TEST_DATA_DIR}/hifi-ovl/small-plasmids/test.03.out.smart_hit_per_target.ovl
   > ${BIN_DIR}/pancake seqdb out/reads ${in_fasta}
   > ${BIN_DIR}/pancake seeddb out/reads.seqdb out/reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 --num-threads 1 --skip-sym --write-rev --out-fmt ipa --min-idt 98 --traceback --mask-hp --mask-repeats --trim --trim-window-size 30 --trim-match-frac 0.75 out/reads out/reads 0 0 0 --out-fmt m4 --smart-hit-per-target --secondary-min-ovl-frac 0.05 --min-map-len 200 --min-anchor-span 200 | sort -k 1,1 > out/out.ovl
@@ -71,7 +71,7 @@ Test a set of overlaps without supplementary same-hit alignments with the new "-
 filter excessively when supplementary hits do not exist.
 Dovetail overlap 5prime test. Read "m64030_190330_071939/101844710/ccs" should have only 5prime overlaps with other reads.
 This is a test from test_hifi_ovl.t.
-  $ ${BIN_DIR}/pancake seqdb reads ${PROJECT_DIR}/test-data/hifi-ovl/reads.pile1-5prime.fasta
+  $ ${BIN_DIR}/pancake seqdb reads ${TEST_DATA_DIR}/hifi-ovl/reads.pile1-5prime.fasta
   > ${BIN_DIR}/pancake seeddb reads.seqdb reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 reads reads 0 0 0 --smart-hit-per-target | grep "^m64030_190330_071939/101844710/ccs"
   m64030_190330_071939/101844710/ccs m64030_190330_071939/60686570/ccs -9053 99.74 0 0 9077 11811 0 981 10059 10059 5

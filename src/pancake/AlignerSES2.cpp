@@ -1,9 +1,9 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/alignment/AlignmentTools.h>
-#include <pacbio/pancake/AlignerSES2.h>
 #include <pbcopper/third-party/edlib.h>
-#include <pacbio/alignment/Ses2AlignBanded.hpp>
+#include <pancake/AlignerSES2.hpp>
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/Ses2AlignBanded.hpp>
 
 namespace PacBio {
 namespace Pancake {

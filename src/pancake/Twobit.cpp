@@ -1,8 +1,8 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/Lookups.h>
-#include <pacbio/pancake/Twobit.h>
 #include <cmath>
+#include <pancake/Lookups.hpp>
+#include <pancake/Twobit.hpp>
 #include <sstream>
 
 #include <iostream>

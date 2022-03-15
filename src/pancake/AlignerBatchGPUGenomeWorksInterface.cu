@@ -9,7 +9,7 @@
 // All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include <pacbio/pancake/AlignerBatchGPUGenomeWorksInterface.h>
+#include <pancake/AlignerBatchGPUGenomeWorksInterface.hpp>
 
 #include <claraparabricks/genomeworks/cudaaligner/cudaaligner.hpp>
 #include <claraparabricks/genomeworks/utils/cudautils.hpp>

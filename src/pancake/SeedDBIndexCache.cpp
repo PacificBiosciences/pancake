@@ -1,8 +1,8 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/SeedDBIndexCache.h>
-#include <pacbio/util/Util.h>
 #include <pbcopper/utility/StringUtils.h>
+#include <pancake/SeedDBIndexCache.hpp>
+#include <pancake/util/Util.hpp>
 
 #include <cinttypes>
 #include <limits>

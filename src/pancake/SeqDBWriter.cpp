@@ -1,10 +1,10 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/CompressedSequence.h>
-#include <pacbio/pancake/SeqDBWriter.h>
-#include <pacbio/util/Util.h>
 #include <cmath>
 #include <iostream>
+#include <pancake/CompressedSequence.hpp>
+#include <pancake/SeqDBWriter.hpp>
+#include <pancake/util/Util.hpp>
 #include <sstream>
 
 namespace PacBio {

@@ -1,6 +1,6 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/Secondary.h>
+#include <pancake/Secondary.hpp>
 
 #include <sstream>
 

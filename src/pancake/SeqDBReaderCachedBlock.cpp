@@ -1,11 +1,11 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/SeqDBReader.h>
-#include <pacbio/pancake/SeqDBReaderCachedBlock.h>
-#include <pacbio/pancake/Twobit.h>
-#include <pacbio/util/RunLengthEncoding.h>
-#include <pacbio/util/Util.h>
 #include <iostream>
+#include <pancake/SeqDBReader.hpp>
+#include <pancake/SeqDBReaderCachedBlock.hpp>
+#include <pancake/Twobit.hpp>
+#include <pancake/util/RunLengthEncoding.hpp>
+#include <pancake/util/Util.hpp>
 #include <sstream>
 
 namespace PacBio {

@@ -1,9 +1,9 @@
 // Author: Ivan Sovic
 
-#include <pacbio/pancake/SequenceSeedsCached.h>
 #include <cassert>
 #include <cstdio>
 #include <exception>
+#include <pancake/SequenceSeedsCached.hpp>
 #include <type_traits>
 
 namespace PacBio {

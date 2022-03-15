@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include <pacbio/pancake/SeqDBIndexCache.h>
-#include <pacbio/util/Util.h>
+#include <pancake/SeqDBIndexCache.hpp>
+#include <pancake/util/Util.hpp>
 
 #include <array>
 #include <cinttypes>

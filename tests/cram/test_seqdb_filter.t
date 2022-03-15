@@ -3,14 +3,14 @@
 ##############################
 Wrong filter, should throw.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-type something_wrong ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered 2>&1 | sed 's/^.*pancake //g'
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-type something_wrong ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered 2>&1 | sed 's/^.*pancake //g'
   dbfilter ERROR: Unknown filter type: 'something_wrong'.
 
 No filtering applied.
 Test construction of the DB from a small test FASTA file. Store each sequence into a separate 2-bit compressed file.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.filtered.seqdb
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.filtered.seqdb
   > ls -1 test-1.filtered*
   test-1.filtered.seqdb
 
@@ -20,8 +20,8 @@ Test construction of the DB from a small test FASTA file. Store each sequence in
   $ rm -f test-1.filtered*
   > echo "m141013_011508_sherri_c100709962550000001823135904221533_s1_p0/3414/0_11983" > filterlist.txt
   > echo "m141013_011508_sherri_c100709962550000001823135904221533_s1_p0/4028/0_19001" >> filterlist.txt
-  $ ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-list filterlist.txt --filter-type none ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.filtered.seqdb
+  $ ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-list filterlist.txt --filter-type none ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.filtered.seqdb
   > ls -1 test-1.filtered*
   test-1.filtered.seqdb
 
@@ -30,7 +30,7 @@ Test construction of the DB from a small test FASTA file. Store each sequence in
   $ rm -f test-1.filtered*
   > echo "m141013_011508_sherri_c100709962550000001823135904221533_s1_p0/3414/0_11983" > filterlist.txt
   > echo "m141013_011508_sherri_c100709962550000001823135904221533_s1_p0/4028/0_19001" >> filterlist.txt
-  $ ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-list filterlist.txt --filter-type blacklist ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  $ ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-list filterlist.txt --filter-type blacklist ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
   > cat test-1.filtered.seqdb
   > ls -1 test-1.filtered*
   V	0.1.0
@@ -53,7 +53,7 @@ Test construction of the DB from a small test FASTA file. Store each sequence in
   $ rm -f test-1.filtered*
   > echo "m141013_011508_sherri_c100709962550000001823135904221533_s1_p0/3414/0_11983" > filterlist.txt
   > echo "m141013_011508_sherri_c100709962550000001823135904221533_s1_p0/4028/0_19001" >> filterlist.txt
-  $ ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-list filterlist.txt --filter-type whitelist ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  $ ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-list filterlist.txt --filter-type whitelist ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
   > cat test-1.filtered.seqdb
   > ls -1 test-1.filtered*
   V	0.1.0
@@ -75,8 +75,8 @@ Also, unlike the input DB, here all the sequences will be stored in the same fil
   $ rm -f test-1.filtered*
   > echo "m141013_011508_sherri_c100709962550000001823135904221533_s1_p0/3414/0_11983" > filterlist.txt
   > echo "m141013_011508_sherri_c100709962550000001823135904221533_s1_p0/4028/0_19001" >> filterlist.txt
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-list filterlist.txt --filter-type whitelist --consolidate ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
-  > cat ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.1.seq ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.4.seq > expected.seq
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --filter-list filterlist.txt --filter-type whitelist --consolidate ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > cat ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.1.seq ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.4.seq > expected.seq
   > diff expected.seq test-1.filtered.seqdb.0.seq
   > cat test-1.filtered.seqdb
   > ls -1 test-1.filtered*
@@ -96,21 +96,21 @@ Also, unlike the input DB, here all the sequences will be stored in the same fil
 ####################
 Wrong subsampling type, should throw.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling something_wrong ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered 2>&1 | sed 's/^.*pancake //g'
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling something_wrong ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered 2>&1 | sed 's/^.*pancake //g'
   dbfilter ERROR: Unknown sampling type: 'something_wrong'.
 
 No sampling, output should be the same as input.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling none ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
-  > diff ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.filtered.seqdb
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling none ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > diff ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file.seqdb test-1.filtered.seqdb
   > ls -1 test-1.filtered*
   test-1.filtered.seqdb
 
 Linear sampling and consolidation, normal valid case.
 Pick the first ~45000bp from the input SeqDB, and create a new DB with consolidated sequences.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling linear --sample-bases 45000 --consolidate ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
-  > cat ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.0.seq ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.1.seq ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.2.seq ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.3.seq > expected.seq
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling linear --sample-bases 45000 --consolidate ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > cat ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.0.seq ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.1.seq ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.2.seq ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.3.seq > expected.seq
   > diff expected.seq test-1.filtered.seqdb.0.seq
   > cat test-1.filtered.seqdb
   > ls -1 test-1.filtered*
@@ -130,7 +130,7 @@ Pick the first ~45000bp from the input SeqDB, and create a new DB with consolida
 
 Linear sampling and consolidation, with 0bp sampled bases. Output should have no sequences.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling linear --sample-bases 0 --consolidate ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling linear --sample-bases 0 --consolidate ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
   > cat test-1.filtered.seqdb
   > ls -1 test-1.filtered*
   > wc -l test-1.filtered.seqdb.0.seq | awk '{ print $1 }'
@@ -145,8 +145,8 @@ Random permutation and consolidation.
 Filter out two sequences using a whitelist. The new data files will be generated, and these should contain only the non-filtered sequences.
 Also, unlike the input DB, here all the sequences will be stored in the same file.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling random --sample-bases 25000 --random-seed 12345 --consolidate ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
-  > cat ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.1.seq ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.2.seq > expected.seq
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling random --sample-bases 25000 --random-seed 12345 --consolidate ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > cat ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.1.seq ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.2.seq > expected.seq
   > diff expected.seq test-1.filtered.seqdb.0.seq
   > cat test-1.filtered.seqdb
   > ls -1 test-1.filtered*
@@ -164,8 +164,8 @@ Another random andom permutation and consolidation, but with a different seed.
 Filter out two sequences using a whitelist. The new data files will be generated, and these should contain only the non-filtered sequences.
 Also, unlike the input DB, here all the sequences will be stored in the same file.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling random --sample-bases 25000 --random-seed 7 --consolidate ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
-  > cat ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.0.seq ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.2.seq ${PROJECT_DIR}/test-data/seqdb-writer/test-1.seqdb.3.seq > expected.seq
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling random --sample-bases 25000 --random-seed 7 --consolidate ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > cat ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.0.seq ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.2.seq ${TEST_DATA_DIR}/seqdb-writer/test-1.seqdb.3.seq > expected.seq
   > diff expected.seq test-1.filtered.seqdb.0.seq
   > cat test-1.filtered.seqdb
   > ls -1 test-1.filtered*
@@ -183,7 +183,7 @@ Also, unlike the input DB, here all the sequences will be stored in the same fil
 
 Random sampling and consolidation, with 0bp sampled bases. Output should have no sequences.
   $ rm -f test-1.filtered*
-  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling random --sample-bases 0 --consolidate ${PROJECT_DIR}/test-data/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
+  > ${BIN_DIR}/pancake dbfilter --block-size 0 --sampling random --sample-bases 0 --consolidate ${TEST_DATA_DIR}/seqdb-writer/test-1-compressed-each-seq-one-block-and-file test-1.filtered
   > cat test-1.filtered.seqdb
   > ls -1 test-1.filtered*
   > wc -l test-1.filtered.seqdb.0.seq | awk '{ print $1 }'

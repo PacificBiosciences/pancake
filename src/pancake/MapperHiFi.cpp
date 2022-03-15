@@ -1,26 +1,26 @@
 // Authors: Ivan Sovic
 
-#include <lib/kxsort/kxsort.h>
-#include <pacbio/alignment/AlignmentTools.h>
-#include <pacbio/alignment/DiffCounts.h>
-#include <pacbio/alignment/SesDistanceBanded.h>
-#include <pacbio/pancake/MapperHiFi.h>
-#include <pacbio/pancake/Minimizers.h>
-#include <pacbio/pancake/OverlapWriterBase.h>
-#include <pacbio/pancake/Secondary.h>
-#include <pacbio/pancake/SeedHitWriter.h>
-#include <pacbio/util/RunLengthEncoding.h>
-#include <pacbio/util/TicToc.h>
-#include <pacbio/util/Util.h>
+#include <kxsort/kxsort.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/third-party/edlib.h>
 #include <algorithm>
 #include <iostream>
-#include <lib/istl/lis.hpp>
-#include <lib/istl/range_tools.hpp>
-#include <pacbio/alignment/Ses2AlignBanded.hpp>
-#include <pacbio/alignment/Ses2DistanceBanded.hpp>
-#include <pacbio/alignment/SesAlignBanded.hpp>
+#include <istl/lis.hpp>
+#include <istl/range_tools.hpp>
+#include <pancake/AlignmentTools.hpp>
+#include <pancake/DiffCounts.hpp>
+#include <pancake/MapperHiFi.hpp>
+#include <pancake/Minimizers.hpp>
+#include <pancake/OverlapWriterBase.hpp>
+#include <pancake/Secondary.hpp>
+#include <pancake/SeedHitWriter.hpp>
+#include <pancake/Ses2AlignBanded.hpp>
+#include <pancake/Ses2DistanceBanded.hpp>
+#include <pancake/SesAlignBanded.hpp>
+#include <pancake/SesDistanceBanded.hpp>
+#include <pancake/util/RunLengthEncoding.hpp>
+#include <pancake/util/TicToc.hpp>
+#include <pancake/util/Util.hpp>
 #include <sstream>
 
 namespace PacBio {

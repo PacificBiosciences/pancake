@@ -7,11 +7,11 @@
  * SSE-vectorized dynamic programming based seed hit chaining.
  */
 
-#include <pacbio/pancake/DPChain.h>
-#include <pacbio/util/TicToc.h>
 #include <array>
 #include <iostream>
-#include <lib/math.hpp>
+#include <pancake/DPChain.hpp>
+#include <pancake/util/Math.hpp>
+#include <pancake/util/TicToc.hpp>
 #include <sstream>
 
 #include <emmintrin.h>

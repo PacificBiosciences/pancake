@@ -1,21 +1,21 @@
 // Authors: Ivan Sovic
 
 #include "OverlapHifiWorkflow.h"
-#include <pacbio/overlaphifi/OverlapHifiSettings.h>
-#include <pacbio/pancake/MapperHiFi.h>
-#include <pacbio/pancake/OverlapWriterFactory.h>
-#include <pacbio/pancake/Seed.h>
-#include <pacbio/pancake/SeedDBIndexCache.h>
-#include <pacbio/pancake/SeedDBReaderCachedBlock.h>
-#include <pacbio/pancake/SeedDBReaderRawBlock.h>
-#include <pacbio/pancake/SeedIndex.h>
-#include <pacbio/pancake/SeqDBIndexCache.h>
-#include <pacbio/pancake/SeqDBReaderCached.h>
-#include <pacbio/util/TicToc.h>
 #include <pbcopper/logging/LogLevel.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/parallel/FireAndForget.h>
 #include <pbcopper/parallel/WorkQueue.h>
+#include <pancake/MapperHiFi.hpp>
+#include <pancake/OverlapHifiSettings.hpp>
+#include <pancake/OverlapWriterFactory.hpp>
+#include <pancake/Seed.hpp>
+#include <pancake/SeedDBIndexCache.hpp>
+#include <pancake/SeedDBReaderCachedBlock.hpp>
+#include <pancake/SeedDBReaderRawBlock.hpp>
+#include <pancake/SeedIndex.hpp>
+#include <pancake/SeqDBIndexCache.hpp>
+#include <pancake/SeqDBReaderCached.hpp>
+#include <pancake/util/TicToc.hpp>
 #include <sstream>
 
 namespace PacBio {

@@ -3,10 +3,10 @@
 #ifndef PANCAKE_SEQDB_INFO_SETTINGS_H
 #define PANCAKE_SEQDB_INFO_SETTINGS_H
 
-#include <pacbio/util/CommonTypes.h>
-#include <pacbio/util/GenomicUnit.h>
 #include <pbcopper/cli2/CLI.h>
 #include <cstdint>
+#include <pancake/util/CommonTypes.hpp>
+#include <pancake/util/GenomicUnit.hpp>
 #include <string>
 
 namespace PacBio {
