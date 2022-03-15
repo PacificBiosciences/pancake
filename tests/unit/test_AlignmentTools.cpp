@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <sstream>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -18,10 +19,10 @@ TEST(Test_AlignmentTools_EdlibAlignmentToCigar, EmptyInput)
 {
     std::vector<unsigned char> input = {};
     PacBio::BAM::Cigar expected;
-    PacBio::Pancake::Alignment::DiffCounts expectedDiffs;
+    PacBio::Pancake::DiffCounts expectedDiffs;
 
-    PacBio::Pancake::Alignment::DiffCounts diffs;
-    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input.data(), input.size(), diffs);
+    PacBio::Pancake::DiffCounts diffs;
+    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input, diffs);
     EXPECT_EQ(expected, result);
     EXPECT_EQ(expectedDiffs, diffs);
 }
@@ -31,10 +32,10 @@ TEST(Test_AlignmentTools_EdlibAlignmentToCigar, SingleOp)
     // Edlib move codes: 0: '=', 1: 'I', 2: 'D', 3: 'X'
     std::vector<unsigned char> input = {EDLIB_EDOP_MISMATCH};
     PacBio::BAM::Cigar expected("1X");
-    PacBio::Pancake::Alignment::DiffCounts expectedDiffs(0, 1, 0, 0);
+    PacBio::Pancake::DiffCounts expectedDiffs(0, 1, 0, 0);
 
-    PacBio::Pancake::Alignment::DiffCounts diffs;
-    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input.data(), input.size(), diffs);
+    PacBio::Pancake::DiffCounts diffs;
+    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input, diffs);
     EXPECT_EQ(expected, result);
     EXPECT_EQ(expectedDiffs, diffs);
 }
@@ -46,10 +47,10 @@ TEST(Test_AlignmentTools_EdlibAlignmentToCigar, SimpleTest)
                                         EDLIB_EDOP_MISMATCH, EDLIB_EDOP_INSERT, EDLIB_EDOP_DELETE,
                                         EDLIB_EDOP_DELETE,   EDLIB_EDOP_INSERT};
     PacBio::BAM::Cigar expected("3=1X1I2D1I");
-    PacBio::Pancake::Alignment::DiffCounts expectedDiffs(3, 1, 2, 2);
+    PacBio::Pancake::DiffCounts expectedDiffs(3, 1, 2, 2);
 
-    PacBio::Pancake::Alignment::DiffCounts diffs;
-    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input.data(), input.size(), diffs);
+    PacBio::Pancake::DiffCounts diffs;
+    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input, diffs);
     EXPECT_EQ(expected, result);
     EXPECT_EQ(expectedDiffs, diffs);
 }
@@ -92,13 +93,15 @@ TEST(Test_AlignmentTools_ValidateCigar, ArrayOfTests)
         if (shouldThrow) {
             EXPECT_THROW(
                 {
-                    PacBio::Pancake::ValidateCigar(query.c_str(), query.size(), target.c_str(),
-                                                   target.size(), cigar, "");
+                    PacBio::Pancake::ValidateCigar(std::string_view(query.c_str(), query.size()),
+                                                   std::string_view(target.c_str(), target.size()),
+                                                   cigar, "");
                 },
                 std::runtime_error);
         } else {
-            PacBio::Pancake::ValidateCigar(query.c_str(), query.size(), target.c_str(),
-                                           target.size(), cigar, "");
+            PacBio::Pancake::ValidateCigar(std::string_view(query.c_str(), query.size()),
+                                           std::string_view(target.c_str(), target.size()), cigar,
+                                           "");
         }
     }
 }
@@ -116,8 +119,8 @@ public:
     bool maskHomopolymersArbitrary;
     std::string expectedQueryVariants;
     std::string expectedTargetVariants;
-    PacBio::Pancake::Alignment::DiffCounts expectedDiffsPerBase;
-    PacBio::Pancake::Alignment::DiffCounts expectedDiffsPerEvent;
+    PacBio::Pancake::DiffCounts expectedDiffsPerBase;
+    PacBio::Pancake::DiffCounts expectedDiffsPerEvent;
 };
 
 TEST(Test_AlignmentTools_ExtractVariantString, ArrayOfTests)
@@ -462,15 +465,14 @@ TEST(Test_AlignmentTools_ExtractVariantString, ArrayOfTests)
         PacBio::BAM::Cigar cigar(data.cigar);
         std::string resultQueryVariants;
         std::string resultTargetVariants;
-        PacBio::Pancake::Alignment::DiffCounts resultDiffsPerBase;
-        PacBio::Pancake::Alignment::DiffCounts resultDiffsPerEvent;
+        PacBio::Pancake::DiffCounts resultDiffsPerBase;
+        PacBio::Pancake::DiffCounts resultDiffsPerEvent;
 
         // Run.
         PacBio::Pancake::ExtractVariantString(
-            data.query.c_str(), data.query.size(), data.target.c_str(), data.target.size(), cigar,
-            data.maskHomopolymers, data.maskSimpleRepeats, data.maskHomopolymerSNPs,
-            data.maskHomopolymersArbitrary, resultQueryVariants, resultTargetVariants,
-            resultDiffsPerBase, resultDiffsPerEvent);
+            data.query, data.target, cigar, data.maskHomopolymers, data.maskSimpleRepeats,
+            data.maskHomopolymerSNPs, data.maskHomopolymersArbitrary, resultQueryVariants,
+            resultTargetVariants, resultDiffsPerBase, resultDiffsPerEvent);
 
         // Evaluate.
         EXPECT_EQ(data.expectedQueryVariants, resultQueryVariants);
@@ -528,21 +530,21 @@ TEST(Test_AlignmentTools_FindTargetPosFromCigar, ArrayOfTests)
 TEST(Test_AlignmentTools_ComputeDiffCounts, ArrayOfTests)
 {
     // clang-format off
-    std::vector<std::tuple<std::string, std::string, std::string, std::string, Alignment::DiffCounts, bool, bool>> testData = {
-        {"Empty input", "", "", "", Alignment::DiffCounts(), false, false},
-        {"Exact match", "4=", "", "", Alignment::DiffCounts(4, 0, 0, 0), false, false},
-        {"Variant pos out of bounds (X)", "3=1X1=", "", "", Alignment::DiffCounts(), false, true},
-        {"Variant pos out of bounds (I)", "3=1I1=", "", "", Alignment::DiffCounts(), false, true},
-        {"Variant pos out of bounds (D)", "3=1D1=", "", "", Alignment::DiffCounts(), false, true},
-        {"Valid case, 1X", "3=1X1=", "A", "C", Alignment::DiffCounts(4, 1, 0, 0), false, false},
-        {"Valid case, 1X, masked", "3=1X1=", "a", "c", Alignment::DiffCounts(4, 0, 0, 0), false, false},
-        {"Valid case, 1X, mixed mask, should throw", "3=1X1=", "a", "C", Alignment::DiffCounts(), false, true},
-        {"Valid case with multiple diffs and 1 masked I", "3=1X1=1D2=2I2=1I", "ATAt", "CT", Alignment::DiffCounts(8, 1, 2, 1), false, false},
-        {"Valid case with clipping and reference skip", "3S3=1X1=1D2=1I2N2=1I3H", "ATt", "CT", Alignment::DiffCounts(8, 1, 1, 1), false, false},
-        {"The 2-base I has mixed masking, but the parameter says not to throw", "3=1X1=1D2=2I2=1I", "ATat", "CT", Alignment::DiffCounts(8, 1, 1, 1), false, false},
-        {"The 2-base D has mixed masking, but the parameter says not to throw", "3=1X1=2D2=2I2=1I", "ATat", "CTc", Alignment::DiffCounts(8, 1, 1, 1), false, false},
-        {"Bad case, the 2-base I has mixed masking", "3=1X1=1D2=2I2=1I", "ATat", "CT", Alignment::DiffCounts(), true, true},
-        {"Bad case, the 2-base B has mixed masking", "3=1X1=2D2=2I2=1I", "ATat", "CTc", Alignment::DiffCounts(), true, true},
+    std::vector<std::tuple<std::string, std::string, std::string, std::string, DiffCounts, bool, bool>> testData = {
+        {"Empty input", "", "", "", DiffCounts(), false, false},
+        {"Exact match", "4=", "", "", DiffCounts(4, 0, 0, 0), false, false},
+        {"Variant pos out of bounds (X)", "3=1X1=", "", "", DiffCounts(), false, true},
+        {"Variant pos out of bounds (I)", "3=1I1=", "", "", DiffCounts(), false, true},
+        {"Variant pos out of bounds (D)", "3=1D1=", "", "", DiffCounts(), false, true},
+        {"Valid case, 1X", "3=1X1=", "A", "C", DiffCounts(4, 1, 0, 0), false, false},
+        {"Valid case, 1X, masked", "3=1X1=", "a", "c", DiffCounts(4, 0, 0, 0), false, false},
+        {"Valid case, 1X, mixed mask, should throw", "3=1X1=", "a", "C", DiffCounts(), false, true},
+        {"Valid case with multiple diffs and 1 masked I", "3=1X1=1D2=2I2=1I", "ATAt", "CT", DiffCounts(8, 1, 2, 1), false, false},
+        {"Valid case with clipping and reference skip", "3S3=1X1=1D2=1I2N2=1I3H", "ATt", "CT", DiffCounts(8, 1, 1, 1), false, false},
+        {"The 2-base I has mixed masking, but the parameter says not to throw", "3=1X1=1D2=2I2=1I", "ATat", "CT", DiffCounts(8, 1, 1, 1), false, false},
+        {"The 2-base D has mixed masking, but the parameter says not to throw", "3=1X1=2D2=2I2=1I", "ATat", "CTc", DiffCounts(8, 1, 1, 1), false, false},
+        {"Bad case, the 2-base I has mixed masking", "3=1X1=1D2=2I2=1I", "ATat", "CT", DiffCounts(), true, true},
+        {"Bad case, the 2-base B has mixed masking", "3=1X1=2D2=2I2=1I", "ATat", "CTc", DiffCounts(), true, true},
     };
     // clang-format on
 
@@ -552,7 +554,7 @@ TEST(Test_AlignmentTools_ComputeDiffCounts, ArrayOfTests)
         PacBio::BAM::Cigar cigar(std::get<1>(data));
         const std::string& queryVariants = std::get<2>(data);
         const std::string& targetVariants = std::get<3>(data);
-        const PacBio::Pancake::Alignment::DiffCounts& expected = std::get<4>(data);
+        const PacBio::Pancake::DiffCounts& expected = std::get<4>(data);
         bool throwOnPartiallyMaskedIndels = std::get<5>(data);
         bool shouldThrow = std::get<6>(data);
 
@@ -563,20 +565,20 @@ TEST(Test_AlignmentTools_ComputeDiffCounts, ArrayOfTests)
         if (shouldThrow) {
             EXPECT_THROW(
                 {
-                    PacBio::Pancake::ComputeDiffCounts(cigar, queryVariants, targetVariants,
-                                                       throwOnPartiallyMaskedIndels);
+                    PacBio::Pancake::ComputeMaskedDiffCounts(cigar, queryVariants, targetVariants,
+                                                             throwOnPartiallyMaskedIndels);
                 },
                 std::runtime_error);
         } else {
-            auto result = PacBio::Pancake::ComputeDiffCounts(cigar, queryVariants, targetVariants,
-                                                             throwOnPartiallyMaskedIndels);
+            auto result = PacBio::Pancake::ComputeMaskedDiffCounts(
+                cigar, queryVariants, targetVariants, throwOnPartiallyMaskedIndels);
             // Evaluate.
             EXPECT_EQ(expected, result);
         }
     }
 }
 
-TEST(Test_AlignmentTools_NormalizeAlignmentInPlace, ArrayOfTests)
+TEST(Test_AlignmentTools_NormalizeM5AlignmentInPlace, ArrayOfTests)
 {
     // clang-format off
     std::vector<std::tuple<std::string, std::string, std::string, std::string, std::string, bool>> testData = {
@@ -657,7 +659,7 @@ TEST(Test_AlignmentTools_NormalizeAlignmentInPlace, ArrayOfTests)
         const bool shouldThrow = std::get<5>(data);
 
         // Name the test.
-        SCOPED_TRACE("NormalizeAlignmentInPlace-" + testName);
+        SCOPED_TRACE("NormalizeM5AlignmentInPlace-" + testName);
 
         std::string resultQueryAln = queryAln;
         std::string resultTargetAln = targetAln;
@@ -665,10 +667,10 @@ TEST(Test_AlignmentTools_NormalizeAlignmentInPlace, ArrayOfTests)
         // Run.
         if (shouldThrow) {
             EXPECT_THROW(
-                { PacBio::Pancake::NormalizeAlignmentInPlace(resultQueryAln, resultTargetAln); },
+                { PacBio::Pancake::NormalizeM5AlignmentInPlace(resultQueryAln, resultTargetAln); },
                 std::runtime_error);
         } else {
-            PacBio::Pancake::NormalizeAlignmentInPlace(resultQueryAln, resultTargetAln);
+            PacBio::Pancake::NormalizeM5AlignmentInPlace(resultQueryAln, resultTargetAln);
             // Evaluate.
             EXPECT_EQ(expectedQueryAln, resultQueryAln);
             EXPECT_EQ(expectedTargetAln, resultTargetAln);
@@ -711,14 +713,12 @@ TEST(Test_AlignmentTools_ConvertCigarToM5, ArrayOfTests)
         if (shouldThrow) {
             EXPECT_THROW(
                 {
-                    PacBio::Pancake::ConvertCigarToM5(query.c_str(), query.size(), target.c_str(),
-                                                      target.size(), cigar, resultQueryAln,
+                    PacBio::Pancake::ConvertCigarToM5(query, target, cigar, resultQueryAln,
                                                       resultTargetAln);
                 },
                 std::runtime_error);
         } else {
-            PacBio::Pancake::ConvertCigarToM5(query.c_str(), query.size(), target.c_str(),
-                                              target.size(), cigar, resultQueryAln,
+            PacBio::Pancake::ConvertCigarToM5(query, target, cigar, resultQueryAln,
                                               resultTargetAln);
             EXPECT_EQ(expectedQueryAln, resultQueryAln);
             EXPECT_EQ(expectedTargetAln, resultTargetAln);
@@ -767,15 +767,13 @@ TEST(Test_AlignmentTools_ConvertM5ToCigar, ArrayOfTests_RoundTrip)
         if (shouldThrow) {
             EXPECT_THROW(
                 {
-                    PacBio::Pancake::ConvertCigarToM5(query.c_str(), query.size(), target.c_str(),
-                                                      target.size(), cigar, queryAln, targetAln);
+                    PacBio::Pancake::ConvertCigarToM5(query, target, cigar, queryAln, targetAln);
                     PacBio::BAM::Cigar resultCigar =
                         PacBio::Pancake::ConvertM5ToCigar(queryAln, targetAln);
                 },
                 std::runtime_error);
         } else {
-            PacBio::Pancake::ConvertCigarToM5(query.c_str(), query.size(), target.c_str(),
-                                              target.size(), cigar, queryAln, targetAln);
+            PacBio::Pancake::ConvertCigarToM5(query, target, cigar, queryAln, targetAln);
             PacBio::BAM::Cigar resultCigar = PacBio::Pancake::ConvertM5ToCigar(queryAln, targetAln);
             EXPECT_EQ(cigar, resultCigar);
         }
@@ -785,7 +783,7 @@ TEST(Test_AlignmentTools_ConvertM5ToCigar, ArrayOfTests_RoundTrip)
 TEST(Test_AlignmentTools_NormalizeCigar, ArrayOfTests)
 {
     /*
-     * Tests here are identical to Test_AlignmentTools_NormalizeAlignmentInPlace, with the only addition of a test
+     * Tests here are identical to Test_AlignmentTools_NormalizeM5AlignmentInPlace, with the only addition of a test
      * that throws.
     */
 
@@ -890,19 +888,19 @@ TEST(Test_AlignmentTools_NormalizeCigar, ArrayOfTests)
         const bool shouldThrow = std::get<5>(data);
 
         // Name the test.
-        SCOPED_TRACE("NormalizeAlignmentInPlace-" + testName);
+        SCOPED_TRACE("NormalizeM5AlignmentInPlace-" + testName);
 
         // Run.
         if (shouldThrow) {
             EXPECT_THROW(
                 {
-                    const PacBio::BAM::Cigar result = PacBio::Pancake::NormalizeCigar(
-                        query.c_str(), query.size(), target.c_str(), target.size(), inputCigar);
+                    const PacBio::BAM::Cigar result =
+                        PacBio::Pancake::NormalizeCigar(query, target, inputCigar);
                 },
                 std::runtime_error);
         } else {
-            const PacBio::BAM::Cigar result = PacBio::Pancake::NormalizeCigar(
-                query.c_str(), query.size(), target.c_str(), target.size(), inputCigar);
+            const PacBio::BAM::Cigar result =
+                PacBio::Pancake::NormalizeCigar(query, target, inputCigar);
             // Evaluate.
             EXPECT_EQ(expectedCigar, result);
         }
@@ -1272,13 +1270,12 @@ TEST(Test_AlignmentTools_ComputeSimpleRepeatMask, ArrayOfTests)
             EXPECT_THROW(
                 {
                     const std::vector<uint8_t> results =
-                        ComputeSimpleRepeatMask(data.seq.c_str(), data.seq.size(), data.maxSpan);
+                        ComputeSimpleRepeatMask(data.seq, data.maxSpan);
                 },
                 std::runtime_error);
         } else {
 
-            const std::vector<uint8_t> results =
-                ComputeSimpleRepeatMask(data.seq.c_str(), data.seq.size(), data.maxSpan);
+            const std::vector<uint8_t> results = ComputeSimpleRepeatMask(data.seq, data.maxSpan);
 
             // std::cerr << "Len: seq.size() = " << data.seq.size()
             //           << ", results.size() = " << results.size()

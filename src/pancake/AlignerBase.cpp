@@ -21,7 +21,7 @@ AlignmentResult EdgeCaseAlignmentResult(int32_t qlen, int32_t tlen, int32_t matc
         ret.score = ScoreCigarAlignment(ret.cigar, matchScore, mismatchPenalty, gapOpen, gapExtend);
         ret.maxScore = ret.score;
         ret.zdropped = false;
-        ret.diffs = Alignment::DiffCounts(0, 0, 0, tlen);
+        ret.diffs = DiffCounts(0, 0, 0, tlen);
     } else if (qlen > 0 && tlen == 0) {
         ret.cigar = PacBio::Data::Cigar(std::to_string(qlen) + "I");
         ret.valid = true;
@@ -32,7 +32,7 @@ AlignmentResult EdgeCaseAlignmentResult(int32_t qlen, int32_t tlen, int32_t matc
         ret.score = ScoreCigarAlignment(ret.cigar, matchScore, mismatchPenalty, gapOpen, gapExtend);
         ret.maxScore = ret.score;
         ret.zdropped = false;
-        ret.diffs = Alignment::DiffCounts(0, 0, qlen, 0);
+        ret.diffs = DiffCounts(0, 0, qlen, 0);
     } else {
         ret.cigar = PacBio::Data::Cigar();
         ret.valid = true;
@@ -43,7 +43,7 @@ AlignmentResult EdgeCaseAlignmentResult(int32_t qlen, int32_t tlen, int32_t matc
         ret.score = ScoreCigarAlignment(ret.cigar, matchScore, mismatchPenalty, gapOpen, gapExtend);
         ret.maxScore = ret.score;
         ret.zdropped = false;
-        ret.diffs = Alignment::DiffCounts(0, 0, 0, 0);
+        ret.diffs = DiffCounts(0, 0, 0, 0);
     }
     return ret;
 }

@@ -562,10 +562,10 @@ std::ostream& operator<<(std::ostream& os, const PacBio::Pancake::SeqDBIndexCach
 
 void PerformSeqDBSequenceLineSampling(std::vector<SeqDBSequenceLine>& outSeqLines,
                                       const std::vector<SeqDBSequenceLine>& inSeqLines,
-                                      const SamplingType& sampling, int64_t sampledBases,
+                                      const SamplingType sampling, int64_t sampledBases,
                                       const int64_t randomSeed,
                                       const std::unordered_set<std::string>& filterList,
-                                      const FilterListType& filterType)
+                                      const FilterListType filterType)
 {
     outSeqLines.size();
 
@@ -649,8 +649,8 @@ void PerformSeqDBSequenceLineSampling(std::vector<SeqDBSequenceLine>& outSeqLine
 }
 
 std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> FilterSeqDBIndexCache(
-    const SeqDBIndexCache& inSeqDBCache, const SamplingType& samplingType,
-    const int64_t sampledBases, const int64_t randomSeed, const FilterListType& filterType,
+    const SeqDBIndexCache& inSeqDBCache, const SamplingType samplingType,
+    const int64_t sampledBases, const int64_t randomSeed, const FilterListType filterType,
     const std::unordered_set<std::string>& filterList, const bool doNormalization,
     const int32_t normBlockSize, const std::string& outIndexFilename)
 {

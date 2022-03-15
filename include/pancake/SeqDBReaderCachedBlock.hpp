@@ -37,12 +37,12 @@ public:
     const std::vector<FastaSequenceCached>& records() const { return recordStore_.records(); }
     const FastaSequenceCachedStore& recordStore() const { return recordStore_; }
 
-    const FastaSequenceCached& GetSequence(int32_t seqId) const
+    const FastaSequenceCached& GetSequence(const int32_t seqId) const
     {
         return recordStore_.GetSequence(seqId);
     }
 
-    void GetSequence(FastaSequenceCached& record, int32_t seqId)
+    void GetSequence(FastaSequenceCached& record, const int32_t seqId)
     {
         recordStore_.GetSequence(record, seqId);
     }

@@ -43,8 +43,8 @@ PacBio::Pancake::SequenceSeeds HelperComputeSequenceSeeds(
     const uint8_t* seqData = reinterpret_cast<const uint8_t*>(record.Bases().data());
     int32_t seqLen = record.Bases().size();
     std::vector<PacBio::Pancake::Int128t> seeds;
-    PacBio::Pancake::SeedDB::GenerateMinimizers(seeds, seqData, seqLen, 0, record.Id(), k, w, space,
-                                                useRC, useHPC);
+    PacBio::Pancake::GenerateMinimizers(seeds, seqData, seqLen, 0, record.Id(), k, w, space, useRC,
+                                        useHPC);
     PacBio::Pancake::SequenceSeeds seqSeeds(record.Name(), std::move(seeds), record.Id());
     return seqSeeds;
 }

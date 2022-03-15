@@ -19,7 +19,7 @@ SeedDBReaderRawBlock::SeedDBReaderRawBlock(
     ValidateSeedDBIndexCache(seedDBCache);
 }
 
-std::vector<SeedDB::SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) const
+std::vector<SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) const
 {
     // Sanity check for the sequence ID.
     if (blockId < 0 || blockId >= static_cast<int32_t>(seedDBIndexCache_->blockLines.size())) {
@@ -33,7 +33,7 @@ std::vector<SeedDB::SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) con
     // for example if a user has permuted or filtered the DB.
     // We will collect all contiguous stretches of bytes here, and then
     // fetch those parts later.
-    std::vector<PacBio::Pancake::ContiguousFilePart> contiguousParts =
+    const std::vector<PacBio::Pancake::ContiguousFilePart> contiguousParts =
         GetSeedDBContiguousParts(seedDBIndexCache_, blockId);
 
     int64_t totalBytes = 0;
@@ -43,7 +43,7 @@ std::vector<SeedDB::SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) con
     const int64_t totalItems = totalBytes / 16;
 
     // Preallocate the space for the loaded data.
-    std::vector<SeedDB::SeedRaw> ret(totalItems);
+    std::vector<SeedRaw> ret(totalItems);
 
     OpenFileHandler fh;
     int64_t readItems = 0;
@@ -63,7 +63,7 @@ std::vector<SeedDB::SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) con
         }
         // Jump to a different offset in the file if required.
         if (part.startOffset != fh.pos) {
-            int32_t rv = fseek(fh.fp.get(), part.startOffset, SEEK_SET);
+            const int32_t rv = fseek(fh.fp.get(), part.startOffset, SEEK_SET);
             if (rv)
                 throw std::runtime_error("(SeedDBReaderRawBlock) Could not fseek to position: " +
                                          std::to_string(part.startOffset));
@@ -72,7 +72,7 @@ std::vector<SeedDB::SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) con
 
         // Load the bytes.
         const int64_t itemsToRead = (part.endOffset - part.startOffset) / 16;
-        const int64_t n = fread(&ret[readItems], sizeof(SeedDB::SeedRaw), itemsToRead, fh.fp.get());
+        const int64_t n = fread(&ret[readItems], sizeof(SeedRaw), itemsToRead, fh.fp.get());
         readItems += n;
 
         // Sanity check.

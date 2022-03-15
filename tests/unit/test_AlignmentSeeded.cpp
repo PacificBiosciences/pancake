@@ -510,17 +510,15 @@ TEST(AlignmentSeeded, AlignSingleRegion_ArrayOfTests)
         if (data.expectedThrow) {
             EXPECT_THROW(
                 {
-                    AlignSingleRegion(data.targetSeq.c_str(), data.targetSeq.size(),
-                                      data.querySeq.c_str(), querySeqRev.c_str(),
-                                      data.querySeq.size(), alignerGlobal, alignerExt, data.region);
+                    AlignSingleRegion(data.targetSeq, data.querySeq, querySeqRev, alignerGlobal,
+                                      alignerExt, data.region);
                 },
                 std::runtime_error);
 
         } else {
             // Run the unit under test.
-            AlignmentResult result = AlignSingleRegion(
-                data.targetSeq.c_str(), data.targetSeq.size(), data.querySeq.c_str(),
-                querySeqRev.c_str(), data.querySeq.size(), alignerGlobal, alignerExt, data.region);
+            AlignmentResult result = AlignSingleRegion(data.targetSeq, data.querySeq, querySeqRev,
+                                                       alignerGlobal, alignerExt, data.region);
 
             // std::cerr << "Test name: " << data.testName << "\n";
             // std::cerr << "result.cigar = " << result.cigar.ToStdString() << "\n";
@@ -711,18 +709,16 @@ TEST(AlignmentSeeded, AlignmentSeeded_ArrayOfTests)
         if (data.expectedThrow) {
             EXPECT_THROW(
                 {
-                    AlignmentSeeded(ovl, regions, data.targetSeq.c_str(), data.targetSeq.size(),
-                                    data.querySeq.c_str(), querySeqRev.c_str(),
-                                    data.querySeq.size(), alignerGlobal, alignerExt);
+                    AlignmentSeeded(ovl, regions, data.targetSeq, data.querySeq, querySeqRev,
+                                    alignerGlobal, alignerExt);
                 },
                 std::runtime_error);
 
         } else {
 
             // Run the unit under test.
-            OverlapPtr result = AlignmentSeeded(
-                ovl, regions, data.targetSeq.c_str(), data.targetSeq.size(), data.querySeq.c_str(),
-                querySeqRev.c_str(), data.querySeq.size(), alignerGlobal, alignerExt);
+            OverlapPtr result = AlignmentSeeded(ovl, regions, data.targetSeq, data.querySeq,
+                                                querySeqRev, alignerGlobal, alignerExt);
 
             // std::cerr << "Expected overlap:\n"
             //           << OverlapWriterBase::PrintOverlapAsM4(data.expectedOvl, "", "", true, true)

@@ -25,8 +25,8 @@ public:
     AlignerEdlib(const AlignmentParameters& opt);
     ~AlignerEdlib() override;
 
-    AlignmentResult Global(const char* qseq, int64_t qlen, const char* tseq, int64_t tlen) override;
-    AlignmentResult Extend(const char* qseq, int64_t qlen, const char* tseq, int64_t tlen) override;
+    AlignmentResult Global(std::string_view qseq, std::string_view tseq) override;
+    AlignmentResult Extend(std::string_view qseq, std::string_view tseq) override;
 
 private:
     AlignmentParameters opt_;

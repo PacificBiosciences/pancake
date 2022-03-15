@@ -15,7 +15,6 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace Alignment {
 
 const int32_t MINUS_INF =
     std::numeric_limits<int32_t>::min() + 10000;  // We need a margin to avoid overflows.
@@ -60,15 +59,16 @@ public:
     PacBio::BAM::Cigar cigar;
 
     SesResults() = default;
-    SesResults(int32_t _lastQueryPos, int32_t _lastTargetPos, int32_t _diffs, bool _valid)
+    SesResults(const int32_t _lastQueryPos, const int32_t _lastTargetPos, const int32_t _diffs,
+               const bool _valid)
         : lastQueryPos(_lastQueryPos)
         , lastTargetPos(_lastTargetPos)
         , numDiffs(_diffs)
         , valid(_valid)
     {}
-    SesResults(int32_t _lastQueryPos, int32_t _lastTargetPos, int32_t _diffs, int32_t _numEq,
-               int32_t _numX, int32_t _numI, int32_t _numD, bool _valid,
-               const PacBio::BAM::Cigar& _cigar)
+    SesResults(const int32_t _lastQueryPos, const int32_t _lastTargetPos, const int32_t _diffs,
+               const int32_t _numEq, const int32_t _numX, const int32_t _numI, const int32_t _numD,
+               const bool _valid, const PacBio::BAM::Cigar& _cigar)
         : lastQueryPos(_lastQueryPos)
         , lastTargetPos(_lastTargetPos)
         , diffCounts(DiffCounts(_numEq, _numX, _numI, _numD))
@@ -76,8 +76,8 @@ public:
         , valid(_valid)
         , cigar(_cigar)
     {}
-    SesResults(int32_t _lastQueryPos, int32_t _lastTargetPos, DiffCounts _diffCounts, bool _valid,
-               const PacBio::BAM::Cigar& _cigar)
+    SesResults(const int32_t _lastQueryPos, const int32_t _lastTargetPos,
+               const DiffCounts _diffCounts, const bool _valid, const PacBio::BAM::Cigar& _cigar)
         : lastQueryPos(_lastQueryPos)
         , lastTargetPos(_lastTargetPos)
         , diffCounts(_diffCounts)
@@ -94,6 +94,7 @@ public:
     }
     friend std::ostream& operator<<(std::ostream& os, const SesResults& r);
 };
+
 inline std::ostream& operator<<(std::ostream& os, const SesResults& a)
 {
     os << "lastQueryPos = " << a.lastQueryPos << ", lastTargetPos = " << a.lastTargetPos
@@ -103,7 +104,7 @@ inline std::ostream& operator<<(std::ostream& os, const SesResults& a)
        << a.cigar.ToStdString() << "'";
     return os;
 }
-}  // namespace Alignment
+
 }  // namespace Pancake
 }  // namespace PacBio
 

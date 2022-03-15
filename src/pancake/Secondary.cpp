@@ -21,7 +21,7 @@ std::vector<OverlapPriority> FlagSecondaryAndSupplementary(std::vector<OverlapPt
     // Find the maximum score.
     size_t maxScoreId = 0;
     for (size_t i = 0; i < overlaps.size(); ++i) {
-        auto& ovl = overlaps[i];
+        const auto& ovl = overlaps[i];
         if (ovl == nullptr) {
             throw std::runtime_error("Overlap is nullptr in FlagSecondaryAndSupplementary!");
         }
@@ -156,25 +156,27 @@ bool CheckRegionSupplementary(const std::vector<OverlapPtr>& overlaps, const Ove
     /// Check the query coordinate space for overlaps ///
     /////////////////////////////////////////////////////
     // Find if the current alignment has any overlaps in the query coordinate space.
-    auto foundQueryIntervals =
+    const auto foundQueryIntervals =
         queryTrees.findOverlapping(currentOvl->AstartFwd(), currentOvl->AendFwd() - 1);
     if (allowedOverlapFractionQuery <= 0.0 && foundQueryIntervals.size()) {
         // For speed, if no overlap between mappings is allowed but some are found, return.
         return false;
     }
     for (const auto& interval : foundQueryIntervals) {
-        auto& otherAln = overlaps[interval.value];
+        const auto& otherAln = overlaps[interval.value];
 
         // Amount of overlap in the query coordinates, as a fraction.
-        int32_t ovlQuery = CalcIntervalOverlap(currentOvl->AstartFwd(), currentOvl->AendFwd(),
-                                               otherAln->AstartFwd(), otherAln->AendFwd());
-        double ovlQueryFrac = static_cast<double>(ovlQuery) /
-                              static_cast<double>(std::min(currentOvl->ASpan(), otherAln->ASpan()));
+        const int32_t ovlQuery = CalcIntervalOverlap(currentOvl->AstartFwd(), currentOvl->AendFwd(),
+                                                     otherAln->AstartFwd(), otherAln->AendFwd());
+        const double ovlQueryFrac =
+            static_cast<double>(ovlQuery) /
+            static_cast<double>(std::min(currentOvl->ASpan(), otherAln->ASpan()));
 
         // Amount of overlap in the target coordinates, as a fraction.
-        int32_t ovlTarget = CalcIntervalOverlap(currentOvl->BstartFwd(), currentOvl->BendFwd(),
-                                                otherAln->BstartFwd(), otherAln->BendFwd());
-        double ovlTargetFrac =
+        const int32_t ovlTarget =
+            CalcIntervalOverlap(currentOvl->BstartFwd(), currentOvl->BendFwd(),
+                                otherAln->BstartFwd(), otherAln->BendFwd());
+        const double ovlTargetFrac =
             static_cast<double>(ovlTarget) /
             static_cast<double>(std::min(currentOvl->BSpan(), otherAln->BSpan()));
 
@@ -189,31 +191,33 @@ bool CheckRegionSupplementary(const std::vector<OverlapPtr>& overlaps, const Ove
     //////////////////////////////////////////////////////
     /// Check the target coordinate space for overlaps ///
     //////////////////////////////////////////////////////
-    auto itTrees = targetTrees.find(currentOvl->Bid);
+    const auto itTrees = targetTrees.find(currentOvl->Bid);
     if (itTrees == targetTrees.end()) {
         // No overlaps in query and no overlaps in target becuase the target
         // was not previously added to the tree.
         return true;
     }
-    auto foundTargetIntervals =
+    const auto foundTargetIntervals =
         itTrees->second.findOverlapping(currentOvl->BstartFwd(), currentOvl->BendFwd() - 1);
     if (allowedOverlapFractionTarget <= 0.0 && foundTargetIntervals.size()) {
         // For speed, if no overlap between mappings is allowed but some are found, return.
         return false;
     }
     for (const auto& interval : foundTargetIntervals) {
-        auto& otherAln = overlaps[interval.value];
+        const auto& otherAln = overlaps[interval.value];
 
         // Amount of overlap in the query coordinates, as a fraction.
-        int32_t ovlQuery = CalcIntervalOverlap(currentOvl->AstartFwd(), currentOvl->AendFwd(),
-                                               otherAln->AstartFwd(), otherAln->AendFwd());
-        double ovlQueryFrac = static_cast<double>(ovlQuery) /
-                              static_cast<double>(std::min(currentOvl->ASpan(), otherAln->ASpan()));
+        const int32_t ovlQuery = CalcIntervalOverlap(currentOvl->AstartFwd(), currentOvl->AendFwd(),
+                                                     otherAln->AstartFwd(), otherAln->AendFwd());
+        const double ovlQueryFrac =
+            static_cast<double>(ovlQuery) /
+            static_cast<double>(std::min(currentOvl->ASpan(), otherAln->ASpan()));
 
         // Amount of overlap in the target coordinates, as a fraction.
-        int32_t ovlTarget = CalcIntervalOverlap(currentOvl->BstartFwd(), currentOvl->BendFwd(),
-                                                otherAln->BstartFwd(), otherAln->BendFwd());
-        double ovlTargetFrac =
+        const int32_t ovlTarget =
+            CalcIntervalOverlap(currentOvl->BstartFwd(), currentOvl->BendFwd(),
+                                otherAln->BstartFwd(), otherAln->BendFwd());
+        const double ovlTargetFrac =
             static_cast<double>(ovlTarget) /
             static_cast<double>(std::min(currentOvl->BSpan(), otherAln->BSpan()));
 

@@ -5,6 +5,7 @@
 #include <pancake/Lookups.hpp>
 
 #include <pbcopper/third-party/edlib.h>
+#include <pbcopper/utility/Ssize.h>
 
 #include <array>
 #include <cassert>
@@ -16,17 +17,18 @@
 namespace PacBio {
 namespace Pancake {
 
-PacBio::BAM::Cigar EdlibAlignmentToCigar(const unsigned char* aln, int32_t alnLen,
-                                         Alignment::DiffCounts& retDiffs)
+PacBio::BAM::Cigar EdlibAlignmentToCigar(const std::span<const unsigned char> aln,
+                                         DiffCounts& retDiffs)
 {
     retDiffs.Clear();
 
-    if (alnLen <= 0) {
+    const int32_t alnLen = aln.size();
+    if (alnLen == 0) {
         return {};
     }
 
     // Edlib move codes: 0: '=', 1: 'I', 2: 'D', 3: 'X'
-    std::array<PacBio::BAM::CigarOperationType, 4> opToCigar = {
+    const std::array<PacBio::BAM::CigarOperationType, 4> opToCigar = {
         PacBio::BAM::CigarOperationType::SEQUENCE_MATCH, PacBio::BAM::CigarOperationType::INSERTION,
         PacBio::BAM::CigarOperationType::DELETION,
         PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH};
@@ -37,6 +39,7 @@ PacBio::BAM::Cigar EdlibAlignmentToCigar(const unsigned char* aln, int32_t alnLe
     unsigned char prevOpRaw = 0;
     int32_t count = 0;
     PacBio::BAM::Cigar ret;
+
     for (int32_t i = 0; i <= alnLen; i++) {
         if (i == alnLen || (opToCigar[aln[i]] != prevOp &&
                             prevOp != PacBio::BAM::CigarOperationType::UNKNOWN_OP)) {
@@ -57,28 +60,28 @@ PacBio::BAM::Cigar EdlibAlignmentToCigar(const unsigned char* aln, int32_t alnLe
     return ret;
 }
 
-void EdlibAlignmentDiffCounts(const unsigned char* aln, int32_t alnLen, int32_t& numEq,
-                              int32_t& numX, int32_t& numI, int32_t& numD)
+DiffCounts EdlibAlignmentDiffCounts(const std::span<const unsigned char> aln)
 {
-    numEq = numX = numI = numD = 0;
+    const int32_t alnLen = aln.size();
 
     if (alnLen <= 0) {
-        return;
+        return {};
     }
 
+    DiffCounts ret;
     for (int32_t i = 0; i < alnLen; i++) {
         switch (aln[i]) {
             case EDLIB_EDOP_MATCH:
-                ++numEq;
+                ++ret.numEq;
                 break;
             case EDLIB_EDOP_MISMATCH:
-                ++numX;
+                ++ret.numX;
                 break;
             case EDLIB_EDOP_INSERT:
-                ++numI;
+                ++ret.numI;
                 break;
             case EDLIB_EDOP_DELETE:
-                ++numD;
+                ++ret.numD;
                 break;
             default:
                 throw std::runtime_error("Unknown Edlib operation: " +
@@ -86,33 +89,12 @@ void EdlibAlignmentDiffCounts(const unsigned char* aln, int32_t alnLen, int32_t&
                 break;
         }
     }
+    return ret;
 }
 
-void CigarDiffCounts(const PacBio::BAM::Cigar& cigar, int32_t& numEq, int32_t& numX, int32_t& numI,
-                     int32_t& numD)
+DiffCounts CigarDiffCounts(const PacBio::BAM::Cigar& cigar)
 {
-    numEq = numX = numI = numD = 0;
-
-    if (cigar.empty()) {
-        return;
-    }
-
-    for (const auto& op : cigar) {
-        if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
-            numEq += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH) {
-            numX += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION) {
-            numI += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::DELETION) {
-            numD += op.Length();
-        }
-    }
-}
-
-Alignment::DiffCounts CigarDiffCounts(const PacBio::BAM::Cigar& cigar)
-{
-    Alignment::DiffCounts ret;
+    DiffCounts ret;
     for (const auto& op : cigar) {
         if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
             ret.numEq += op.Length();
@@ -127,7 +109,8 @@ Alignment::DiffCounts CigarDiffCounts(const PacBio::BAM::Cigar& cigar)
     return ret;
 }
 
-void AppendToCigar(PacBio::BAM::Cigar& cigar, PacBio::BAM::CigarOperationType newOp, int32_t newLen)
+void AppendToCigar(PacBio::BAM::Cigar& cigar, const PacBio::BAM::CigarOperationType newOp,
+                   const int32_t newLen)
 {
     if (newLen == 0) {
         return;
@@ -139,17 +122,21 @@ void AppendToCigar(PacBio::BAM::Cigar& cigar, PacBio::BAM::CigarOperationType ne
     }
 }
 
-PacBio::BAM::Cigar ExpandMismatches(const char* query, int64_t queryLen, const char* target,
-                                    int64_t targetLen, const PacBio::BAM::Cigar& cigar)
+PacBio::BAM::Cigar ExpandMismatches(const std::string_view query, const std::string_view target,
+                                    const PacBio::BAM::Cigar& cigar)
 {
-    PacBio::BAM::Cigar ret;
     if (cigar.size() <= 1) {
         return cigar;
     }
+
+    const int64_t queryLen = query.size();
+    const int64_t targetLen = target.size();
+
     int64_t queryPos = 0;
     int64_t targetPos = 0;
     int32_t lastAddedOp = -1;
     int32_t numCigarOps = cigar.size();
+    PacBio::BAM::Cigar ret;
 
     for (int32_t i = 1; i < numCigarOps; ++i) {
         const auto& prevOp = cigar[i - 1];
@@ -170,9 +157,9 @@ PacBio::BAM::Cigar ExpandMismatches(const char* query, int64_t queryLen, const c
             (prevOp.Type() == PacBio::BAM::CigarOperationType::DELETION &&
              currOp.Type() == PacBio::BAM::CigarOperationType::INSERTION)) {
 
-            int32_t minLen = std::min(prevOp.Length(), currOp.Length());
-            int32_t leftHang = static_cast<int32_t>(prevOp.Length()) - minLen;
-            int32_t rightHang = static_cast<int32_t>(currOp.Length()) - minLen;
+            const int32_t minLen = std::min(prevOp.Length(), currOp.Length());
+            const int32_t leftHang = static_cast<int32_t>(prevOp.Length()) - minLen;
+            const int32_t rightHang = static_cast<int32_t>(currOp.Length()) - minLen;
 
             AppendToCigar(ret, prevOp.Type(), leftHang);
             if (prevOp.Type() == PacBio::BAM::CigarOperationType::DELETION) {
@@ -218,12 +205,16 @@ PacBio::BAM::Cigar ExpandMismatches(const char* query, int64_t queryLen, const c
     return ret;
 }
 
-void ValidateCigar(const char* query, int64_t queryLen, const char* target, int64_t targetLen,
-                   const PacBio::BAM::Cigar& cigar, const std::string& label)
+void ValidateCigar(const std::string_view query, const std::string_view target,
+                   const PacBio::BAM::Cigar& cigar, const std::string_view label)
 {
+    const int64_t queryLen = query.size();
+    const int64_t targetLen = target.size();
+    const char* queryData = query.data();
+    const char* targetData = target.data();
+    const int32_t numCigarOps = cigar.size();
     int64_t queryPos = 0;
     int64_t targetPos = 0;
-    int32_t numCigarOps = cigar.size();
 
     for (int32_t i = 0; i < numCigarOps; ++i) {
         const auto& op = cigar[i];
@@ -250,7 +241,7 @@ void ValidateCigar(const char* query, int64_t queryLen, const char* target, int6
                     << ", CIGAR: " << cigar.ToStdString() << ", label: '" << label << "'";
                 throw std::runtime_error(oss.str());
             }
-            if (strncmp(query + queryPos, target + targetPos, op.Length()) != 0) {
+            if (std::strncmp(queryData + queryPos, targetData + targetPos, op.Length()) != 0) {
                 std::ostringstream oss;
                 oss << "Invalid CIGAR string (SEQUENCE_MATCH): "
                     << "sequences are not equal even though they are delimited by a SEQUENCE_MATCH "
@@ -276,7 +267,7 @@ void ValidateCigar(const char* query, int64_t queryLen, const char* target, int6
             }
 
             for (int64_t pos = 0; pos < static_cast<int64_t>(op.Length()); ++pos) {
-                if (query[queryPos + pos] == target[targetPos + pos]) {
+                if (queryData[queryPos + pos] == targetData[targetPos + pos]) {
                     std::ostringstream oss;
                     oss << "Invalid CIGAR string (SEQUENCE_MISMATCH): "
                         << "sequences are equal even though they are delimited by a "
@@ -327,7 +318,7 @@ void ValidateCigar(const char* query, int64_t queryLen, const char* target, int6
     }
 
     if (queryPos != queryLen || targetPos != targetLen) {
-        Alignment::DiffCounts diffs = CigarDiffCounts(cigar);
+        const DiffCounts diffs = CigarDiffCounts(cigar);
         std::ostringstream oss;
         oss << "Invalid CIGAR string (length): "
             << "Computed query or target length does not match the sequence length. "
@@ -341,16 +332,20 @@ void ValidateCigar(const char* query, int64_t queryLen, const char* target, int6
     }
 }
 
-void ExtractVariantString(const char* query, int64_t queryLen, const char* target,
-                          int64_t targetLen, const PacBio::BAM::Cigar& cigar, bool maskHomopolymers,
-                          bool maskSimpleRepeats, bool maskHomopolymerSNPs,
-                          bool maskHomopolymersArbitrary, std::string& retQueryVariants,
-                          std::string& retTargetVariants, Alignment::DiffCounts& retDiffsPerBase,
-                          Alignment::DiffCounts& retDiffsPerEvent)
+void ExtractVariantString(const std::string_view query, const std::string_view target,
+                          const PacBio::BAM::Cigar& cigar, const bool maskHomopolymers,
+                          const bool maskSimpleRepeats, const bool maskHomopolymerSNPs,
+                          const bool maskHomopolymersArbitrary, std::string& retQueryVariants,
+                          std::string& retTargetVariants, DiffCounts& retDiffsPerBase,
+                          DiffCounts& retDiffsPerEvent)
 {
+    const int64_t queryLen = query.size();
+    const int64_t targetLen = target.size();
+    const char* queryData = query.data();
+    const char* targetData = target.data();
+    const int32_t numCigarOps = cigar.size();
     int64_t queryPos = 0;
     int64_t targetPos = 0;
-    int32_t numCigarOps = cigar.size();
 
     int32_t varStrQuerySize = 0;
     int32_t varStrTargetSize = 0;
@@ -370,8 +365,8 @@ void ExtractVariantString(const char* query, int64_t queryLen, const char* targe
     std::string varStrTarget(varStrTargetSize, '0');
     int32_t varStrQueryPos = 0;
     int32_t varStrTargetPos = 0;
-    Alignment::DiffCounts diffsPerBase;
-    Alignment::DiffCounts diffsPerEvent;
+    DiffCounts diffsPerBase;
+    DiffCounts diffsPerEvent;
 
     for (int32_t i = 0; i < numCigarOps; ++i) {
         const auto& op = cigar[i];
@@ -435,8 +430,8 @@ void ExtractVariantString(const char* query, int64_t queryLen, const char* targe
                     }
                     return baseSwitches == 0;
                 };
-                bool isQueryHP = IsSequenceHP(query + queryPos, op.Length());
-                bool isTargetHP = IsSequenceHP(target + targetPos, op.Length());
+                const bool isQueryHP = IsSequenceHP(queryData + queryPos, op.Length());
+                const bool isTargetHP = IsSequenceHP(targetData + targetPos, op.Length());
 
                 // If the query variant sequence is a homopolymer, then check if it matches
                 // one base before or after it:
@@ -523,18 +518,20 @@ void ExtractVariantString(const char* query, int64_t queryLen, const char* targe
             // either query or target.
             if (maskSimpleRepeats && isMasked == false && op.Length() > 1) {
                 if (queryPos >= op.Length() &&
-                    strncmp(query + queryPos - op.Length(), query + queryPos, op.Length()) == 0) {
+                    std::strncmp(queryData + queryPos - op.Length(), queryData + queryPos,
+                                 op.Length()) == 0) {
                     isMasked = true;
                 } else if ((queryPos + 2 * op.Length()) <= queryLen &&
-                           strncmp(query + queryPos, query + queryPos + op.Length(), op.Length()) ==
-                               0) {
+                           std::strncmp(queryData + queryPos, queryData + queryPos + op.Length(),
+                                        op.Length()) == 0) {
                     isMasked = true;
                 } else if (targetPos >= op.Length() &&
-                           strncmp(target + targetPos - op.Length(), query + queryPos,
-                                   op.Length()) == 0) {
+                           std::strncmp(targetData + targetPos - op.Length(), queryData + queryPos,
+                                        op.Length()) == 0) {
                     isMasked = true;
                 } else if ((targetPos + op.Length()) <= targetLen &&
-                           strncmp(query + queryPos, target + targetPos, op.Length()) == 0) {
+                           std::strncmp(queryData + queryPos, targetData + targetPos,
+                                        op.Length()) == 0) {
                     // Note: using "(targetPos + op.Length()) <= targetLen" instead of "(targetPos + 2 * op.Length()) <= targetLen"
                     // because the bases don't exist in the target so we need to start at the current position.
                     isMasked = true;
@@ -600,19 +597,21 @@ void ExtractVariantString(const char* query, int64_t queryLen, const char* targe
             // Check if the indel is exactly the same as preceding or following bases in
             // either query or target.
             if (maskSimpleRepeats && isMasked == false && op.Length() > 1) {
-                if (targetPos >= op.Length() && strncmp(target + targetPos - op.Length(),
-                                                        target + targetPos, op.Length()) == 0) {
+                if (targetPos >= op.Length() &&
+                    std::strncmp(targetData + targetPos - op.Length(), targetData + targetPos,
+                                 op.Length()) == 0) {
                     isMasked = true;
                 } else if ((targetPos + 2 * op.Length()) <= targetLen &&
-                           strncmp(target + targetPos, target + targetPos + op.Length(),
-                                   op.Length()) == 0) {
+                           std::strncmp(targetData + targetPos,
+                                        targetData + targetPos + op.Length(), op.Length()) == 0) {
                     isMasked = true;
                 } else if (queryPos >= op.Length() &&
-                           strncmp(query + queryPos - op.Length(), target + targetPos,
-                                   op.Length()) == 0) {
+                           std::strncmp(queryData + queryPos - op.Length(), targetData + targetPos,
+                                        op.Length()) == 0) {
                     isMasked = true;
                 } else if ((queryPos + op.Length()) <= queryLen &&
-                           strncmp(query + queryPos, target + targetPos, op.Length()) == 0) {
+                           std::strncmp(queryData + queryPos, targetData + targetPos,
+                                        op.Length()) == 0) {
                     // Note: using "(queryPos + op.Length()) <= queryLen" instead of "(queryPos + 2 * op.Length()) <= queryLen"
                     // because the bases don't exist in the query so we need to start at the current position.
                     isMasked = true;
@@ -686,21 +685,21 @@ void ExtractVariantString(const char* query, int64_t queryLen, const char* targe
     std::swap(retDiffsPerEvent, diffsPerEvent);
 }
 
-Alignment::DiffCounts ComputeDiffCounts(const PacBio::BAM::Cigar& cigar,
-                                        const std::string& queryVariants,
-                                        const std::string& targetVariants,
-                                        bool throwOnPartiallyMaskedIndels)
+DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar,
+                                   const std::string_view queryVariants,
+                                   const std::string_view targetVariants,
+                                   const bool throwOnPartiallyMaskedIndels)
 {
 
     int32_t aVarPos = 0;
     int32_t bVarPos = 0;
-    int32_t aVarLen = queryVariants.size();
-    int32_t bVarLen = targetVariants.size();
+    const int32_t aVarLen = queryVariants.size();
+    const int32_t bVarLen = targetVariants.size();
 
-    Alignment::DiffCounts diffs;
+    DiffCounts diffs;
 
     for (const auto& op : cigar) {
-        int32_t opLen = op.Length();
+        const int32_t opLen = op.Length();
 
         if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
             // Move down.
@@ -810,7 +809,7 @@ Alignment::DiffCounts ComputeDiffCounts(const PacBio::BAM::Cigar& cigar,
     return diffs;
 }
 
-int32_t FindTargetPosFromCigar(const BAM::Cigar& cigar, int32_t queryPos)
+int32_t FindTargetPosFromCigar(const BAM::Cigar& cigar, const int32_t queryPos)
 {
     if (cigar.empty()) {
         throw std::runtime_error("Empty CIGAR given to FindTargetPosFromCigar!");
@@ -829,14 +828,15 @@ int32_t FindTargetPosFromCigar(const BAM::Cigar& cigar, int32_t queryPos)
             op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH ||
             op.Type() == PacBio::BAM::CigarOperationType::ALIGNMENT_MATCH) {
             if (queryPos < (currQueryPos + opLen)) {
-                int32_t diff = queryPos - currQueryPos;
+                const int32_t diff = queryPos - currQueryPos;
                 return currTargetPos + diff;
             }
             currQueryPos += opLen;
             currTargetPos += opLen;
         } else if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION) {
             if (queryPos < (currQueryPos + opLen)) {
-                return currTargetPos - 1;  // By convention, insertions come after an actual base.
+                // By convention, insertions come after an actual base.
+                return currTargetPos - 1;
             }
             currQueryPos += opLen;
         } else if (op.Type() == PacBio::BAM::CigarOperationType::SOFT_CLIP) {
@@ -865,7 +865,7 @@ int32_t FindTargetPosFromCigar(const BAM::Cigar& cigar, int32_t queryPos)
     return -1;
 }
 
-void NormalizeAlignmentInPlace(std::string& queryAln, std::string& targetAln)
+void NormalizeM5AlignmentInPlace(std::string& queryAln, std::string& targetAln)
 {
     /*
      * This function normalizes gaps by pushing them towards the ends of the
@@ -884,7 +884,7 @@ void NormalizeAlignmentInPlace(std::string& queryAln, std::string& targetAln)
         throw std::runtime_error(oss.str());
     }
 
-    int64_t len = queryAln.size();
+    const int64_t len = queryAln.size();
 
     // Avoid getters for speed.
     char* query = queryAln.data();
@@ -895,7 +895,7 @@ void NormalizeAlignmentInPlace(std::string& queryAln, std::string& targetAln)
             continue;
         } else if (target[i] == '-') {
             for (int64_t j = (i + 1); j < len; ++j) {
-                char c = target[j];
+                const char c = target[j];
                 if (c == '-') {
                     continue;
                 }
@@ -907,7 +907,7 @@ void NormalizeAlignmentInPlace(std::string& queryAln, std::string& targetAln)
             }
         } else if (query[i] == '-') {
             for (int64_t j = (i + 1); j < len; ++j) {
-                char c = query[j];
+                const char c = query[j];
                 if (c == '-') {
                     continue;
                 }
@@ -921,7 +921,7 @@ void NormalizeAlignmentInPlace(std::string& queryAln, std::string& targetAln)
     }
 }
 
-void ConvertCigarToM5(const char* query, int64_t queryLen, const char* target, int64_t targetLen,
+void ConvertCigarToM5(const std::string_view query, const std::string_view target,
                       const Data::Cigar& cigar, std::string& retQueryAln, std::string& retTargetAln)
 {
     // Clear the output.
@@ -933,10 +933,13 @@ void ConvertCigarToM5(const char* query, int64_t queryLen, const char* target, i
         return;
     }
 
+    const int64_t queryLen = query.size();
+    const int64_t targetLen = target.size();
+
     // Compute diffs to know how many columns we need.
-    Alignment::DiffCounts diffs = CigarDiffCounts(cigar);
-    int32_t querySpan = diffs.numEq + diffs.numX + diffs.numI;
-    int32_t targetSpan = diffs.numEq + diffs.numX + diffs.numD;
+    const DiffCounts diffs = CigarDiffCounts(cigar);
+    const int64_t querySpan = diffs.numEq + diffs.numX + diffs.numI;
+    const int64_t targetSpan = diffs.numEq + diffs.numX + diffs.numD;
 
     // Sanity check.
     if (querySpan != queryLen || targetSpan != targetLen) {
@@ -990,7 +993,7 @@ void ConvertCigarToM5(const char* query, int64_t queryLen, const char* target, i
     }
 }
 
-Data::Cigar ConvertM5ToCigar(const std::string& queryAln, const std::string& targetAln)
+Data::Cigar ConvertM5ToCigar(const std::string_view queryAln, const std::string_view targetAln)
 {
     if (queryAln.size() != targetAln.size()) {
         std::ostringstream oss;
@@ -1001,8 +1004,8 @@ Data::Cigar ConvertM5ToCigar(const std::string& queryAln, const std::string& tar
 
     Data::Cigar cigar;
 
-    const char* queryAlnC = queryAln.c_str();
-    const char* targetAlnC = targetAln.c_str();
+    const char* queryAlnC = queryAln.data();
+    const char* targetAlnC = targetAln.data();
 
     for (size_t alnPos = 0; alnPos < queryAln.size(); ++alnPos) {
         PacBio::BAM::CigarOperationType newOp;
@@ -1025,16 +1028,15 @@ Data::Cigar ConvertM5ToCigar(const std::string& queryAln, const std::string& tar
     return cigar;
 }
 
-Data::Cigar NormalizeCigar(const char* query, int64_t queryLen, const char* target,
-                           int64_t targetLen, const Data::Cigar& cigar)
+Data::Cigar NormalizeCigar(const std::string_view query, const std::string_view target,
+                           const Data::Cigar& cigar)
 {
     std::string queryAln;
     std::string targetAln;
 
-    PacBio::Pancake::ConvertCigarToM5(query, queryLen, target, targetLen, cigar, queryAln,
-                                      targetAln);
+    PacBio::Pancake::ConvertCigarToM5(query, target, cigar, queryAln, targetAln);
 
-    NormalizeAlignmentInPlace(queryAln, targetAln);
+    NormalizeM5AlignmentInPlace(queryAln, targetAln);
 
     return PacBio::Pancake::ConvertM5ToCigar(queryAln, targetAln);
 }
@@ -1253,11 +1255,10 @@ bool TrimCigar(const PacBio::BAM::Cigar& cigar, const int32_t windowSize, const 
     return true;
 }
 
-int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, int32_t match, int32_t mismatch,
-                            int32_t gapOpen, int32_t gapExt)
+int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, const int32_t match,
+                            const int32_t mismatch, const int32_t gapOpen, const int32_t gapExt)
 {
     int64_t score = 0;
-
     for (const auto& op : cigar) {
         const int32_t count = op.Length();
         switch (op.Type()) {
@@ -1298,8 +1299,10 @@ void MergeCigars(PacBio::Data::Cigar& dest, const PacBio::Data::Cigar& src)
     dest.insert(dest.end(), src.begin() + 1, src.end());
 }
 
-std::vector<uint8_t> ComputeSimpleRepeatMask(const char* seq, int32_t seqLen, int32_t maxWindowSize)
+std::vector<uint8_t> ComputeSimpleRepeatMask(const std::string_view seq, int32_t maxWindowSize)
 {
+    const int32_t seqLen = Utility::Ssize(seq);
+
     if (maxWindowSize <= 0) {
         return std::vector<uint8_t>(seqLen, 0);
     }
@@ -1326,7 +1329,7 @@ std::vector<uint8_t> ComputeSimpleRepeatMask(const char* seq, int32_t seqLen, in
     int32_t beginI = 0;
     for (int32_t i = 0; i < seqLen; ++i) {
         const int32_t base = seq[i];
-        const uint64_t baseTwobit = BaseToTwobit[base];
+        const uint64_t baseTwobit = BASE_TO_TWO_BIT[base];
 
         // Check if non-ACTG base occurred.
         if (baseTwobit > 3) {

@@ -22,6 +22,7 @@ class OverlapWriterIPAOvl : public OverlapWriterBase
 {
 public:
     OverlapWriterIPAOvl(FILE* fpOut, bool writeIds, bool writeCigar);
+
     ~OverlapWriterIPAOvl();
 
     void WriteHeader(const PacBio::Pancake::SeqDBReaderCached& targetSeqs) override;

@@ -16,7 +16,6 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace SeedDB {
 
 static inline uint64_t InvertibleHash(uint64_t key, uint64_t mask)
 {
@@ -33,7 +32,7 @@ static inline uint64_t InvertibleHash(uint64_t key, uint64_t mask)
     return key;
 }
 
-static inline uint64_t ComputeKmerMask(int32_t kmerSize)
+static inline uint64_t ComputeKmerMask(const int32_t kmerSize)
 {
     const uint64_t mask =
         (kmerSize < 32) ? ((((uint64_t)1) << (2 * kmerSize)) - 1)
@@ -45,25 +44,22 @@ static inline uint64_t ComputeKmerMask(int32_t kmerSize)
  * \brief Computes minimizers for a single input sequence.
 */
 int GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& minimizers, const uint8_t* seq,
-                       const int32_t seqLen, const int32_t seqOffset, const int32_t seqId,
-                       const int32_t kmerSize, const int32_t winSize, const int32_t spacing,
-                       const bool useReverseComplement, const bool useHPC);
+                       int32_t seqLen, int32_t seqOffset, int32_t seqId, int32_t kmerSize,
+                       int32_t winSize, int32_t spacing, bool useReverseComplement, bool useHPC);
 
 /*
  * \brief Computes minimizers for a set of input sequences, given as a vector of FastaSequenceCached objects.
 */
 void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
-                        const std::vector<FastaSequenceCached>& targetSeqs, const int32_t kmerSize,
-                        const int32_t winSize, const int32_t spacing,
-                        const bool useReverseComplement, const bool useHPC);
+                        const std::vector<FastaSequenceCached>& targetSeqs, int32_t kmerSize,
+                        int32_t winSize, int32_t spacing, bool useReverseComplement, bool useHPC);
 
 /*
  * \brief Computes minimizers for a set of input sequences, given as a vector of std::string objects.
 */
 void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
-                        const std::vector<std::string>& targetSeqs, const int32_t kmerSize,
-                        const int32_t winSize, const int32_t spacing,
-                        const bool useReverseComplement, const bool useHPC);
+                        const std::vector<std::string>& targetSeqs, int32_t kmerSize,
+                        int32_t winSize, int32_t spacing, bool useReverseComplement, bool useHPC);
 
 /*
  * \brief Computes minimizers for a set of input sequences, given as a vector of FastaSequenceCached objects.
@@ -71,9 +67,8 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
 */
 void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
                         std::vector<int32_t>& retSequenceLengths,
-                        const std::vector<FastaSequenceCached>& targetSeqs, const int32_t kmerSize,
-                        const int32_t winSize, const int32_t spacing,
-                        const bool useReverseComplement, const bool useHPC);
+                        const std::vector<FastaSequenceCached>& targetSeqs, int32_t kmerSize,
+                        int32_t winSize, int32_t spacing, bool useReverseComplement, bool useHPC);
 
 /*
  * \brief Computes minimizers for a set of input sequences, given as a vector of std::string objects.
@@ -81,9 +76,8 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
 */
 void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
                         std::vector<int32_t>& retSequenceLengths,
-                        const std::vector<std::string>& targetSeqs, const int32_t kmerSize,
-                        const int32_t winSize, const int32_t spacing,
-                        const bool useReverseComplement, const bool useHPC);
+                        const std::vector<std::string>& targetSeqs, int32_t kmerSize,
+                        int32_t winSize, int32_t spacing, bool useReverseComplement, bool useHPC);
 
 /**
  * \brief For a given set of query seeds, fetches the count of seed hits and produces
@@ -93,13 +87,13 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
 */
 template <class TargetHashType>
 std::vector<std::pair<int64_t, int64_t>> ComputeSeedHitHistogram(
-    const PacBio::Pancake::SeedDB::SeedRaw* querySeeds, const int64_t querySeedsSize,
+    const PacBio::Pancake::SeedRaw* querySeeds, const int64_t querySeedsSize,
     const TargetHashType& hash)
 {
     std::unordered_map<int64_t, int64_t> hist;
     for (int64_t seedId = 0; seedId < querySeedsSize; ++seedId) {
         const auto& querySeed = querySeeds[seedId];
-        auto decodedQuery = PacBio::Pancake::SeedDB::Seed(querySeed);
+        auto decodedQuery = PacBio::Pancake::Seed(querySeed);
         auto it = hash.find(decodedQuery.key);
         if (it != hash.end()) {
             int64_t start = std::get<0>(it->second);
@@ -117,10 +111,9 @@ std::vector<std::pair<int64_t, int64_t>> ComputeSeedHitHistogram(
 }
 
 template <class TargetHashType>
-bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedDB::SeedRaw* querySeeds,
+bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedRaw* querySeeds,
                      const int64_t querySeedsSize, const int32_t queryLen,
-                     const TargetHashType& hash,
-                     const PacBio::Pancake::SeedDB::SeedRaw* targetSeeds,
+                     const TargetHashType& hash, const PacBio::Pancake::SeedRaw* targetSeeds,
                      const int64_t /*targetSeedsSize*/, const int64_t freqCutoff)
 {
     hits.clear();
@@ -131,7 +124,7 @@ bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedDB::
 
     for (int64_t seedId = 0; seedId < querySeedsSize; ++seedId) {
         const auto& querySeed = querySeeds[seedId];
-        const auto decodedQuery = PacBio::Pancake::SeedDB::Seed(querySeed);
+        const auto decodedQuery = PacBio::Pancake::Seed(querySeed);
         const auto it = hash.find(decodedQuery.key);
         if (it != hash.end()) {
             const int64_t start = std::get<0>(it->second);
@@ -141,7 +134,7 @@ bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedDB::
                 continue;
             }
             for (int64_t i = start; i < end; ++i) {
-                const auto decodedTarget = PacBio::Pancake::SeedDB::Seed(targetSeeds[i]);
+                const auto decodedTarget = PacBio::Pancake::Seed(targetSeeds[i]);
                 const int32_t targetPos = decodedTarget.pos;
                 const int32_t querySpan = decodedQuery.span;
                 const int32_t targetSpan = decodedTarget.span;
@@ -170,7 +163,6 @@ bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedDB::
     return hits.size() > 0;
 }
 
-}  // namespace SeedDB
 }  // namespace Pancake
 }  // namespace PacBio
 

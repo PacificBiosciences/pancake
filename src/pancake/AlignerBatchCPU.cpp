@@ -50,31 +50,24 @@ void AlignerBatchCPU::Clear()
     alnResults_.clear();
 }
 
-StatusAddSequencePair AlignerBatchCPU::AddSequencePairForGlobalAlignment(const char* query,
-                                                                         int32_t queryLen,
-                                                                         const char* target,
-                                                                         int32_t targetLen)
+StatusAddSequencePair AlignerBatchCPU::AddSequencePairForGlobalAlignment(
+    const std::string_view qseq, const std::string_view tseq)
 {
-    return AddSequencePair_(query, queryLen, target, targetLen, true);
+    return AddSequencePair_(qseq, tseq, true);
 }
 
-StatusAddSequencePair AlignerBatchCPU::AddSequencePairForExtensionAlignment(const char* query,
-                                                                            int32_t queryLen,
-                                                                            const char* target,
-                                                                            int32_t targetLen)
+StatusAddSequencePair AlignerBatchCPU::AddSequencePairForExtensionAlignment(
+    const std::string_view qseq, const std::string_view tseq)
 {
-    return AddSequencePair_(query, queryLen, target, targetLen, false);
+    return AddSequencePair_(qseq, tseq, false);
 }
 
-StatusAddSequencePair AlignerBatchCPU::AddSequencePair_(const char* query, int32_t queryLen,
-                                                        const char* target, int32_t targetLen,
+StatusAddSequencePair AlignerBatchCPU::AddSequencePair_(const std::string_view qseq,
+                                                        const std::string_view tseq,
                                                         bool isGlobalAlignment)
 {
-    if (queryLen < 0 || targetLen < 0) {
-        return StatusAddSequencePair::SEQUENCE_LEN_BELOW_ZERO;
-    }
-    queries_.emplace_back(std::string(query, queryLen));
-    targets_.emplace_back(std::string(target, targetLen));
+    queries_.emplace_back(std::string(qseq));
+    targets_.emplace_back(std::string(tseq));
     isGlobalAlignment_.emplace_back(isGlobalAlignment);
     return StatusAddSequencePair::OK;
 }
@@ -144,10 +137,9 @@ void AlignerBatchCPU::Worker_(const std::vector<std::string>& queries,
 
         AlignmentResult alnRes;
         if (isGlobal) {
-            alnRes =
-                alignerGlobal->Global(query.c_str(), query.size(), target.c_str(), target.size());
+            alnRes = alignerGlobal->Global(query, target);
         } else {
-            alnRes = alignerExt->Extend(query.c_str(), query.size(), target.c_str(), target.size());
+            alnRes = alignerExt->Extend(query, target);
         }
         alnResults[alnId] = std::move(alnRes);
     }

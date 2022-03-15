@@ -196,9 +196,9 @@ void UpdateSecondaryAndFilter(std::vector<std::vector<MapperBaseResult>>& mappin
     Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
 }
 
-int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
+int32_t AlignPartsOnCpu(const AlignerType alignerTypeGlobal,
                         const AlignmentParameters& alnParamsGlobal,
-                        const AlignerType& alignerTypeExt, const AlignmentParameters& alnParamsExt,
+                        const AlignerType alignerTypeExt, const AlignmentParameters& alnParamsExt,
                         const std::vector<PairForBatchAlignment>& parts, const int32_t numThreads,
                         std::vector<AlignmentResult>& retAlns)
 {
@@ -208,9 +208,9 @@ int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
     faf.Finalize();
     return result;
 }
-int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
+int32_t AlignPartsOnCpu(const AlignerType alignerTypeGlobal,
                         const AlignmentParameters& alnParamsGlobal,
-                        const AlignerType& alignerTypeExt, const AlignmentParameters& alnParamsExt,
+                        const AlignerType alignerTypeExt, const AlignmentParameters& alnParamsExt,
                         const std::vector<PairForBatchAlignment>& parts,
                         Parallel::FireAndForget* faf, std::vector<AlignmentResult>& retAlns)
 {
@@ -234,19 +234,19 @@ int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
             std::reverse(target.begin(), target.end());
 
             if (part.regionType == RegionType::GLOBAL) {
-                aligner.AddSequencePairForGlobalAlignment(query.c_str(), part.queryLen,
-                                                          target.c_str(), part.targetLen);
+                aligner.AddSequencePairForGlobalAlignment(query, target);
             } else {
-                aligner.AddSequencePairForExtensionAlignment(query.c_str(), part.queryLen,
-                                                             target.c_str(), part.targetLen);
+                aligner.AddSequencePairForExtensionAlignment(query, target);
             }
         } else {
             if (part.regionType == RegionType::GLOBAL) {
-                aligner.AddSequencePairForGlobalAlignment(part.query, part.queryLen, part.target,
-                                                          part.targetLen);
+                aligner.AddSequencePairForGlobalAlignment(
+                    std::string_view(part.query, part.queryLen),
+                    std::string_view(part.target, part.targetLen));
             } else {
-                aligner.AddSequencePairForExtensionAlignment(part.query, part.queryLen, part.target,
-                                                             part.targetLen);
+                aligner.AddSequencePairForExtensionAlignment(
+                    std::string_view(part.query, part.queryLen),
+                    std::string_view(part.target, part.targetLen));
             }
         }
     }

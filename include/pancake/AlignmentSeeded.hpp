@@ -22,7 +22,7 @@ enum class RegionType
     GLOBAL,
 };
 
-inline std::string RegionTypeToString(const RegionType& type)
+inline std::string RegionTypeToString(const RegionType type)
 {
     if (type == RegionType::FRONT) {
         return "FRONT";
@@ -101,22 +101,21 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
                                                      int32_t maxFlankExtensionDist,
                                                      double flankExtensionFactor);
 
-AlignmentResult AlignSingleRegion(const char* targetSeq, int32_t targetLen, const char* querySeqFwd,
-                                  const char* querySeqRev, int32_t queryLen,
-                                  AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt,
-                                  const AlignmentRegion& region);
+AlignmentResult AlignSingleRegion(std::string_view targetSeq, std::string_view querySeqFwd,
+                                  std::string_view querySeqRev, AlignerBasePtr& alignerGlobal,
+                                  AlignerBasePtr& alignerExt, const AlignmentRegion& region);
 
-AlignRegionsGenericResult AlignRegionsGeneric(const char* targetSeq, const int32_t targetLen,
-                                              const char* queryFwd, const char* queryRev,
-                                              const int32_t queryLen,
+AlignRegionsGenericResult AlignRegionsGeneric(std::string_view targetSeq,
+                                              std::string_view querySeqFwd,
+                                              std::string_view querySeqRev,
                                               const std::vector<AlignmentRegion>& regions,
                                               AlignerBasePtr& alignerGlobal,
                                               AlignerBasePtr& alignerExt);
 
 OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentRegion>& alnRegions,
-                           const char* targetSeq, const int32_t targetLen, const char* queryFwd,
-                           const char* queryRev, const int32_t queryLen,
-                           AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt);
+                           std::string_view targetSeq, std::string_view querySeqFwd,
+                           std::string_view querySeqRev, AlignerBasePtr& alignerGlobal,
+                           AlignerBasePtr& alignerExt);
 
 }  // namespace Pancake
 }  // namespace PacBio

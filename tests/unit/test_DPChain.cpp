@@ -914,10 +914,10 @@ TEST(DPChain, ChainHits_ArrayOfTests)
         // Run unit under test.
         double timeChaining = 0.0;
         double timeBacktrack = 0.0;
-        const std::vector<ChainedHits> results = ChainHitsSisd(
-            data.seedHits.data(), data.seedHits.size(), data.chainMaxSkip,
-            data.chainMaxPredecessors, data.chainMaxGap, data.chainBandwidth, data.minNumSeeds,
-            data.minCovBases, data.minDpScore, timeChaining, timeBacktrack);
+        const std::vector<ChainedHits> results =
+            ChainHitsSisd(data.seedHits, data.chainMaxSkip, data.chainMaxPredecessors,
+                          data.chainMaxGap, data.chainBandwidth, data.minNumSeeds, data.minCovBases,
+                          data.minDpScore, timeChaining, timeBacktrack);
 
         // Evaluate.
         EXPECT_EQ(data.expected, results);

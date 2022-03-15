@@ -12,13 +12,13 @@
 namespace PacBio {
 namespace Pancake {
 
-int32_t CompressSequence(const std::string& bases, std::vector<uint8_t>& twobit,
+int32_t CompressSequence(const std::string_view bases, std::vector<uint8_t>& twobit,
                          std::vector<PacBio::Pancake::Range>& ranges)
 {
     twobit.clear();
     ranges.clear();
-    int32_t numBases = static_cast<int32_t>(bases.size());
-    int32_t finalSize = std::ceil(static_cast<float>(bases.size()) / 4.0f);
+    const int32_t numBases = static_cast<int32_t>(bases.size());
+    const int32_t finalSize = std::ceil(static_cast<float>(bases.size()) / 4.0f);
     twobit.reserve(finalSize);
     uint8_t buff = 0x0;
     int32_t count = 0;
@@ -30,8 +30,8 @@ int32_t CompressSequence(const std::string& bases, std::vector<uint8_t>& twobit,
     // and the beginning of the next range can be in the same byte).
     // A range is a contiguous non-ACTG sequence.
     for (int32_t i = 0; i < numBases; ++i) {
-        int32_t base = static_cast<int32_t>(bases[i]);
-        uint8_t twobitBase = BaseToTwobit[base];
+        const int32_t base = static_cast<int32_t>(bases[i]);
+        const uint8_t twobitBase = BASE_TO_TWO_BIT[base];
         // A non-ACTG base was found. Store the range and start a new one.
         if (twobitBase > 3) {
             // Set the end location of the range in both coordinates,
@@ -119,11 +119,11 @@ void DecompressSequence(const std::vector<uint8_t>& twobit, int32_t numBases,
         // Bases are compressed in the 2-bit format, so identifying the byte
         // is done by division, and identifying the bit position of the base
         // is just the remainder.
-        int32_t end2 = start2 + r.Span();
-        int32_t rangeStartByte = start2 / 4.0f;
-        int32_t rangeStartOffset = start2 % 4;
-        int32_t rangeEndByte = end2 / 4.0f;
-        int32_t rangeEndOffset = end2 % 4;
+        const int32_t end2 = start2 + r.Span();
+        const int32_t rangeStartByte = start2 / 4.0f;
+        const int32_t rangeStartOffset = start2 % 4;
+        const int32_t rangeEndByte = end2 / 4.0f;
+        const int32_t rangeEndOffset = end2 % 4;
 
         if (rangeStartByte == rangeEndByte) {
             // Special case when the range is small and starts and ends in the same byte.
@@ -134,7 +134,7 @@ void DecompressSequence(const std::vector<uint8_t>& twobit, int32_t numBases,
             // Take the bases from the range which are stored in the first byte.
             // The range can begin at any arbitrary pair position because we
             // packed it densely.
-            std::string frontBases(ByteToBases[twobit[rangeStartByte]]);
+            const std::string frontBases(ByteToBases[twobit[rangeStartByte]]);
             oss << frontBases.substr(rangeStartOffset);
             // Internal bytes - simply tile the sequence.
             for (int32_t j = rangeStartByte + 1; j < rangeEndByte; ++j) {
@@ -156,7 +156,7 @@ void DecompressSequence(const std::vector<uint8_t>& twobit, int32_t numBases,
 
         // Add the unknown bases in between ranges.
         if ((i + 1) < ranges.size()) {
-            int32_t betweenSpan = ranges[i + 1].start - ranges[i].end;
+            const int32_t betweenSpan = ranges[i + 1].start - ranges[i].end;
             oss << std::string(betweenSpan, 'N');
         }
     }
@@ -178,11 +178,11 @@ void DecompressSequence(const std::vector<uint8_t>& twobit, int32_t numBases,
     }
 }
 
-void DecompressSequence(const uint8_t* twobit, int64_t twobitLen, int32_t numBases,
+void DecompressSequence(const std::span<uint8_t> twobit, int32_t numBases,
                         const std::vector<PacBio::Pancake::Range>& ranges, uint8_t* outBases)
 {
     // Empty input == empty output.
-    if (twobitLen == 0 && numBases == 0) {
+    if (twobit.empty() && numBases == 0) {
         return;
     }
 
@@ -228,11 +228,11 @@ void DecompressSequence(const uint8_t* twobit, int64_t twobitLen, int32_t numBas
         // Bases are compressed in the 2-bit format, so identifying the byte
         // is done by division, and identifying the bit position of the base
         // is just the remainder.
-        int32_t end2 = start2 + r.Span();
-        int32_t rangeStartByte = start2 / 4.0f;
-        int32_t rangeStartOffset = start2 % 4;
-        int32_t rangeEndByte = end2 / 4.0f;
-        int32_t rangeEndOffset = end2 % 4;
+        const int32_t end2 = start2 + r.Span();
+        const int32_t rangeStartByte = start2 / 4.0f;
+        const int32_t rangeStartOffset = start2 % 4;
+        const int32_t rangeEndByte = end2 / 4.0f;
+        const int32_t rangeEndOffset = end2 % 4;
 
         if (rangeStartByte == rangeEndByte) {
             // Special case when the range is small and starts and ends in the same byte.
@@ -270,7 +270,7 @@ void DecompressSequence(const uint8_t* twobit, int64_t twobitLen, int32_t numBas
             // [4, 11] as a situation without an edge case, and [4, 12] which includes
             // full 3 bytes and would trigger this edge case.
             if (rangeEndOffset > 0) {
-                std::string backBases(ByteToBases[twobit[rangeEndByte]]);
+                const std::string backBases(ByteToBases[twobit[rangeEndByte]]);
                 for (int32_t val = 0; val < rangeEndOffset; ++val, ++outBasesCount) {
                     outBases[outBasesCount] = backBases[val];
                 }

@@ -12,7 +12,6 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace SeedDB {
 
 struct SeedDBSettings
 {
@@ -41,7 +40,6 @@ struct SeedDBSettings
     static PacBio::CLI_v2::Interface CreateCLI();
 };
 
-}  // namespace SeedDB
 }  // namespace Pancake
 }  // namespace PacBio
 

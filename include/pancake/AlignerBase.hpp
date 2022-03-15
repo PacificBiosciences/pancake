@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string_view>
 #include <vector>
 
 namespace PacBio {
@@ -17,10 +18,8 @@ class AlignerBase
 {
 public:
     virtual ~AlignerBase() = default;
-    virtual AlignmentResult Global(const char* qseq, int64_t qlen, const char* tseq,
-                                   int64_t tlen) = 0;
-    virtual AlignmentResult Extend(const char* qseq, int64_t qlen, const char* tseq,
-                                   int64_t tlen) = 0;
+    virtual AlignmentResult Global(std::string_view qseq, std::string_view tseq) = 0;
+    virtual AlignmentResult Extend(std::string_view qseq, std::string_view tseq) = 0;
 };
 
 typedef std::shared_ptr<AlignerBase> AlignerBasePtr;

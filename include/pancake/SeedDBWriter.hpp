@@ -41,7 +41,7 @@ class SeedDBWriter
 {
 public:
     SeedDBWriter(const std::string& filenamePrefix, bool splitBlocks,
-                 const PacBio::Pancake::SeedDB::SeedDBParameters& params);
+                 const PacBio::Pancake::SeedDBParameters& params);
     ~SeedDBWriter();
 
     void WriteSeeds(const std::string& seqName, int32_t seqId, int32_t seqLen,
@@ -59,7 +59,7 @@ private:
     void OpenNewIndexFile_();
 
     const std::string version_{"0.1.0"};
-    PacBio::Pancake::SeedDB::SeedDBParameters params_;
+    PacBio::Pancake::SeedDBParameters params_;
     std::string filenamePrefix_;
     std::string parentFolder_;
     std::string basenamePrefix_;
@@ -75,9 +75,9 @@ private:
     std::unique_ptr<FILE, FileDeleter> fpOutSeeds_{nullptr};
 };
 
-std::unique_ptr<SeedDBWriter> CreateSeedDBWriter(
-    const std::string& filenamePrefix, bool splitBlocks,
-    const PacBio::Pancake::SeedDB::SeedDBParameters& params);
+std::unique_ptr<SeedDBWriter> CreateSeedDBWriter(const std::string& filenamePrefix,
+                                                 bool splitBlocks,
+                                                 const PacBio::Pancake::SeedDBParameters& params);
 
 }  // namespace Pancake
 }  // namespace PacBio

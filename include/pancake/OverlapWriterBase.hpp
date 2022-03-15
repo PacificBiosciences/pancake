@@ -47,7 +47,7 @@ public:
     static std::string PrintOverlapAsM4(const Overlap& ovl, bool writeCigar = false);
 };
 
-constexpr char ConstexprTypeToChar(PacBio::BAM::CigarOperationType type)
+constexpr char ConstexprTypeToChar(const PacBio::BAM::CigarOperationType type)
 {
     constexpr char lookup[11] = "MIDNSHP=XB";
     const int32_t x = static_cast<int>(type);

@@ -29,9 +29,9 @@ std::vector<TestData> testData = {
         },
         // Expected results.
         {
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("4=1X5="), 10, 10, 10, 10, true, 14, 14, false, PacBio::Pancake::Alignment::DiffCounts(9, 1, 0, 0)},
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("4="), 4, 4, 4, 4, true, 8, 8, false, PacBio::Pancake::Alignment::DiffCounts(4, 0, 0, 0)},
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, PacBio::Pancake::Alignment::DiffCounts(0, 1, 0, 0)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("4=1X5="), 10, 10, 10, 10, true, 14, 14, false, PacBio::Pancake::DiffCounts(9, 1, 0, 0)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("4="), 4, 4, 4, 4, true, 8, 8, false, PacBio::Pancake::DiffCounts(4, 0, 0, 0)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, PacBio::Pancake::DiffCounts(0, 1, 0, 0)},
         },
     },
     {
@@ -49,7 +49,7 @@ std::vector<TestData> testData = {
         },
         // Expected results.
         {
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("5="), 5, 5, 5, 5, true, 10, 10, false, PacBio::Pancake::Alignment::DiffCounts(5, 0, 0, 0)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("5="), 5, 5, 5, 5, true, 10, 10, false, PacBio::Pancake::DiffCounts(5, 0, 0, 0)},
         },
     },
     {   // Cudaaligner can not handle zero-length query or target sequences at the moment. These are handled in the AlignerBatchGPU class.
@@ -62,10 +62,10 @@ std::vector<TestData> testData = {
         },
         // Expected results.
         {
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar(""), 0, 0, 0, 0, true, 0, 0, false, PacBio::Pancake::Alignment::DiffCounts(0, 0, 0, 0)},
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1I"), 1, 0, 1, 0, true, -4, -4, false, PacBio::Pancake::Alignment::DiffCounts(0, 0, 1, 0)},
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1D"), 0, 1, 0, 1, true, -4, -4, false, PacBio::Pancake::Alignment::DiffCounts(0, 0, 0, 1)},
-            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, PacBio::Pancake::Alignment::DiffCounts(0, 1, 0, 0)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar(""), 0, 0, 0, 0, true, 0, 0, false, PacBio::Pancake::DiffCounts(0, 0, 0, 0)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1I"), 1, 0, 1, 0, true, -4, -4, false, PacBio::Pancake::DiffCounts(0, 0, 1, 0)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1D"), 0, 1, 0, 1, true, -4, -4, false, PacBio::Pancake::DiffCounts(0, 0, 0, 1)},
+            PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, PacBio::Pancake::DiffCounts(0, 1, 0, 0)},
         },
     },
 };
@@ -94,8 +94,7 @@ TEST(AlignerBatchGPU, ArrayOfTests_Small)
         for (const auto& seqPair : data.batchData) {
             const auto& query = seqPair.first;
             const auto& target = seqPair.second;
-            aligner.AddSequencePairForGlobalAlignment(query.c_str(), query.size(), target.c_str(),
-                                                      target.size());
+            aligner.AddSequencePairForGlobalAlignment(query, target);
         }
 
         // Run alignment.
@@ -144,12 +143,8 @@ TEST(AlignerBatchGPU, ArrayOfTests_Small_ShouldThrow)
             const auto& query = seqPair.first;
             const auto& target = seqPair.second;
 
-            EXPECT_THROW(
-                {
-                    aligner.AddSequencePairForExtensionAlignment(query.c_str(), query.size(),
-                                                                 target.c_str(), target.size());
-                },
-                std::runtime_error);
+            EXPECT_THROW({ aligner.AddSequencePairForExtensionAlignment(query, target); },
+                         std::runtime_error);
         }
     }
 }

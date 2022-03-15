@@ -8,6 +8,7 @@
 #include <pbcopper/logging/Logging.h>
 
 #include <iostream>
+#include <string_view>
 
 namespace PacBio {
 namespace Pancake {
@@ -15,10 +16,11 @@ namespace Pancake {
 // #define DEBUG_ALIGNMENT_SEEDED
 
 std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>& inSortedHits,
-                                                     int32_t qLen, int32_t tLen, bool isRev,
-                                                     int32_t minAlignmentSpan,
+                                                     const int32_t qLen, const int32_t tLen,
+                                                     const bool isRev,
+                                                     const int32_t minAlignmentSpan,
                                                      int32_t maxFlankExtensionDist,
-                                                     double flankExtensionFactor)
+                                                     const double flankExtensionFactor)
 {
     if (qLen < 0) {
         throw std::runtime_error("Invalid function parameter in ExtractAlignmentRegions! qLen = " +
@@ -45,11 +47,11 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
     const std::vector<SeedHit>& hits = inSortedHits;
 
     std::vector<AlignmentRegion> ret;
-    int32_t globalAlnQueryStart = hits.front().queryPos;
-    int32_t globalAlnTargetStart = hits.front().targetPos;
-    int32_t globalAlnQueryEnd = hits.back().queryPos;
-    int32_t globalAlnTargetEnd = hits.back().targetPos;
     int32_t numRegions = 0;
+    const int32_t globalAlnQueryStart = hits.front().queryPos;
+    const int32_t globalAlnTargetStart = hits.front().targetPos;
+    const int32_t globalAlnQueryEnd = hits.back().queryPos;
+    const int32_t globalAlnTargetEnd = hits.back().targetPos;
 
     // Extract the front.
     if (globalAlnQueryStart > 0 && globalAlnTargetStart > 0) {
@@ -61,8 +63,8 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         const int32_t tExtLen = std::min(globalAlnTargetStart - projTStart, maxFlankExtensionDist);
 
         // Find the frame of the sequences to compare.
-        int32_t qStart = globalAlnQueryStart - qExtLen;
-        int32_t tStart = globalAlnTargetStart - tExtLen;
+        const int32_t qStart = globalAlnQueryStart - qExtLen;
+        const int32_t tStart = globalAlnTargetStart - tExtLen;
         const int32_t qSpan = globalAlnQueryStart - qStart;
         const int32_t tSpan = globalAlnTargetStart - tStart;
 
@@ -206,17 +208,19 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
     return ret;
 }
 
-AlignmentResult AlignSingleRegion(const char* targetSeq, int32_t targetLen, const char* querySeqFwd,
-                                  const char* querySeqRev, int32_t queryLen,
-                                  AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt,
-                                  const AlignmentRegion& region)
+AlignmentResult AlignSingleRegion(const std::string_view targetSeq,
+                                  const std::string_view querySeqFwd,
+                                  const std::string_view querySeqRev, AlignerBasePtr& alignerGlobal,
+                                  AlignerBasePtr& alignerExt, const AlignmentRegion& region)
 {
-    const char* querySeqInStrand = region.queryRev ? querySeqRev : querySeqFwd;
-    const char* targetSeqInStrand = targetSeq;
+    const char* querySeqInStrand = region.queryRev ? querySeqRev.data() : querySeqFwd.data();
+    const char* targetSeqInStrand = targetSeq.data();
     int32_t qStart = region.qStart;
     int32_t tStart = region.tStart;
     const int32_t qSpan = region.qSpan;
     const int32_t tSpan = region.tSpan;
+    const int32_t queryLen = querySeqFwd.size();
+    const int32_t targetLen = targetSeq.size();
 
     if (qSpan == 0 && tSpan == 0) {
         return {};
@@ -225,18 +229,23 @@ AlignmentResult AlignSingleRegion(const char* targetSeq, int32_t targetLen, cons
     if (qStart >= queryLen || (qStart + qSpan) > queryLen || tStart >= targetLen ||
         (tStart + tSpan) > targetLen || qSpan < 0 || tSpan < 0) {
         std::ostringstream oss;
-        oss << "AlignmentRegion coordinates out of bounds in AlignRegionsGeneric!";
-        oss << " qStart = " << qStart << ", qSpan = " << qSpan << ", queryLen = " << queryLen
+        oss << "(AlignmentRegion) Coordinates out of bounds in AlignRegionsGeneric!"
+            << " qStart = " << qStart << ", qSpan = " << qSpan << ", queryLen = " << queryLen
             << ", tStart = " << tStart << ", tSpan = " << tSpan << ", targetLen = " << targetLen
             << ", regionId = " << region.regionId;
         throw std::runtime_error(oss.str());
     }
-    if (targetSeq == NULL || querySeqFwd == NULL || querySeqRev == NULL) {
+    if (targetSeq.data() == NULL || querySeqFwd.data() == NULL || querySeqRev.data() == NULL) {
         std::ostringstream oss;
-        oss << "NULL sequence passed to AlignmentRegion!";
-        oss << " qStart = " << qStart << ", qSpan = " << qSpan << ", queryLen = " << queryLen
+        oss << "(AlignmentRegion) NULL sequence passed to AlignmentRegion!"
+            << " qStart = " << qStart << ", qSpan = " << qSpan << ", queryLen = " << queryLen
             << ", tStart = " << tStart << ", tSpan = " << tSpan << ", targetLen = " << targetLen
             << ", regionId = " << region.regionId;
+        throw std::runtime_error(oss.str());
+    }
+    if (querySeqFwd.size() != querySeqRev.size()) {
+        std::ostringstream oss;
+        oss << "(AlignmentRegion) Forward and reverse query sequences are not of the same length!";
         throw std::runtime_error(oss.str());
     }
 
@@ -257,11 +266,11 @@ AlignmentResult AlignSingleRegion(const char* targetSeq, int32_t targetLen, cons
     // Align.
     AlignmentResult alnRes;
     if (region.type == RegionType::FRONT || region.type == RegionType::BACK) {
-        alnRes =
-            alignerExt->Extend(querySeqInStrand + qStart, qSpan, targetSeqInStrand + tStart, tSpan);
+        alnRes = alignerExt->Extend(std::string_view(querySeqInStrand + qStart, qSpan),
+                                    std::string_view(targetSeqInStrand + tStart, tSpan));
     } else {
-        alnRes = alignerGlobal->Global(querySeqInStrand + qStart, qSpan, targetSeqInStrand + tStart,
-                                       tSpan);
+        alnRes = alignerGlobal->Global(std::string_view(querySeqInStrand + qStart, qSpan),
+                                       std::string_view(targetSeqInStrand + tStart, tSpan));
     }
 
     if (region.type == RegionType::FRONT) {
@@ -271,9 +280,9 @@ AlignmentResult AlignSingleRegion(const char* targetSeq, int32_t targetLen, cons
     return alnRes;
 }
 
-AlignRegionsGenericResult AlignRegionsGeneric(const char* targetSeq, const int32_t targetLen,
-                                              const char* queryFwd, const char* queryRev,
-                                              const int32_t queryLen,
+AlignRegionsGenericResult AlignRegionsGeneric(const std::string_view targetSeq,
+                                              const std::string_view querySeqFwd,
+                                              const std::string_view querySeqRev,
                                               const std::vector<AlignmentRegion>& regions,
                                               AlignerBasePtr& alignerGlobal,
                                               AlignerBasePtr& alignerExt)
@@ -285,8 +294,8 @@ AlignRegionsGenericResult AlignRegionsGeneric(const char* targetSeq, const int32
     for (size_t i = 0; i < regions.size(); ++i) {
         const auto& region = regions[i];
 
-        auto alnRes = AlignSingleRegion(targetSeq, targetLen, queryFwd, queryRev, queryLen,
-                                        alignerGlobal, alignerExt, region);
+        auto alnRes = AlignSingleRegion(targetSeq, querySeqFwd, querySeqRev, alignerGlobal,
+                                        alignerExt, region);
 
         if (region.type == RegionType::FRONT) {
             ret.offsetFrontQuery = alnRes.lastQueryPos;
@@ -327,10 +336,13 @@ AlignRegionsGenericResult AlignRegionsGeneric(const char* targetSeq, const int32
 }
 
 OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentRegion>& alnRegions,
-                           const char* targetSeq, const int32_t targetLen, const char* queryFwd,
-                           const char* queryRev, const int32_t queryLen,
-                           AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
+                           const std::string_view targetSeq, const std::string_view querySeqFwd,
+                           const std::string_view querySeqRev, AlignerBasePtr& alignerGlobal,
+                           AlignerBasePtr& alignerExt)
 {
+    const int32_t queryLen = querySeqFwd.size();
+    const int32_t targetLen = targetSeq.size();
+
     // Sanity checks.
     if (ovl->Arev) {
         throw std::runtime_error("(AlignmentSeeded) The ovl->Arev should always be false!");
@@ -356,8 +368,8 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentReg
     }
 
     // Run the alignment.
-    AlignRegionsGenericResult alns = AlignRegionsGeneric(
-        targetSeq, targetLen, queryFwd, queryRev, queryLen, alnRegions, alignerGlobal, alignerExt);
+    AlignRegionsGenericResult alns = AlignRegionsGeneric(targetSeq, querySeqFwd, querySeqRev,
+                                                         alnRegions, alignerGlobal, alignerExt);
 
     // Process the alignment results and make a new overlap.
     int32_t globalAlnQueryStart = 0;
@@ -408,19 +420,21 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentReg
     }
 
     // Set the alignment identity and edit distance.
-    Alignment::DiffCounts diffs = CigarDiffCounts(ret->Cigar);
+    DiffCounts diffs = CigarDiffCounts(ret->Cigar);
     diffs.Identity(false, false, ret->Identity, ret->EditDistance);
 
     const int32_t qstart = ret->Astart;
     const int32_t tstart = ret->Bstart;
-    const char* querySeqFwd = queryFwd;
+    const char* querySeqFwdData = querySeqFwd.data();
     const std::string targetSeqForValidation =
-        (ret->Brev) ? PacBio::Pancake::ReverseComplement(targetSeq, 0, targetLen) : targetSeq;
+        (ret->Brev) ? PacBio::Pancake::ReverseComplement(targetSeq.data(), 0, targetLen)
+                    : targetSeq.data();
 
     // Validation. In case an alignment was dropped.
     try {
-        ValidateCigar(querySeqFwd + qstart, ret->ASpan(), targetSeqForValidation.c_str() + tstart,
-                      ret->BSpan(), ret->Cigar, "Full length validation.");
+        ValidateCigar(std::string_view(querySeqFwdData + qstart, ret->ASpan()),
+                      std::string_view(targetSeqForValidation.c_str() + tstart, ret->BSpan()),
+                      ret->Cigar, "Full length validation.");
     } catch (std::exception& e) {
         // std::cerr << "[Note: Exception when aligning!] " << e.what() << "\n";
         // std::cerr << "Input overlap: "
@@ -435,7 +449,7 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentReg
         // }
         // std::cerr.flush();
         PBLOG_DEBUG << "[Note: Exception when aligning!] " << e.what() << "\n";
-        PBLOG_DEBUG << "Q: " << std::string(querySeqFwd, ret->ASpan()) << "\n";
+        PBLOG_DEBUG << "Q: " << std::string_view(querySeqFwdData, ret->ASpan()) << "\n";
         PBLOG_DEBUG << "T: " << targetSeqForValidation << "\n";
         ret = nullptr;
     }

@@ -26,14 +26,13 @@ TEST(SESAlignBanded_Global, NormalSmallCase_SimpleSeqWithAllDiffs)
     */
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(9, 9, 4, 7, 0, 2, 2, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(9, 9, 4, 7, 0, 2, 2, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -61,14 +60,13 @@ TEST(SESAlignBanded_Global, NormalSmallCase_AnotherSimpleSeqWithAllDiffs)
     */
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(10, 10, 3, 8, 1, 1, 1, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(10, 10, 3, 8, 1, 1, 1, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -89,14 +87,14 @@ TEST(SESAlignBanded_Global, NormalSmallCase_CIGAR_5D_in_suffix)
     std::string cigar = "4=5D";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 5, 4, 0, 0, 5,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 5, 4, 0, 0, 5, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -117,14 +115,14 @@ TEST(SESAlignBanded_Global, NormalSmallCase_CIGAR_5I_in_suffix)
     std::string cigar = "4=5I";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 5, 4, 0, 5, 0,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 5, 4, 0, 5, 0, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -145,14 +143,14 @@ TEST(SESAlignBanded_Global, NormalSmallCase_CIGAR_5D_in_prefix)
     std::string cigar = "5D4=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 5, 4, 0, 0, 5,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 5, 4, 0, 0, 5, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -173,14 +171,14 @@ TEST(SESAlignBanded_Global, NormalSmallCase_CIGAR_5I_in_prefix)
     std::string cigar = "5I4=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 5, 4, 0, 5, 0,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 5, 4, 0, 5, 0, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -201,14 +199,14 @@ TEST(SESAlignBanded_Global, NormalSmallCase_SingleMatch)
     std::string cigar = "1=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 0, 1, 0, 0, 0,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 0, 1, 0, 0, 0, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -229,14 +227,14 @@ TEST(SESAlignBanded_Global, NormalSmallCase_MultipleExactMatches)
     std::string cigar = "4=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 0, 4, 0, 0, 0,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 0, 4, 0, 0, 0, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -257,14 +255,14 @@ TEST(SESAlignBanded_Global, NormalSmallCase_SingleMismatch)
     std::string cigar = "1X";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 1, 0, 1, 0, 0,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 1, 0, 1, 0, 0, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -285,14 +283,14 @@ TEST(SESAlignBanded_Global, NormalSmallCase_MultipleMismatches)
     std::string cigar = "4X";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 4, 0, 4, 0, 0,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 4, 0, 4, 0, 0, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Global,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -324,14 +322,13 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_SimpleSeqWithAllDiffs)
     */
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(9, 9, 4, 7, 0, 2, 2, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(9, 9, 4, 7, 0, 2, 2, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -359,14 +356,13 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_AnotherSimpleSeqWithAllDiffs)
     */
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected(10, 10, 3, 8, 1, 1, 1, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(10, 10, 3, 8, 1, 1, 1, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -387,14 +383,13 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_CIGAR_5D_in_suffix)
     std::string cigar = "4=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::Alignment::SesResults expected(4, 4, 0, 4, 0, 0, 0, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(4, 4, 0, 4, 0, 0, 0, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -415,14 +410,13 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_CIGAR_5I_in_suffix)
     std::string cigar = "4=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::Alignment::SesResults expected(4, 4, 0, 4, 0, 0, 0, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(4, 4, 0, 4, 0, 0, 0, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -454,14 +448,13 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_CIGAR_5D_in_prefix)
     std::string cigar = "1I1=2I";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::Alignment::SesResults expected(4, 1, 3, 1, 0, 3, 0, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(4, 1, 3, 1, 0, 3, 0, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -482,14 +475,13 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_CIGAR_5I_in_prefix)
     std::string cigar = "1D1=2D";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::Alignment::SesResults expected(1, 4, 3, 1, 0, 0, 3, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(1, 4, 3, 1, 0, 0, 3, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -510,14 +502,14 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_SingleMatch)
     std::string cigar = "1=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 0, 1, 0, 0, 0,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 0, 1, 0, 0, 0, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -538,14 +530,14 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_MultipleExactMatches)
     std::string cigar = "4=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::Alignment::SesResults expected(query.size(), target.size(), 0, 4, 0, 0, 0,
-                                                    true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(query.size(), target.size(), 0, 4, 0, 0, 0, true,
+                                         PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -566,14 +558,13 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_SingleMismatch)
     std::string cigar = "1D";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::Alignment::SesResults expected(0, 1, 1, 0, 0, 0, 1, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(0, 1, 1, 0, 0, 0, 1, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 
@@ -594,14 +585,13 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_MultipleMismatches)
     std::string cigar = "4D";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::Alignment::SesResults expected(0, 4, 4, 0, 0, 0, 4, true,
-                                                    PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(0, 4, 4, 0, 0, 0, 4, true, PacBio::BAM::Cigar(cigar));
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESAlignBanded<
-        PacBio::Pancake::Alignment::SESAlignMode::Semiglobal,
-        PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESAlignBanded<PacBio::Pancake::SESAlignMode::Semiglobal,
+                                        PacBio::Pancake::SESTracebackMode::Enabled>(
+            query, target, maxDiffs, bandwidth);
 
     std::cerr << "CIGAR: " << result.cigar.ToStdString() << "\n";
 

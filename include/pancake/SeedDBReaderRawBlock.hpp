@@ -21,7 +21,7 @@ public:
     SeedDBReaderRawBlock(const std::shared_ptr<PacBio::Pancake::SeedDBIndexCache>& seedDBCache);
     ~SeedDBReaderRawBlock() = default;
 
-    std::vector<SeedDB::SeedRaw> GetBlock(int32_t blockId) const;
+    std::vector<SeedRaw> GetBlock(int32_t blockId) const;
 
 private:
     using FilePtr = std::unique_ptr<FILE, FileDeleter>;

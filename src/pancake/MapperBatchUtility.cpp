@@ -212,7 +212,7 @@ OverlapPtr StitchSingleAlignment(const OverlapPtr& aln,
     int32_t newQueryEnd = 0;
     int32_t newTargetEnd = 0;
 
-    Alignment::DiffCounts diffs;
+    DiffCounts diffs;
     int32_t score = 0;
 
     for (const auto& part : parts) {
@@ -297,7 +297,7 @@ OverlapPtr StitchSingleAlignment(const OverlapPtr& aln,
     }
 
     // Set the alignment identity and edit distance.
-    // Alignment::DiffCounts diffs = CigarDiffCounts(ret->Cigar);
+    // DiffCounts diffs = CigarDiffCounts(ret->Cigar);
     diffs.Identity(false, false, ret->Identity, ret->EditDistance);
     ret->Score = score;
 
@@ -414,8 +414,9 @@ void StitchAlignmentsInParallel(std::vector<std::vector<MapperBaseResult>>& mapp
 
                 // Run the actual validation.
                 try {
-                    ValidateCigar(querySeq + qStart, aln->ASpan(), targetSeq + tStart, aln->BSpan(),
-                                  cigarInStrand, "Full length validation, fwd.");
+                    ValidateCigar(std::string_view(querySeq + qStart, aln->ASpan()),
+                                  std::string_view(targetSeq + tStart, aln->BSpan()), cigarInStrand,
+                                  "Full length validation, fwd.");
 
                 } catch (std::exception& e) {
                     PBLOG_WARN << "[Note: Exception caused by ValidateCigar in StitchAlignments] "

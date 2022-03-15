@@ -28,14 +28,14 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
     return result;
 }
 
-PacBio::Pancake::SeedDB::SeedDBParameters ParseSeedDBParams(const std::string& paramsStr)
+PacBio::Pancake::SeedDBParameters ParseSeedDBParams(const std::string& paramsStr)
 {
-    PacBio::Pancake::SeedDB::SeedDBParameters ret;
+    PacBio::Pancake::SeedDBParameters ret;
 
-    auto params = PacBio::Utility::Split(paramsStr, ',');
+    const auto params = PacBio::Utility::Split(paramsStr, ',');
     for (const auto& param : params) {
         if (param.empty()) continue;
-        auto values = PacBio::Utility::Split(param, '=');
+        const auto values = PacBio::Utility::Split(param, '=');
         if (values.size() != 2) {
             std::ostringstream oss;
             oss << "Parameter is not of form 'name=value'. Parameter: '" << param << "'.";
@@ -80,7 +80,7 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
 
         /////////////////
         // Keep these two lines tight, right next to each other.
-        ssize_t numRead = getline(&tmpLine, &lineLen, fpIn);
+        const ssize_t numRead = getline(&tmpLine, &lineLen, fpIn);
         std::unique_ptr<char, decltype(std::free)*> linePtr{tmpLine, std::free};
         /////////////////
 
@@ -168,7 +168,7 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
         std::istringstream iss(line);
         iss >> tokenStr;
 
-        char token = line[0];
+        const char token = line[0];
 
         SeedDBFileLine fl;
         SeedDBSeedsLine sl;

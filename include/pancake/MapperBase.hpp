@@ -31,7 +31,6 @@ struct ChainedRegion
 
 inline bool operator==(const ChainedRegion& lhs, const ChainedRegion& rhs) noexcept
 {
-    return true;
     return lhs.chain == rhs.chain && lhs.regionsForAln == rhs.regionsForAln &&
            ((lhs.mapping == nullptr && rhs.mapping == nullptr) ||
             (lhs.mapping != nullptr && rhs.mapping != nullptr &&
@@ -86,7 +85,8 @@ inline bool operator==(const MapperBaseResult& lhs, const MapperBaseResult& rhs)
     return true;
 }
 
-inline void VerboseMapperBaseResult(std::ostream& os, const MapperBaseResult& b, bool detailed)
+inline void VerboseMapperBaseResult(std::ostream& os, const MapperBaseResult& b,
+                                    const bool detailed)
 {
     for (size_t i = 0; i < b.mappings.size(); ++i) {
         os << "[mapping " << i << "] ";
@@ -123,7 +123,7 @@ public:
     virtual MapperBaseResult MapAndAlignSingleQuery(
         const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
         const FastaSequenceCached& querySeq,
-        const std::vector<PacBio::Pancake::Int128t>& querySeeds, const int32_t queryId,
+        const std::vector<PacBio::Pancake::Int128t>& querySeeds, int32_t queryId,
         int64_t freqCutoff) = 0;
 };
 

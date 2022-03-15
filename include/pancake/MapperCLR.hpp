@@ -48,8 +48,8 @@ class MapperCLRMapSettings
 {
 public:
     // Indexing.
-    PacBio::Pancake::SeedDB::SeedDBParameters seedParams{19, 10, 0, false, true, true};
-    PacBio::Pancake::SeedDB::SeedDBParameters seedParamsFallback{19, 10, 0, false, true, true};
+    PacBio::Pancake::SeedDBParameters seedParams{19, 10, 0, false, true, true};
+    PacBio::Pancake::SeedDBParameters seedParamsFallback{19, 10, 0, false, true, true};
 
     // Seed hit occurrence filtering.
     // There are several parameters in play, which are combined according to the following formula:
@@ -249,7 +249,7 @@ public:
                                             const PacBio::Pancake::SeedIndex& index,
                                             const FastaSequenceCached& querySeq,
                                             const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                                            const int32_t queryId, int64_t freqCutoff) override;
+                                            int32_t queryId, int64_t freqCutoff) override;
 
     /*
      * \brief Maps the query sequence to the targets, where targets are provided by the SeedIndex.
@@ -257,7 +257,7 @@ public:
     MapperBaseResult Map(const FastaSequenceCachedStore& targetSeqs,
                          const PacBio::Pancake::SeedIndex& index,
                          const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                         const int32_t queryLen, const int32_t queryId, int64_t freqCutoff);
+                         const int32_t queryLen, int32_t queryId, int64_t freqCutoff);
 
     /*
      * \brief Aligns a precomputed mapping result.
@@ -282,7 +282,7 @@ private:
     static MapperBaseResult WrapMapAndAlign_(
         const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
         const FastaSequenceCached& querySeq,
-        const std::vector<PacBio::Pancake::Int128t>& querySeeds, const int32_t queryId,
+        const std::vector<PacBio::Pancake::Int128t>& querySeeds, int32_t queryId,
         int64_t freqCutoff, const MapperCLRSettings& settings,
         std::shared_ptr<ChainingScratchSpace> ssChain, std::vector<SeedHit>& ssSeedHits,
         AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt);
@@ -308,7 +308,7 @@ private:
     static MapperBaseResult Map_(const FastaSequenceCachedStore& targetSeqs,
                                  const PacBio::Pancake::SeedIndex& index,
                                  const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                                 const int32_t queryLen, const int32_t queryId,
+                                 int32_t queryLen, int32_t queryId,
                                  const MapperCLRSettings& settings, int64_t freqCutoff,
                                  std::shared_ptr<ChainingScratchSpace> ssChain,
                                  std::vector<SeedHit>& ssSeedHits);
@@ -330,9 +330,8 @@ private:
      * Be careful when using this function in case when the query and target DBs are not the same.
     */
     static std::vector<SeedHit> FilterSymmetricAndSelfHits_(const std::vector<SeedHit>& hits,
-                                                            const int32_t queryId,
-                                                            const bool skipSelfHits,
-                                                            const bool skipSymmetricOverlaps);
+                                                            int32_t queryId, bool skipSelfHits,
+                                                            bool skipSymmetricOverlaps);
 
     /*
      * \brief Performs LIS and DP chaining, then constructs the overlaps from those resulting chains.
@@ -378,10 +377,8 @@ private:
      * Throws if the query and target lengths are different.
      * This function also does not initialize the Atype and Btype labels (it sets them to Unknown).
     */
-    static std::unique_ptr<ChainedRegion> CreateMockedMapping_(const int32_t queryId,
-                                                               const int32_t queryLen,
-                                                               const int32_t targetId,
-                                                               const int32_t targetLen);
+    static std::unique_ptr<ChainedRegion> CreateMockedMapping_(int32_t queryId, int32_t queryLen,
+                                                               int32_t targetId, int32_t targetLen);
 };
 
 /*
@@ -395,7 +392,7 @@ void WrapFlagSecondaryAndSupplementary(
 int32_t CondenseMappings(std::vector<std::unique_ptr<ChainedRegion>>& mappings,
                          int32_t bestNSecondary);
 
-OverlapPtr CreateMockedAlignment(const OverlapPtr& ovl, const int32_t matchScore);
+OverlapPtr CreateMockedAlignment(const OverlapPtr& ovl, int32_t matchScore);
 
 }  // namespace Pancake
 }  // namespace PacBio

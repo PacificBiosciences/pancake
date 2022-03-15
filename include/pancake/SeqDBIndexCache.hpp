@@ -166,10 +166,10 @@ std::vector<ContiguousFilePart> GetSeqDBContiguousParts(
 /// \param filterType If specified, the filterList will be used. Can be: whitelist, blacklist or none.
 void PerformSeqDBSequenceLineSampling(std::vector<SeqDBSequenceLine>& outSeqLines,
                                       const std::vector<SeqDBSequenceLine>& inSeqLines,
-                                      const SamplingType& sampling, int64_t sampledBases,
-                                      const int64_t randomSeed,
+                                      SamplingType sampling, int64_t sampledBases,
+                                      int64_t randomSeed,
                                       const std::unordered_set<std::string>& filterList,
-                                      const FilterListType& filterType);
+                                      FilterListType filterType);
 
 /// \brief Filters the SeqDB index and returns a filtered index.
 ///
@@ -190,10 +190,10 @@ void PerformSeqDBSequenceLineSampling(std::vector<SeqDBSequenceLine>& outSeqLine
 ///                         of the .seq files.
 /// \returns Pointer to the newly constructed filtered DB.
 std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> FilterSeqDBIndexCache(
-    const SeqDBIndexCache& inSeqDBCache, const SamplingType& samplingType,
-    const int64_t sampledBases, const int64_t randomSeed, const FilterListType& filterType,
-    const std::unordered_set<std::string>& filterList, const bool doNormalization,
-    const int32_t normBlockSize, const std::string& outIndexFilename = "");
+    const SeqDBIndexCache& inSeqDBCache, SamplingType samplingType, int64_t sampledBases,
+    int64_t randomSeed, FilterListType filterType,
+    const std::unordered_set<std::string>& filterList, bool doNormalization, int32_t normBlockSize,
+    const std::string& outIndexFilename = "");
 
 /// \brief Takes a sequence header and returns the ID of the sequence. In case the header is already
 ///         a numeric ID stored as a string, this function will only parse the number. Otherwise, it will

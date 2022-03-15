@@ -88,7 +88,7 @@ public:
         }
     }
 
-    const FastaSequenceCached& GetSequence(int32_t seqId) const
+    const FastaSequenceCached& GetSequence(const int32_t seqId) const
     {
         const auto it = seqIdToOrdinalId_.find(seqId);
         if (it == seqIdToOrdinalId_.end()) {
@@ -116,7 +116,7 @@ public:
         return records_[ordinalId];
     }
 
-    bool GetSequence(FastaSequenceCached& record, int32_t seqId) const
+    bool GetSequence(FastaSequenceCached& record, const int32_t seqId) const
     {
         const auto it = seqIdToOrdinalId_.find(seqId);
         if (it == seqIdToOrdinalId_.end()) {

@@ -6,6 +6,7 @@
 #include <pancake/AlignmentResult.hpp>
 
 #include <cstdint>
+#include <string_view>
 #include <vector>
 
 namespace PacBio {
@@ -39,10 +40,8 @@ public:
      * or another value describing the reason for rejecting the sequence pair.
      * Calling this function will clear the internal alignment results.
     */
-    virtual StatusAddSequencePair AddSequencePairForGlobalAlignment(const char* query,
-                                                                    int32_t queryLen,
-                                                                    const char* target,
-                                                                    int32_t targetLen) = 0;
+    virtual StatusAddSequencePair AddSequencePairForGlobalAlignment(std::string_view qseq,
+                                                                    std::string_view tseq) = 0;
 
     /*
      * Adds a single sequence pair for extension alignment to the internal state (modifies the state),
@@ -54,10 +53,8 @@ public:
      * or another value describing the reason for rejecting the sequence pair.
      * Calling this function will clear the internal alignment results.
     */
-    virtual StatusAddSequencePair AddSequencePairForExtensionAlignment(const char* query,
-                                                                       int32_t queryLen,
-                                                                       const char* target,
-                                                                       int32_t targetLen) = 0;
+    virtual StatusAddSequencePair AddSequencePairForExtensionAlignment(std::string_view qseq,
+                                                                       std::string_view tseq) = 0;
 
     /*
      * Aligns all the sequence pairs added to the aligner, in parallel.

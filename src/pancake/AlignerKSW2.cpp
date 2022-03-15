@@ -43,8 +43,11 @@ AlignerKSW2::AlignerKSW2(const AlignmentParameters& opt)
 
 AlignerKSW2::~AlignerKSW2() = default;
 
-AlignmentResult AlignerKSW2::Global(const char* qseq, int64_t qlen, const char* tseq, int64_t tlen)
+AlignmentResult AlignerKSW2::Global(const std::string_view qseq, const std::string_view tseq)
 {
+    const int32_t qlen = qseq.size();
+    const int32_t tlen = tseq.size();
+
     if (qlen == 0 || tlen == 0) {
         AlignmentResult ret = EdgeCaseAlignmentResult(
             qlen, tlen, opt_.matchScore, opt_.mismatchPenalty, opt_.gapOpen1, opt_.gapExtend1);
@@ -59,8 +62,8 @@ AlignmentResult AlignerKSW2::Global(const char* qseq, int64_t qlen, const char* 
     // Memory allocations required for KSW2.
 
     // Convert the subsequence's alphabet from ACTG to [0123].
-    const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet_(qseq, qlen, &BaseToTwobit[0]);
-    const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet_(tseq, tlen, &BaseToTwobit[0]);
+    const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet_(qseq, &BASE_TO_TWO_BIT[0]);
+    const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet_(tseq, &BASE_TO_TWO_BIT[0]);
 
     // Compute the actual bandwidth. If this was a long join, we need to allow more room.
     const int32_t longestSpan = std::max(qlen, tlen);
@@ -127,8 +130,11 @@ AlignmentResult AlignerKSW2::Global(const char* qseq, int64_t qlen, const char* 
     return ret;
 }
 
-AlignmentResult AlignerKSW2::Extend(const char* qseq, int64_t qlen, const char* tseq, int64_t tlen)
+AlignmentResult AlignerKSW2::Extend(const std::string_view qseq, const std::string_view tseq)
 {
+    const int32_t qlen = qseq.size();
+    const int32_t tlen = tseq.size();
+
     if (qlen == 0 || tlen == 0) {
         AlignmentResult ret = EdgeCaseAlignmentResult(
             qlen, tlen, opt_.matchScore, opt_.mismatchPenalty, opt_.gapOpen1, opt_.gapExtend1);
@@ -145,8 +151,8 @@ AlignmentResult AlignerKSW2::Extend(const char* qseq, int64_t qlen, const char* 
     memset(&ez, 0, sizeof(ksw_extz_t));
 
     // Convert the subsequence's alphabet from ACTG to [0123].
-    const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet_(qseq, qlen, &BaseToTwobit[0]);
-    const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet_(tseq, tlen, &BaseToTwobit[0]);
+    const std::vector<uint8_t> qseqInt = ConvertSeqAlphabet_(qseq, &BASE_TO_TWO_BIT[0]);
+    const std::vector<uint8_t> tseqInt = ConvertSeqAlphabet_(tseq, &BASE_TO_TWO_BIT[0]);
 
     AlignPair_(buffer_->km, qlen, qseqInt.data(), tlen, tseqInt.data(), mat_, bw, opt_.endBonus,
                opt_.zdrop, extra_flag | KSW_EZ_EXTZ_ONLY | KSW_EZ_RIGHT, &ez, opt_.gapOpen1,
@@ -176,20 +182,22 @@ AlignmentResult AlignerKSW2::Extend(const char* qseq, int64_t qlen, const char* 
     return ret;
 }
 
-std::vector<uint8_t> AlignerKSW2::ConvertSeqAlphabet_(const char* seq, size_t seqlen,
+std::vector<uint8_t> AlignerKSW2::ConvertSeqAlphabet_(const std::string_view seq,
                                                       const int8_t* conv_table)
 {
-    std::vector<uint8_t> ret(seqlen);
-    for (size_t i = 0; i < seqlen; i++) {
+    std::vector<uint8_t> ret(seq.size());
+    for (size_t i = 0; i < seq.size(); i++) {
         ret[i] = (int8_t)conv_table[(uint8_t)seq[i]];
     }
     return ret;
 }
 
-void AlignerKSW2::ConvertMinimap2CigarToPbbam_(
-    uint32_t* mm2Cigar, int32_t cigarLen, const std::vector<uint8_t>& qseq,
-    const std::vector<uint8_t>& tseq, PacBio::Data::Cigar& retCigar, int32_t& retQueryAlignmentLen,
-    int32_t& retTargetAlignmentLen, Alignment::DiffCounts& retDiffs)
+void AlignerKSW2::ConvertMinimap2CigarToPbbam_(uint32_t* mm2Cigar, int32_t cigarLen,
+                                               const std::vector<uint8_t>& qseq,
+                                               const std::vector<uint8_t>& tseq,
+                                               PacBio::Data::Cigar& retCigar,
+                                               int32_t& retQueryAlignmentLen,
+                                               int32_t& retTargetAlignmentLen, DiffCounts& retDiffs)
 {
     retCigar.clear();
     retDiffs.Clear();

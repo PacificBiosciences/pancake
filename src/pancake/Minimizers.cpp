@@ -19,12 +19,11 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace SeedDB {
 
 using minkey_t = uint64_t;
 
-const int32_t MAX_SPACING_IN_SEED = 32;
-const int32_t MAX_WINDOW_BUFFER_SIZE = 512;
+constexpr int32_t MAX_SPACING_IN_SEED = 32;
+constexpr int32_t MAX_WINDOW_BUFFER_SIZE = 512;
 
 // #define DEBUG_GENERATE_MINIMIZERS
 
@@ -205,7 +204,7 @@ int GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& minimizers, const 
             }
 
             // Add the base to the buffer.
-            bufferWD.seqBuffer[space] = ((bufferWD.seqBuffer[space] << 2) | (((static_cast<uint64_t>(BaseToTwobit[b]))))) & mask;
+            bufferWD.seqBuffer[space] = ((bufferWD.seqBuffer[space] << 2) | (((static_cast<uint64_t>(BASE_TO_TWO_BIT[b]))))) & mask;
             bufferWD.seqBufferRC[space] = ((bufferWD.seqBufferRC[space] >> 2) | (((static_cast<uint64_t>(BaseToTwobitComplement[b]))) << (kmerSize * 2 - 2))) & mask;
 
             // Determine the orientation of the key.
@@ -554,6 +553,5 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
                        useReverseComplement, useHPC);
 }
 
-}  // namespace SeedDB
 }  // namespace Pancake
 }  // namespace PacBio

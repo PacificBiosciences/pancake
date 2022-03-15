@@ -26,12 +26,12 @@ public:
     AlignerSES1(const AlignmentParameters& opt);
     ~AlignerSES1() override;
 
-    AlignmentResult Global(const char* qseq, int64_t qlen, const char* tseq, int64_t tlen) override;
-    AlignmentResult Extend(const char* qseq, int64_t qlen, const char* tseq, int64_t tlen) override;
+    AlignmentResult Global(std::string_view qseq, std::string_view tseq) override;
+    AlignmentResult Extend(std::string_view qseq, std::string_view tseq) override;
 
 private:
     AlignmentParameters opt_;
-    std::shared_ptr<PacBio::Pancake::Alignment::SESScratchSpace> sesScratch_;
+    std::shared_ptr<PacBio::Pancake::SESScratchSpace> sesScratch_;
 };
 
 }  // namespace Pancake

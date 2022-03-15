@@ -5,7 +5,6 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace Alignment {
 
 enum class SESAlignMode
 {
@@ -24,7 +23,6 @@ enum class SESTrimmingMode
     Disabled,
     Enabled,
 };
-}  // namespace Alignment
 }  // namespace Pancake
 }  // namespace PacBio
 

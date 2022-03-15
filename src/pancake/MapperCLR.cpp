@@ -200,9 +200,8 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
     // Construct the index.
     std::vector<PacBio::Pancake::Int128t> seeds;
     const auto& seedParams = settings.map.seedParams;
-    SeedDB::GenerateMinimizers(seeds, targetSeqs.records(), seedParams.KmerSize,
-                               seedParams.MinimizerWindow, seedParams.Spacing, seedParams.UseRC,
-                               seedParams.UseHPCForSeedsOnly);
+    GenerateMinimizers(seeds, targetSeqs.records(), seedParams.KmerSize, seedParams.MinimizerWindow,
+                       seedParams.Spacing, seedParams.UseRC, seedParams.UseHPCForSeedsOnly);
     std::unique_ptr<SeedIndex> seedIndex = std::make_unique<SeedIndex>(std::move(seeds));
 
     // Calculate the seed frequency statistics, needed for the cutoff.
@@ -219,9 +218,9 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
     if (settings.map.seedParamsFallback != settings.map.seedParams) {
         std::vector<PacBio::Pancake::Int128t> seedsFallback;
         const auto& seedParamsFallback = settings.map.seedParamsFallback;
-        SeedDB::GenerateMinimizers(seedsFallback, targetSeqs.records(), seedParamsFallback.KmerSize,
-                                   seedParamsFallback.MinimizerWindow, seedParamsFallback.Spacing,
-                                   seedParamsFallback.UseRC, seedParamsFallback.UseHPCForSeedsOnly);
+        GenerateMinimizers(seedsFallback, targetSeqs.records(), seedParamsFallback.KmerSize,
+                           seedParamsFallback.MinimizerWindow, seedParamsFallback.Spacing,
+                           seedParamsFallback.UseRC, seedParamsFallback.UseHPCForSeedsOnly);
         seedIndexFallback = std::make_unique<SeedIndex>(std::move(seedsFallback));
         seedIndexFallback->ComputeFrequencyStats(settings.map.freqPercentile, freqMax, freqAvg,
                                                  freqMedian, freqCutoffFallback);
@@ -241,7 +240,7 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
         std::vector<PacBio::Pancake::Int128t> querySeeds;
         int32_t seqLen = query.size();
         const uint8_t* seq = reinterpret_cast<const uint8_t*>(query.data());
-        int rv = SeedDB::GenerateMinimizers(
+        int rv = GenerateMinimizers(
             querySeeds, seq, seqLen, 0, queryId, settings.map.seedParams.KmerSize,
             settings.map.seedParams.MinimizerWindow, settings.map.seedParams.Spacing,
             settings.map.seedParams.UseRC, settings.map.seedParams.UseHPCForSeedsOnly);
@@ -254,7 +253,7 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
                              settings, ssChain, ssSeedHits, alignerGlobal, alignerExt);
 
         if (queryResults.mappings.empty() && seedIndexFallback != nullptr) {
-            rv = SeedDB::GenerateMinimizers(
+            rv = GenerateMinimizers(
                 querySeeds, seq, seqLen, 0, queryId, settings.map.seedParamsFallback.KmerSize,
                 settings.map.seedParamsFallback.MinimizerWindow,
                 settings.map.seedParamsFallback.Spacing, settings.map.seedParamsFallback.UseRC,
@@ -336,8 +335,8 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                     << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
 
         const std::vector<std::pair<int64_t, int64_t>> debugSeedHist =
-            PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(querySeeds.data(), querySeeds.size(),
-                                                             index.GetHash());
+            PacBio::Pancake::ComputeSeedHitHistogram(querySeeds.data(), querySeeds.size(),
+                                                     index.GetHash());
 
         int64_t totalHits = 0;
         for (size_t i = 0; i < debugSeedHist.size(); ++i) {
@@ -358,7 +357,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     // Compute the seed hit histogram, but only if needed.
     std::vector<std::pair<int64_t, int64_t>> seedHitHistogram;
     if (settings.map.seedOccurrenceMaxMemory > 0) {
-        seedHitHistogram = PacBio::Pancake::SeedDB::ComputeSeedHitHistogram(
+        seedHitHistogram = PacBio::Pancake::ComputeSeedHitHistogram(
             querySeeds.data(), querySeeds.size(), index.GetHash());
     }
 
@@ -672,8 +671,9 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
 
             // Use a custom aligner to align.
             auto newOvl = AlignmentSeeded(ovl, mappingResult.mappings[i]->regionsForAln,
-                                          tSeqFwd.c_str(), tSeqFwd.size(), querySeq.data(),
-                                          querySeqRev.data(), queryLen, alignerGlobal, alignerExt);
+                                          std::string_view(tSeqFwd.data(), tSeqFwd.size()),
+                                          std::string_view(querySeq.data(), querySeq.size()),
+                                          querySeqRev, alignerGlobal, alignerExt);
 
             auto newChainedRegion = std::make_unique<ChainedRegion>();
             newChainedRegion->chain = chain;
@@ -882,8 +882,8 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
         // DP Chaining of the filtered hits to remove outliers.
         double timeChaining = 0.0, timeBacktrack = 0.0;
         std::vector<ChainedHits> chains =
-            ChainHits(&hits2[group.start], group.end - group.start, chainMaxSkip,
-                      chainMaxPredecessors, seedJoinDist, chainBandwidth, minNumSeeds,
+            ChainHits({&hits2[group.start], static_cast<size_t>(group.end - group.start)},
+                      chainMaxSkip, chainMaxPredecessors, seedJoinDist, chainBandwidth, minNumSeeds,
                       minCoveredBases, minDPScore, timeChaining, timeBacktrack, ssChain);
 
         double timeChainHits = ttPartial.GetMicrosecs(true);
@@ -1013,9 +1013,9 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 
             // DP Chaining of the filtered hits to remove outliers.
             double timeChaining = 0.0, timeBacktrack = 0.0;
-            chains = ChainHits(lisHits.data(), lisHits.size(), chainMaxSkip, chainMaxPredecessors,
-                               seedJoinDist, chainBandwidth, minNumSeeds, minCoveredBases,
-                               minDPScore, timeChaining, timeBacktrack, ssChain);
+            chains = ChainHits(lisHits, chainMaxSkip, chainMaxPredecessors, seedJoinDist,
+                               chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
+                               timeChaining, timeBacktrack, ssChain);
 
             const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);
@@ -1041,9 +1041,9 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
 #endif
         } else {
             double timeChaining = 0.0, timeBacktrack = 0.0;
-            chains = ChainHits(groupHits.data(), groupHits.size(), chainMaxSkip,
-                               chainMaxPredecessors, seedJoinDist, chainBandwidth, minNumSeeds,
-                               minCoveredBases, minDPScore, timeChaining, timeBacktrack, ssChain);
+            chains = ChainHits(groupHits, chainMaxSkip, chainMaxPredecessors, seedJoinDist,
+                               chainBandwidth, minNumSeeds, minCoveredBases, minDPScore,
+                               timeChaining, timeBacktrack, ssChain);
 
             const double timeChainHits = ttPartial.GetMicrosecs(true);
             LogTicTocAdd("map-L2-chain-03-chainhits", ttPartial, retTimings);

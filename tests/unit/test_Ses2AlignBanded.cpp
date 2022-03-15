@@ -230,12 +230,11 @@ TEST(SES2AlignBanded_Global, AllTests)
             SCOPED_TRACE("Global-" + data.testName);
 
             // Run.
-            Alignment::SesResults result = PacBio::Pancake::Alignment::SES2AlignBanded<
-                PacBio::Pancake::Alignment::SESAlignMode::Global,
-                PacBio::Pancake::Alignment::SESTrimmingMode::Disabled,
-                PacBio::Pancake::Alignment::SESTracebackMode::Enabled>(
-                data.query.c_str(), data.query.size(), data.target.c_str(), data.target.size(),
-                data.maxDiffs, data.bandwidth);
+            SesResults result =
+                PacBio::Pancake::SES2AlignBanded<PacBio::Pancake::SESAlignMode::Global,
+                                                 PacBio::Pancake::SESTrimmingMode::Disabled,
+                                                 PacBio::Pancake::SESTracebackMode::Enabled>(
+                    data.query, data.target, data.maxDiffs, data.bandwidth);
 
             // Evaluate.
             EXPECT_EQ(data.expectedGlobal, result);
@@ -246,12 +245,9 @@ TEST(SES2AlignBanded_Global, AllTests)
             SCOPED_TRACE("Semiglobal-" + data.testName);
 
             // Run.
-            Alignment::SesResults result =
-                Alignment::SES2AlignBanded<Alignment::SESAlignMode::Semiglobal,
-                                           Alignment::SESTrimmingMode::Disabled,
-                                           Alignment::SESTracebackMode::Enabled>(
-                    data.query.c_str(), data.query.size(), data.target.c_str(), data.target.size(),
-                    data.maxDiffs, data.bandwidth);
+            SesResults result = SES2AlignBanded<SESAlignMode::Semiglobal, SESTrimmingMode::Disabled,
+                                                SESTracebackMode::Enabled>(
+                data.query, data.target, data.maxDiffs, data.bandwidth);
 
             // Evaluate.
             EXPECT_EQ(data.expectedSemiglobal, result);

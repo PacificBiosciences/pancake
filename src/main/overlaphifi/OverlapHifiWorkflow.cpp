@@ -103,7 +103,7 @@ int OverlapHifiWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     PacBio::Pancake::SeedDBReaderRawBlock targetSeedDBReader(targetSeedDBCache);
 
     // Read the seeds for the target block.
-    std::vector<PacBio::Pancake::SeedDB::SeedRaw> targetSeeds =
+    std::vector<PacBio::Pancake::SeedRaw> targetSeeds =
         targetSeedDBReader.GetBlock(settings.TargetBlockId);
 
     ttInit.Stop();

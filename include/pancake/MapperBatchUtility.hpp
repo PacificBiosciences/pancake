@@ -133,8 +133,7 @@ void StitchAlignmentsInParallel(std::vector<std::vector<MapperBaseResult>>& mapp
                                 Parallel::FireAndForget* faf);
 
 void SetUnalignedAndMockedMappings(std::vector<std::vector<MapperBaseResult>>& mappingResults,
-                                   const bool mockPerfectAlignment,
-                                   const int32_t matchScoreForMockAlignment);
+                                   bool mockPerfectAlignment, int32_t matchScoreForMockAlignment);
 
 /**
  * \brief This function computes the reverse complements of the query sequences.
@@ -147,7 +146,7 @@ void SetUnalignedAndMockedMappings(std::vector<std::vector<MapperBaseResult>>& m
 */
 std::vector<std::vector<FastaSequenceId>> ComputeQueryReverseComplements(
     const std::vector<MapperBatchChunk>& batchChunks,
-    const std::vector<std::vector<MapperBaseResult>>& mappingResults, const bool onlyWhenRequired,
+    const std::vector<std::vector<MapperBaseResult>>& mappingResults, bool onlyWhenRequired,
     Parallel::FireAndForget* faf);
 
 }  // namespace Pancake

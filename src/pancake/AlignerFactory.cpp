@@ -5,7 +5,7 @@
 namespace PacBio {
 namespace Pancake {
 
-std::string AlignerTypeToString(const AlignerType& alignerType)
+std::string AlignerTypeToString(const AlignerType alignerType)
 {
     if (alignerType == AlignerType::SES2) {
         return "SES2";
@@ -34,7 +34,7 @@ AlignerType AlignerTypeFromString(const std::string& alignerType)
                              "' in AlignerTypeFromString.");
 }
 
-std::shared_ptr<AlignerBase> AlignerFactory(const AlignerType& alignerType,
+std::shared_ptr<AlignerBase> AlignerFactory(const AlignerType alignerType,
                                             const AlignmentParameters& alnParams)
 {
     if (alignerType == AlignerType::KSW2) {

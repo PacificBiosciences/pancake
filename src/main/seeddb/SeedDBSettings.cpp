@@ -8,7 +8,6 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace SeedDB {
 namespace SeedDBOptionNames {
 
 // clang-format off
@@ -116,6 +115,5 @@ PacBio::CLI_v2::Interface SeedDBSettings::CreateCLI()
     return i;
 }
 
-}  // namespace SeedDB
 }  // namespace Pancake
 }  // namespace PacBio

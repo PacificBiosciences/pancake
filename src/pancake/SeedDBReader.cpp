@@ -98,7 +98,7 @@ bool SeedDBReader::GetNextBatch(std::vector<SequenceSeeds>& records, int64_t bat
     // Batch size < 0 loads everything as one batch.
     batchSize = (batchSize < 0) ? std::numeric_limits<int64_t>::max() : batchSize;
 
-    int32_t numSeqLines = seedDBIndexCache_->seedLines.size();
+    const int32_t numSeqLines = seedDBIndexCache_->seedLines.size();
     int64_t loadedBytes = 0;
     while (fileHandler_.nextOrdinalId < numSeqLines) {
         // Access the SeedsLine object.
@@ -130,7 +130,7 @@ bool SeedDBReader::GetBlock(std::vector<SequenceSeeds>& records, int32_t blockId
     const auto& block = seedDBIndexCache_->GetBlockLine(blockId);
 
     // Sanity check that the block's range is good.
-    int32_t numSeedLines = seedDBIndexCache_->seedLines.size();
+    const int32_t numSeedLines = seedDBIndexCache_->seedLines.size();
     if (block.startSeqId < 0 || block.endSeqId <= block.startSeqId ||
         block.startSeqId >= numSeedLines || block.endSeqId > numSeedLines) {
         std::ostringstream oss;
@@ -176,7 +176,7 @@ bool SeedDBReader::JumpTo(int64_t seqId)
 bool SeedDBReader::JumpTo(const std::string& seqName)
 {
     // Find the sequence.
-    auto it = headerToOrdinalId_.find(seqName);
+    const auto it = headerToOrdinalId_.find(seqName);
     if (it == headerToOrdinalId_.end())
         throw std::runtime_error(
             "Invalid sequence name, it does not exist in the SeedDB. seqName = " + seqName);
@@ -206,13 +206,13 @@ void SeedDBReader::AccessLocation_(OpenFileHandler& fileHandler,
     const auto& fl = fileLines[fileId];
 
     if (fileHandler.fileId != fileId) {
-        std::string actualPath = JoinPath(indexParentFolder, fl.filename);
+        const std::string actualPath = JoinPath(indexParentFolder, fl.filename);
         fileHandler.fp = PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
         fileHandler.fileId = fileId;
         fileHandler.pos = 0;
     }
     if (offset != fileHandler.pos) {
-        int32_t rv = fseek(fileHandler.fp.get(), offset, SEEK_SET);
+        const int32_t rv = fseek(fileHandler.fp.get(), offset, SEEK_SET);
         if (rv)
             throw std::runtime_error("Could not fseek to position (SeedDBReader): " +
                                      std::to_string(offset));
@@ -232,7 +232,7 @@ void SeedDBReader::LoadSeedsForSequence_(
                     sl.fileOffset);
 
     std::vector<PacBio::Pancake::Int128t> seeds(sl.numSeeds);
-    int64_t n =
+    const int64_t n =
         fread(seeds.data(), sizeof(PacBio::Pancake::Int128t), sl.numSeeds, fileHandler.fp.get());
     if (n != sl.numSeeds || n * 16 != sl.numBytes) {
         std::ostringstream oss;

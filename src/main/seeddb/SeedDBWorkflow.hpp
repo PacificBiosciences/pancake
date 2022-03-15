@@ -7,14 +7,12 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace SeedDB {
 
 struct SeedDBWorkflow
 {
     static int Runner(const PacBio::CLI_v2::Results& options);
 };
 
-}  // namespace SeedDB
 }  // namespace Pancake
 }  // namespace PacBio
 

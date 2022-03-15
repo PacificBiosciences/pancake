@@ -5,7 +5,8 @@
 
 #include <pancake/Range.hpp>
 
-#include <string>
+#include <span>
+#include <string_view>
 #include <vector>
 
 namespace PacBio {
@@ -37,7 +38,7 @@ namespace Pancake {
 ///
 /// \returns Number of bases that were compressed to twobit representation.
 ///
-int32_t CompressSequence(const std::string& bases, std::vector<uint8_t>& twobit,
+int32_t CompressSequence(std::string_view bases, std::vector<uint8_t>& twobit,
                          std::vector<PacBio::Pancake::Range>& ranges);
 
 /// \brief Decompresses a 2-bit compressed sequence into a string.
@@ -73,7 +74,7 @@ void DecompressSequence(const std::vector<uint8_t>& twobit, int32_t numBases,
 ///        of std::string in cases when we actually want to store the data
 ///        into a preallocated vector of uint8_t.
 ///
-void DecompressSequence(const uint8_t* twobit, int64_t twobitLen, int32_t numBases,
+void DecompressSequence(std::span<uint8_t> twobit, int32_t numBases,
                         const std::vector<PacBio::Pancake::Range>& ranges, uint8_t* outBases);
 
 }  // namespace Pancake

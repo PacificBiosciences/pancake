@@ -35,22 +35,20 @@ namespace OverlapHiFi {
 
 auto AlignWithTraceback(const char* query, size_t queryLen, const char* target, size_t targetLen,
                         int32_t maxDiffs, int32_t bandwidth,
-                        std::shared_ptr<Alignment::SESScratchSpace> ss = nullptr)
+                        std::shared_ptr<SESScratchSpace> ss = nullptr)
 {
-    return Alignment::SES2AlignBanded<Alignment::SESAlignMode::Semiglobal,
-                                      Alignment::SESTrimmingMode::Disabled,
-                                      Alignment::SESTracebackMode::Enabled>(
-        query, queryLen, target, targetLen, maxDiffs, bandwidth, ss);
+    return SES2AlignBanded<SESAlignMode::Semiglobal, SESTrimmingMode::Disabled,
+                           SESTracebackMode::Enabled>({query, queryLen}, {target, targetLen},
+                                                      maxDiffs, bandwidth, ss);
 }
 
 auto AlignNoTraceback(const char* query, size_t queryLen, const char* target, size_t targetLen,
                       int32_t maxDiffs, int32_t bandwidth,
-                      std::shared_ptr<Alignment::SESScratchSpace> ss = nullptr)
+                      std::shared_ptr<SESScratchSpace> ss = nullptr)
 {
-    return Alignment::SES2AlignBanded<Alignment::SESAlignMode::Semiglobal,
-                                      Alignment::SESTrimmingMode::Disabled,
-                                      Alignment::SESTracebackMode::Disabled>(
-        query, queryLen, target, targetLen, maxDiffs, bandwidth, ss);
+    return SES2AlignBanded<SESAlignMode::Semiglobal, SESTrimmingMode::Disabled,
+                           SESTracebackMode::Disabled>({query, queryLen}, {target, targetLen},
+                                                       maxDiffs, bandwidth, ss);
 }
 
 static const int32_t MIN_DIFFS_CAP = 10;
@@ -378,9 +376,8 @@ void RefineBadEnds(const std::vector<SeedHit>& chainedHits, int32_t beginId, int
         return;
     }
 
-    int32_t coveredBasesQuery = 0;
-    int32_t coveredBasesTarget = 0;
-    CalcHitCoverage(chainedHits, beginId, endId, coveredBasesQuery, coveredBasesTarget);
+    const auto [coveredBasesQuery, coveredBasesTarget] =
+        CalcHitCoverage(chainedHits, beginId, endId);
     const int32_t minCoveredBases = std::min(coveredBasesQuery, coveredBasesTarget);
 
     // Front.
@@ -766,12 +763,12 @@ std::vector<OverlapPtr> Mapper::FilterTandemOverlapsSmart_(
 
 std::vector<OverlapPtr> Mapper::AlignOverlaps_(
     const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs,
-    const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string reverseQuerySeq,
+    const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string& reverseQuerySeq,
     const std::vector<OverlapPtr>& overlaps, double alignBandwidth, double alignMaxDiff,
     bool useTraceback, bool noSNPs, bool noIndels, bool maskHomopolymers, bool maskSimpleRepeats,
     bool maskHomopolymerSNPs, bool maskHomopolymersArbitrary, bool trimAlignment,
     int32_t trimWindowSize, double trimMatchFraction, bool trimToFirstMatch,
-    std::shared_ptr<PacBio::Pancake::Alignment::SESScratchSpace> sesScratch)
+    std::shared_ptr<PacBio::Pancake::SESScratchSpace> sesScratch)
 {
     std::vector<OverlapPtr> ret;
 
@@ -802,7 +799,7 @@ std::vector<OverlapPtr> Mapper::AlignOverlaps_(
 
 std::vector<OverlapPtr> Mapper::GenerateFlippedOverlaps_(
     const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs,
-    const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string reverseQuerySeq,
+    const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string& reverseQuerySeq,
     const std::vector<OverlapPtr>& overlaps, bool noSNPs, bool noIndels, bool maskHomopolymers,
     bool maskSimpleRepeats, bool maskHomopolymerSNPs, bool maskHomopolymersArbitrary)
 {
@@ -858,14 +855,16 @@ std::string Mapper::FetchTargetSubsequence_(const char* seq, int32_t seqLen, int
     return ret;
 }
 
-OverlapPtr Mapper::AlignOverlap_(
-    const PacBio::Pancake::FastaSequenceCached& targetSeq,
-    const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string reverseQuerySeq,
-    const OverlapPtr& ovl, double alignBandwidth, double alignMaxDiff, bool useTraceback,
-    bool noSNPs, bool noIndels, bool maskHomopolymers, bool maskSimpleRepeats,
-    bool maskHomopolymerSNPs, bool maskHomopolymersArbitrary, bool trimAlignment,
-    int32_t trimWindowSize, double trimMatchFraction, bool trimToFirstMatch,
-    std::shared_ptr<PacBio::Pancake::Alignment::SESScratchSpace> sesScratch)
+OverlapPtr Mapper::AlignOverlap_(const PacBio::Pancake::FastaSequenceCached& targetSeq,
+                                 const PacBio::Pancake::FastaSequenceCached& querySeq,
+                                 const std::string& reverseQuerySeq, const OverlapPtr& ovl,
+                                 double alignBandwidth, double alignMaxDiff, bool useTraceback,
+                                 bool noSNPs, bool noIndels, bool maskHomopolymers,
+                                 bool maskSimpleRepeats, bool maskHomopolymerSNPs,
+                                 bool maskHomopolymersArbitrary, bool trimAlignment,
+                                 int32_t trimWindowSize, double trimMatchFraction,
+                                 bool trimToFirstMatch,
+                                 std::shared_ptr<PacBio::Pancake::SESScratchSpace> sesScratch)
 {
 
     if (ovl == nullptr) {
@@ -877,8 +876,8 @@ OverlapPtr Mapper::AlignOverlap_(
 #endif
 
     OverlapPtr ret = createOverlap(ovl);
-    PacBio::Pancake::Alignment::SesResults sesResultRight;
-    PacBio::Pancake::Alignment::SesResults sesResultLeft;
+    PacBio::Pancake::SesResults sesResultRight;
+    PacBio::Pancake::SesResults sesResultLeft;
 
     ///////////////////////////
     /// Align forward pass. ///
@@ -983,8 +982,7 @@ OverlapPtr Mapper::AlignOverlap_(
         std::reverse(sesResultLeft.cigar.begin(), sesResultLeft.cigar.end());
     }
 
-    PacBio::Pancake::Alignment::DiffCounts diffs =
-        sesResultRight.diffCounts + sesResultLeft.diffCounts;
+    PacBio::Pancake::DiffCounts diffs = sesResultRight.diffCounts + sesResultLeft.diffCounts;
 
     // Compute edit distance, identity and score.
     ret->EditDistance = -1;
@@ -1033,7 +1031,7 @@ OverlapPtr Mapper::AlignOverlap_(
 
 void Mapper::NormalizeAndExtractVariantsInPlace_(
     OverlapPtr& ovl, const PacBio::Pancake::FastaSequenceCached& targetSeq,
-    const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string /*reverseQuerySeq*/,
+    const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string& /*reverseQuerySeq*/,
     bool noSNPs, bool noIndels, bool maskHomopolymers, bool maskSimpleRepeats,
     bool maskHomopolymerSNPs, bool maskHomopolymersArbitrary)
 {
@@ -1055,8 +1053,8 @@ void Mapper::NormalizeAndExtractVariantsInPlace_(
     // / This works, but is slower because it requires to copy the target sequence every time.
     // / Since we already have the reversed query, we can simply reverse the CIGAR string and provide
     // / the reversed query, as below.
-    PacBio::Pancake::Alignment::DiffCounts diffsPerBase;
-    PacBio::Pancake::Alignment::DiffCounts diffsPerEvent;
+    PacBio::Pancake::DiffCounts diffsPerBase;
+    PacBio::Pancake::DiffCounts diffsPerEvent;
 
     auto tseq = FetchTargetSubsequence_(Bseq, Blen, ovl->BstartFwd(), ovl->BendFwd(), ovl->Brev);
 
@@ -1080,9 +1078,11 @@ void Mapper::NormalizeAndExtractVariantsInPlace_(
     //        cigar = NormalizeCigar(querySub, querySubLen, targetSub, targetSubLen, cigar);
     //    }
 
-    cigar = NormalizeCigar(querySub, querySubLen, targetSub, targetSubLen, cigar);
+    cigar = NormalizeCigar(std::string_view(querySub, querySubLen),
+                           std::string_view(targetSub, targetSubLen), cigar);
 
-    ExtractVariantString(querySub, querySubLen, targetSub, targetSubLen, cigar, maskHomopolymers,
+    ExtractVariantString(std::string_view(querySub, querySubLen),
+                         std::string_view(targetSub, targetSubLen), cigar, maskHomopolymers,
                          maskSimpleRepeats, maskHomopolymerSNPs, maskHomopolymersArbitrary,
                          ovl->Avars, ovl->Bvars, diffsPerBase, diffsPerEvent);
 
@@ -1108,8 +1108,8 @@ void Mapper::NormalizeAndExtractVariantsInPlace_(
 //     // ovl->VariantString = ExtractVariantString(querySeq.Bases() + ovl->Astart, ovl->ASpan(), tseq.c_str(), tseq.size(),
 //     //               ovl->Cigar, false, false);
 
-//     PacBio::Pancake::Alignment::DiffCounts diffsPerBase;
-//     PacBio::Pancake::Alignment::DiffCounts diffsPerEvent;
+//     PacBio::Pancake::DiffCounts diffsPerBase;
+//     PacBio::Pancake::DiffCounts diffsPerEvent;
 
 //     if (ovl->Brev) {
 //         // Get the correct subsequences as C-strings.
@@ -1176,7 +1176,7 @@ void Mapper::DebugWriteSeedHits_(const std::string& outPath, const std::vector<S
 
 std::vector<MapperResult> MapHiFi(const std::vector<std::string>& targetSeqs,
                                   const std::vector<std::string>& querySeqs,
-                                  const PacBio::Pancake::SeedDB::SeedDBParameters& seedParams,
+                                  const PacBio::Pancake::SeedDBParameters& seedParams,
                                   const OverlapHifiSettings& settings)
 {
     PacBio::Pancake::FastaSequenceCachedStore targetSeqsCached;
@@ -1196,16 +1196,16 @@ std::vector<MapperResult> MapHiFi(const std::vector<std::string>& targetSeqs,
 
 std::vector<MapperResult> MapHiFi(const FastaSequenceCachedStore& targetSeqs,
                                   const FastaSequenceCachedStore& querySeqs,
-                                  const PacBio::Pancake::SeedDB::SeedDBParameters& seedParams,
+                                  const PacBio::Pancake::SeedDBParameters& seedParams,
                                   const OverlapHifiSettings& settings)
 {
     const bool generateFlippedOverlap = settings.WriteReverseOverlaps;
 
     // Construct the target sequence index.
     std::vector<PacBio::Pancake::Int128t> seeds;
-    PacBio::Pancake::SeedDB::GenerateMinimizers(seeds, targetSeqs.records(), seedParams.KmerSize,
-                                                seedParams.MinimizerWindow, seedParams.Spacing,
-                                                seedParams.UseRC, seedParams.UseHPCForSeedsOnly);
+    PacBio::Pancake::GenerateMinimizers(seeds, targetSeqs.records(), seedParams.KmerSize,
+                                        seedParams.MinimizerWindow, seedParams.Spacing,
+                                        seedParams.UseRC, seedParams.UseHPCForSeedsOnly);
     std::unique_ptr<SeedIndex> seedIndex = std::make_unique<SeedIndex>(std::move(seeds));
 
     // Seed statistics, and computing the cutoff.
@@ -1239,9 +1239,9 @@ std::vector<MapperResult> MapHiFi(const FastaSequenceCachedStore& targetSeqs,
         std::vector<PacBio::Pancake::Int128t> querySeeds;
         int32_t seqLen = query.size();
         const uint8_t* seq = reinterpret_cast<const uint8_t*>(query.data());
-        int rv = SeedDB::GenerateMinimizers(
-            querySeeds, seq, seqLen, 0, queryId, seedParams.KmerSize, seedParams.MinimizerWindow,
-            seedParams.Spacing, seedParams.UseRC, seedParams.UseHPCForSeedsOnly);
+        int rv = GenerateMinimizers(querySeeds, seq, seqLen, 0, queryId, seedParams.KmerSize,
+                                    seedParams.MinimizerWindow, seedParams.Spacing,
+                                    seedParams.UseRC, seedParams.UseHPCForSeedsOnly);
         if (rv) {
             throw std::runtime_error("Generating minimizers failed for the query sequence i = " +
                                      std::to_string(i) + ", id = " + std::to_string(queryId));

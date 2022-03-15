@@ -19,14 +19,17 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace Alignment {
 
 template <SESAlignMode ALIGN_MODE, SESTrimmingMode TRIM_MODE, SESTracebackMode TRACEBACK>
-SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* target, size_t targetLen,
-                           int32_t maxDiffs, int32_t bandwidth,
-                           std::shared_ptr<SESScratchSpace> ss = nullptr)
+SesResults SES2AlignBanded(std::string_view query, std::string_view target, const int32_t maxDiffs,
+                           int32_t bandwidth, std::shared_ptr<SESScratchSpace> ss = nullptr)
 {
     SesResults ret;
+
+    const char* queryData = query.data();
+    const char* targetData = target.data();
+    const int32_t queryLen = query.size();
+    const int32_t targetLen = target.size();
 
     if (queryLen == 0 || targetLen == 0) {
         ret.valid = true;
@@ -218,9 +221,9 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
             // clang-format on
 
             int32_t x = y + k;
-            int32_t minLeft = std::min(qlen - x, tlen - y);
-            const char* querySub = query + x;
-            const char* targetSub = target + y;
+            const int32_t minLeft = std::min(qlen - x, tlen - y);
+            const char* querySub = queryData + x;
+            const char* targetSub = targetData + y;
             int32_t moves = 0;
 
             while (moves < minLeft && querySub[moves] == targetSub[moves]) {
@@ -402,7 +405,6 @@ SesResults SES2AlignBanded(const char* query, size_t queryLen, const char* targe
 
     return ret;
 }
-}  // namespace Alignment
 }  // namespace Pancake
 }  // namespace PacBio
 

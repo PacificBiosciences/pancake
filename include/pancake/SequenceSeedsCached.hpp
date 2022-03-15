@@ -18,9 +18,8 @@ namespace PacBio {
 namespace Pancake {
 
 ///
-/// \brief The SequenceSeedsCached class hold a pointer for a given sequence, and
-///        related data.
-///
+/// \brief The SequenceSeedsCached class holds a pointer to an array of seeds but does not
+///        take ownership.
 class SequenceSeedsCached
 {
 public:

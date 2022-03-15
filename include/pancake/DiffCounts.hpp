@@ -9,7 +9,6 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace Alignment {
 
 class DiffCounts
 {
@@ -52,7 +51,8 @@ public:
         return numEq == rhs.numEq && numX == rhs.numX && numI == rhs.numI && numD == rhs.numD;
     }
 
-    void Identity(bool noSNPs, bool noIndels, float& retIdentity, int32_t& retEditDist) const
+    void Identity(const bool noSNPs, const bool noIndels, float& retIdentity,
+                  int32_t& retEditDist) const
     {
         retIdentity = 0.0;
         retEditDist = 0;
@@ -64,7 +64,7 @@ public:
         retIdentity = (span - static_cast<float>(retEditDist)) / span;
     }
 
-    int32_t EditDistance(bool noSNPs, bool noIndels) const
+    int32_t EditDistance(const bool noSNPs, const bool noIndels) const
     {
         return (noSNPs ? 0 : numX) + (noIndels ? 0 : (numI + numD));
     }
@@ -77,7 +77,6 @@ inline std::ostream& operator<<(std::ostream& os, const DiffCounts& a)
        << ", numD = " << a.numD;
     return os;
 }
-}  // namespace Alignment
 }  // namespace Pancake
 }  // namespace PacBio
 

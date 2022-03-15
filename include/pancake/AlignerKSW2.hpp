@@ -36,8 +36,8 @@ public:
     AlignerKSW2(const AlignmentParameters& opt);
     ~AlignerKSW2() override;
 
-    AlignmentResult Global(const char* qseq, int64_t qlen, const char* tseq, int64_t tlen) override;
-    AlignmentResult Extend(const char* qseq, int64_t qlen, const char* tseq, int64_t tlen) override;
+    AlignmentResult Global(std::string_view qseq, std::string_view tseq) override;
+    AlignmentResult Extend(std::string_view qseq, std::string_view tseq) override;
 
 private:
     AlignmentParameters opt_;
@@ -48,11 +48,9 @@ private:
                                       const std::vector<uint8_t>& qseq,
                                       const std::vector<uint8_t>& tseq,
                                       PacBio::Data::Cigar& retCigar, int32_t& retQueryAlignmentLen,
-                                      int32_t& retTargetAlignmentLen,
-                                      Alignment::DiffCounts& retDiffs);
+                                      int32_t& retTargetAlignmentLen, DiffCounts& retDiffs);
 
-    static std::vector<uint8_t> ConvertSeqAlphabet_(const char* seq, size_t seqlen,
-                                                    const int8_t* conv_table);
+    static std::vector<uint8_t> ConvertSeqAlphabet_(std::string_view seq, const int8_t* conv_table);
 
     static void GenerateSimpleMatrix_(int m, int8_t* mat, int8_t a, int8_t b, int8_t scAmbi);
 

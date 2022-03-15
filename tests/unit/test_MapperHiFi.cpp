@@ -13,7 +13,7 @@ TEST(MapperHiFi, CheckMappping_LoadFromFile)
         const std::string testName;
         const std::string targetFile;
         const std::string queryFile;
-        const PacBio::Pancake::SeedDB::SeedDBParameters seedParams;
+        const PacBio::Pancake::SeedDBParameters seedParams;
         const std::string expectedOverlapFile;
     };
 
@@ -26,7 +26,7 @@ TEST(MapperHiFi, CheckMappping_LoadFromFile)
             // Query.
             "",
             // SeedParams.
-            PacBio::Pancake::SeedDB::SeedDBParameters{28, 80, 0, false, false, true},
+            PacBio::Pancake::SeedDBParameters{28, 80, 0, false, false, true},
             // Expected results.
             ""
         },
@@ -37,7 +37,7 @@ TEST(MapperHiFi, CheckMappping_LoadFromFile)
             // Query.
             PacBio::PancakeTestsConfig::Data_Dir + "/mapping/test-1-no-secondary-aln.reads.fasta",
             // SeedParams.
-            PacBio::Pancake::SeedDB::SeedDBParameters{28, 80, 0, false, false, true},
+            PacBio::Pancake::SeedDBParameters{28, 80, 0, false, false, true},
             // Expected results.
             PacBio::PancakeTestsConfig::Data_Dir + "/mapping/test-1-no-secondary-aln.out.ovl"
         },
@@ -48,7 +48,7 @@ TEST(MapperHiFi, CheckMappping_LoadFromFile)
             // Query.
             PacBio::PancakeTestsConfig::Data_Dir + "/hifi-ovl/reads.pile1-5prime.fasta",
             // SeedParams.
-            PacBio::Pancake::SeedDB::SeedDBParameters{28, 80, 0, false, false, true},
+            PacBio::Pancake::SeedDBParameters{28, 80, 0, false, false, true},
             // Expected results.
             PacBio::PancakeTestsConfig::Data_Dir + "/hifi-ovl/reads.pile1-5prime.out.all_vs_all.ovl"
         },
@@ -111,7 +111,7 @@ TEST(MapperHiFi, ArbitrarySequenceIDs)
         const std::string targetFile;
         const std::string queryFile;
         const int32_t sequenceIdOffset = 0;
-        const PacBio::Pancake::SeedDB::SeedDBParameters seedParams;
+        const PacBio::Pancake::SeedDBParameters seedParams;
         const std::string expectedOverlapFile;
     };
 
@@ -126,7 +126,7 @@ TEST(MapperHiFi, ArbitrarySequenceIDs)
             // Sequence ID offset.
             0,
             // SeedParams.
-            PacBio::Pancake::SeedDB::SeedDBParameters{28, 80, 0, false, false, true},
+            PacBio::Pancake::SeedDBParameters{28, 80, 0, false, false, true},
             // Expected results.
             PacBio::PancakeTestsConfig::Data_Dir + "/hifi-ovl/reads.pile1-5prime.out.all_vs_all.m4",
         },
@@ -139,7 +139,7 @@ TEST(MapperHiFi, ArbitrarySequenceIDs)
             // Sequence ID offset.
             10000,
             // SeedParams.
-            PacBio::Pancake::SeedDB::SeedDBParameters{28, 80, 0, false, false, true},
+            PacBio::Pancake::SeedDBParameters{28, 80, 0, false, false, true},
             // Expected results.
             PacBio::PancakeTestsConfig::Data_Dir + "/hifi-ovl/reads.pile1-5prime.out.all_vs_all.id_offset_10000.m4",
         },

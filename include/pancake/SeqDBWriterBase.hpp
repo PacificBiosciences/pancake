@@ -5,7 +5,6 @@
 
 #include <pancake/CompressedSequence.hpp>
 
-#include <ostream>
 #include <string>
 
 namespace PacBio {

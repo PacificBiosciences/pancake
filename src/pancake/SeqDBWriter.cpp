@@ -70,7 +70,8 @@ void SeqDBWriter::AddSequence(const std::string& header, const std::string& seq)
     // byte and length values properly.
     if (cache_.compressionLevel) {
         // Compress the sequence.
-        PacBio::Pancake::CompressedSequence compressed = PacBio::Pancake::CompressedSequence(seq);
+        const PacBio::Pancake::CompressedSequence compressed =
+            PacBio::Pancake::CompressedSequence(seq);
         const auto& bytes = compressed.GetTwobit();
         // Add the compressed bytes to the buffer.
         seqBuffer_.insert(seqBuffer_.end(), bytes.begin(), bytes.end());
@@ -170,7 +171,8 @@ bool SeqDBWriter::WriteSequences()
     }
 
     // Write the actual sequences.
-    size_t num = fwrite(seqBuffer_.data(), sizeof(int8_t), seqBuffer_.size(), fpOutSeqs_.get());
+    const size_t num =
+        fwrite(seqBuffer_.data(), sizeof(int8_t), seqBuffer_.size(), fpOutSeqs_.get());
     return num == seqBuffer_.size();
 }
 

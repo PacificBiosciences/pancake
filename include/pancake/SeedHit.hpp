@@ -12,24 +12,34 @@
 namespace PacBio {
 namespace Pancake {
 
-static const PacBio::Pancake::Int128t MASK128_LOW32bit = 0x000000000FFFFFFFF;
-static const PacBio::Pancake::Int128t MASK128_LOW16bit = 0x0000000000000FFFF;
-static const PacBio::Pancake::Int128t MASK128_LOW8bit = 0x000000000000000FF;
-static const PacBio::Pancake::Int128t MASK128_LOW1bit = 0x00000000000000001;
+constexpr PacBio::Pancake::Int128t MASK128_LOW32bit = 0x000000000FFFFFFFF;
+constexpr PacBio::Pancake::Int128t MASK128_LOW16bit = 0x0000000000000FFFF;
+constexpr PacBio::Pancake::Int128t MASK128_LOW8bit = 0x000000000000000FF;
+constexpr PacBio::Pancake::Int128t MASK128_LOW1bit = 0x00000000000000001;
+
 constexpr int32_t SEED_HIT_FLAG_IGNORE_BIT_SET = 1 << 0;
 constexpr int32_t SEED_HIT_FLAG_LONG_JOIN_BIT_SET = 1 << 1;
-
 constexpr int32_t SEED_HIT_FLAG_IGNORE_BIT_UNSET = ~SEED_HIT_FLAG_IGNORE_BIT_SET;
 constexpr int32_t SEED_HIT_FLAG_LONG_JOIN_BIT_UNSET = ~SEED_HIT_FLAG_LONG_JOIN_BIT_SET;
 
 class alignas(sizeof(PacBio::Pancake::Int128t)) SeedHit
 {
 public:
+    uint32_t targetId : 31;
+    bool targetRev : 1;
+    int32_t targetPos;
+    int32_t queryPos;
+    uint8_t targetSpan;
+    uint8_t querySpan;
+    uint16_t flags;
+
+public:
     SeedHit() = default;
+
     ~SeedHit() = default;
 
-    SeedHit(const int32_t _targetId, const bool _targetRev, const int32_t _targetPos,
-            const int32_t _queryPos, int32_t _targetSpan, const int32_t _querySpan, int32_t _flags)
+    SeedHit(int32_t _targetId, bool _targetRev, int32_t _targetPos, int32_t _queryPos,
+            int32_t _targetSpan, int32_t _querySpan, int32_t _flags)
         : targetId(_targetId)
         , targetRev(_targetRev)
         , targetPos(_targetPos)
@@ -39,6 +49,17 @@ public:
         , flags(_flags)
     {}
 
+public:
+    bool operator<(const SeedHit& b) const { return this->PackTo128() < b.PackTo128(); }
+
+    bool operator==(const SeedHit& b) const
+    {
+        return targetId == b.targetId && targetRev == b.targetRev && targetPos == b.targetPos &&
+               targetSpan == b.targetSpan && querySpan == b.querySpan && flags == b.flags &&
+               queryPos == b.queryPos;
+    }
+
+public:
     PacBio::Pancake::Int128t PackTo128() const
     {
         PacBio::Pancake::Int128t ret = 0;
@@ -52,7 +73,7 @@ public:
         return ret;
     }
 
-    void ParseFrom128(PacBio::Pancake::Int128t vals)
+    void ParseFrom128(const PacBio::Pancake::Int128t vals)
     {
         targetId = (vals >> 97) & MASK128_LOW32bit;
         targetRev = (vals >> 96) & MASK128_LOW1bit;
@@ -63,20 +84,13 @@ public:
         flags = vals & MASK128_LOW16bit;
     }
 
-    bool operator<(const SeedHit& b) const { return this->PackTo128() < b.PackTo128(); }
-
-    bool operator==(const SeedHit& b) const
-    {
-        return targetId == b.targetId && targetRev == b.targetRev && targetPos == b.targetPos &&
-               targetSpan == b.targetSpan && querySpan == b.querySpan && flags == b.flags &&
-               queryPos == b.queryPos;
-    }
     int32_t Diagonal() const { return targetPos - queryPos; }
 
+public:
     /*
      * Flags.
     */
-    void SetFlagIgnore(bool val)
+    void SetFlagIgnore(const bool val)
     {
         if (val) {
             flags |= SEED_HIT_FLAG_IGNORE_BIT_SET;
@@ -105,17 +119,6 @@ public:
     void UnsetFlagLongJoin() { flags &= SEED_HIT_FLAG_IGNORE_BIT_UNSET; }
 
     bool CheckFlagLongJoin() const { return (flags & SEED_HIT_FLAG_IGNORE_BIT_SET); }
-
-    /*
-     * Data.
-    */
-    uint32_t targetId : 31;
-    bool targetRev : 1;
-    int32_t targetPos;
-    int32_t queryPos;
-    uint8_t targetSpan;
-    uint8_t querySpan;
-    uint16_t flags;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const SeedHit& a)
@@ -127,6 +130,12 @@ inline std::ostream& operator<<(std::ostream& os, const SeedHit& a)
     return os;
 }
 
+/**
+ * @brief Constructs a tuple composed of (targetID+rev, seed diagonal, targetPos, queryPos).
+ *
+ * @param sh Input seed hit.
+ * @return std::tuple<int32_t, int32_t, int32_t, int32_t> Elements: (targetID+rev, diagonal, targetPos, queryPos).
+ */
 inline std::tuple<int32_t, int32_t, int32_t, int32_t> PackSeedHitWithDiagonalToTuple(
     const SeedHit& sh)
 {
@@ -134,8 +143,16 @@ inline std::tuple<int32_t, int32_t, int32_t, int32_t> PackSeedHitWithDiagonalToT
                            sh.targetPos, sh.queryPos);
 }
 
-void CalcHitCoverage(const std::vector<SeedHit>& hits, int32_t hitsBegin, int32_t hitsEnd,
-                     int32_t& coveredBasesQuery, int32_t& coveredBasesTarget);
+/**
+ * @brief Computes the number of bases covered by seed hits, in both query and target sequences.
+ *
+ * @param hits Input sorted seed hits.
+ * @param hitsBegin ID of the first seed hit to begin iterating from.
+ * @param hitsEnd ID of the end seed hit to finish iteration.
+ * @return std::pair<int32_t, int32_t> First element: query coverage. Second element: target coverage.
+ */
+std::pair<int32_t, int32_t> CalcHitCoverage(const std::vector<SeedHit>& hits, int32_t hitsBegin,
+                                            int32_t hitsEnd);
 
 }  // namespace Pancake
 }  // namespace PacBio

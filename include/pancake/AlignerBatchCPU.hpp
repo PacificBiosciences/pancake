@@ -22,23 +22,21 @@ namespace Pancake {
 class AlignerBatchCPU : public AlignerBatchBase
 {
 public:
-    AlignerBatchCPU(int32_t numThreads, const AlignerType alnTypeGlobal,
-                    const AlignmentParameters& alnParamsGlobal, const AlignerType alnTypeExt,
+    AlignerBatchCPU(int32_t numThreads, AlignerType alnTypeGlobal,
+                    const AlignmentParameters& alnParamsGlobal, AlignerType alnTypeExt,
                     const AlignmentParameters& alnParamsExt);
-    AlignerBatchCPU(Parallel::FireAndForget* faf, const AlignerType alnTypeGlobal,
-                    const AlignmentParameters& alnParamsGlobal, const AlignerType alnTypeExt,
+    AlignerBatchCPU(Parallel::FireAndForget* faf, AlignerType alnTypeGlobal,
+                    const AlignmentParameters& alnParamsGlobal, AlignerType alnTypeExt,
                     const AlignmentParameters& alnParamsExt);
     ~AlignerBatchCPU() override;
 
     void Clear() override;
 
-    StatusAddSequencePair AddSequencePairForGlobalAlignment(const char* query, int32_t queryLen,
-                                                            const char* target,
-                                                            int32_t targetLen) override;
+    StatusAddSequencePair AddSequencePairForGlobalAlignment(std::string_view qseq,
+                                                            std::string_view tseq) override;
 
-    StatusAddSequencePair AddSequencePairForExtensionAlignment(const char* query, int32_t queryLen,
-                                                               const char* target,
-                                                               int32_t targetLen) override;
+    StatusAddSequencePair AddSequencePairForExtensionAlignment(std::string_view qseq,
+                                                               std::string_view tseq) override;
 
     void AlignAll() override;
 
@@ -62,8 +60,8 @@ private:
     std::vector<bool> isGlobalAlignment_;
     std::vector<AlignmentResult> alnResults_;
 
-    StatusAddSequencePair AddSequencePair_(const char* query, int32_t queryLen, const char* target,
-                                           int32_t targetLen, bool isGlobalAlignment);
+    StatusAddSequencePair AddSequencePair_(std::string_view qseq, std::string_view tseq,
+                                           bool isGlobalAlignment);
 
     static void Worker_(const std::vector<std::string>& queries,
                         const std::vector<std::string>& targets,

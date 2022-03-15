@@ -9,6 +9,10 @@ void OverlapWriterBase::PrintOverlapAsIPAOvl(FILE* fpOut, const Overlap& ovl,
                                              const std::string& Aname, const std::string& Bname,
                                              bool writeIds, bool writeCigar)
 {
+    /**
+     * Aid Bid score idt Arev Astart Aend Alen Brev Bstart Bend Blen Atype Btype in_phase cigar Avars Bvars label
+     */
+
     double identity = static_cast<double>(ovl.Identity);
     if (identity == 0.0 && ovl.EditDistance >= 0.0) {
         const double editDist = ovl.EditDistance;
@@ -19,16 +23,13 @@ void OverlapWriterBase::PrintOverlapAsIPAOvl(FILE* fpOut, const Overlap& ovl,
         identity = std::min(identityQ, identityT);
     }
 
-    // Format - 19 columns, space separated.
-    //  Aid Bid score idt Arev Astart Aend Alen Brev Bstart Bend Blen Atype Btype in_phase cigar Avars Bvars label
-
     // The format specifies coordinates always in the FWD strand.
-    int32_t tStart = ovl.BstartFwd();
-    int32_t tEnd = ovl.BendFwd();
+    const int32_t tStart = ovl.BstartFwd();
+    const int32_t tEnd = ovl.BendFwd();
     const int32_t tIsRev = ovl.Brev;
     const int32_t tLen = ovl.Blen;
-    std::string AtypeStr = OverlapTypeToStringSingleChar(ovl.Atype);
-    std::string BtypeStr = OverlapTypeToStringSingleChar(ovl.Btype);
+    const std::string AtypeStr = OverlapTypeToStringSingleChar(ovl.Atype);
+    const std::string BtypeStr = OverlapTypeToStringSingleChar(ovl.Btype);
 
     // [1-14] First 12 columns are the same as in M4 + add the overlap type info for A and B reads.
     if (writeIds) {
@@ -103,11 +104,11 @@ void OverlapWriterBase::PrintOverlapAsM4(FILE* fpOut, const Overlap& ovl, const 
     }
 
     // The format specifies coordinates always in the FWD strand.
-    int32_t tStart = ovl.BstartFwd();
-    int32_t tEnd = ovl.BendFwd();
+    const int32_t tStart = ovl.BstartFwd();
+    const int32_t tEnd = ovl.BendFwd();
     const int32_t tIsRev = ovl.Brev;
     const int32_t tLen = ovl.Blen;
-    std::string AtypeStr = OverlapTypeToString(ovl.Atype);
+    const std::string AtypeStr = OverlapTypeToString(ovl.Atype);
 
     if (writeIds) {
         fprintf(fpOut, "%09d %09d", ovl.Aid, ovl.Bid);
@@ -147,12 +148,12 @@ void OverlapWriterBase::PrintOverlapAsPAF(FILE* fpOut, const Overlap& ovl, const
     }
 
     // The format specifies coordinates always in the FWD strand.
-    int32_t tStart = ovl.BstartFwd();
-    int32_t tEnd = ovl.BendFwd();
+    const int32_t tStart = ovl.BstartFwd();
+    const int32_t tEnd = ovl.BendFwd();
     const int32_t tIsRev = ovl.Brev;
-    std::string AtypeStr = OverlapTypeToStringSingleChar(ovl.Atype);
-    std::string BtypeStr = OverlapTypeToStringSingleChar(ovl.Btype);
-    int32_t mapq = 60;
+    const std::string AtypeStr = OverlapTypeToStringSingleChar(ovl.Atype);
+    const std::string BtypeStr = OverlapTypeToStringSingleChar(ovl.Btype);
+    const int32_t mapq = 60;
 
     if (writeIds) {
         fprintf(fpOut, "%09d\t%d\t%d\t%d\t%c\t%09d\t%d\t%d\t%d\t%d\t%d\t%d", ovl.Aid, ovl.Alen,
@@ -221,15 +222,15 @@ void OverlapWriterBase::PrintOverlapAsSAM(FILE* fpOut, const Overlap& ovl, const
     // }
 
     // The format specifies coordinates always in the FWD strand.
-    int32_t tStart = ovl.BstartFwd() + 1;
+    const int32_t tStart = ovl.BstartFwd() + 1;
     const int32_t tIsRev = ovl.Brev;
-    std::string AtypeStr = OverlapTypeToStringSingleChar(ovl.Atype);
-    std::string BtypeStr = OverlapTypeToStringSingleChar(ovl.Btype);
-    int32_t flag = tIsRev ? 16 : 0;
+    const std::string AtypeStr = OverlapTypeToStringSingleChar(ovl.Atype);
+    const std::string BtypeStr = OverlapTypeToStringSingleChar(ovl.Btype);
+    const int32_t flag = tIsRev ? 16 : 0;
     int32_t mapq = 60;
-    std::string seq =
+    const std::string seq =
         (ovl.Brev) ? ReverseComplement(query, queryLen, 0, queryLen) : std::string(query, queryLen);
-    std::string qual = "*";
+    const std::string qual = "*";
 
     // Query and target names, flag, pos and mapq.
     if (writeIds) {
@@ -244,8 +245,9 @@ void OverlapWriterBase::PrintOverlapAsSAM(FILE* fpOut, const Overlap& ovl, const
             fprintf(fpOut, "\t*");
         } else {
             if (ovl.Brev) {
-                std::string clipBack = (ovl.Astart > 0) ? std::to_string(ovl.Astart) + "S" : "";
-                std::string clipFront =
+                const std::string clipBack =
+                    (ovl.Astart > 0) ? std::to_string(ovl.Astart) + "S" : "";
+                const std::string clipFront =
                     (ovl.Aend < ovl.Alen) ? std::to_string(ovl.Alen - ovl.Aend) + "S" : "";
                 fprintf(fpOut, "\t%s", clipFront.c_str());
                 for (auto it = ovl.Cigar.rbegin(); it != ovl.Cigar.rend(); ++it) {
@@ -255,8 +257,9 @@ void OverlapWriterBase::PrintOverlapAsSAM(FILE* fpOut, const Overlap& ovl, const
                 fprintf(fpOut, "%s", clipBack.c_str());
 
             } else {
-                std::string clipFront = (ovl.Astart > 0) ? std::to_string(ovl.Astart) + "S" : "";
-                std::string clipBack =
+                const std::string clipFront =
+                    (ovl.Astart > 0) ? std::to_string(ovl.Astart) + "S" : "";
+                const std::string clipBack =
                     (ovl.Aend < ovl.Alen) ? std::to_string(ovl.Alen - ovl.Aend) + "S" : "";
                 fprintf(fpOut, "\t%s", clipFront.c_str());
                 for (const auto& op : ovl.Cigar) {
@@ -294,19 +297,19 @@ std::string OverlapWriterBase::PrintOverlapAsM4(const Overlap& ovl, const std::s
     }
 
     // The format specifies coordinates always in the FWD strand.
-    int32_t tStart = ovl.BstartFwd();
-    int32_t tEnd = ovl.BendFwd();
+    const int32_t tStart = ovl.BstartFwd();
+    const int32_t tEnd = ovl.BendFwd();
     const int32_t tIsRev = ovl.Brev;
     const int32_t tLen = ovl.Blen;
-    std::string AtypeStr = OverlapTypeToString(ovl.Atype);
+    const std::string AtypeStr = OverlapTypeToString(ovl.Atype);
 
-    std::ostringstream oss;
     char buffA[100], buffB[100];
     char idtBuff[100];
     sprintf(buffA, "%09d", ovl.Aid);
     sprintf(buffB, "%09d", ovl.Bid);
     sprintf(idtBuff, "%.2lf", 100.0 * identity);
 
+    std::ostringstream oss;
     if (writeIds) {
         oss << buffA << " " << buffB;
     } else {

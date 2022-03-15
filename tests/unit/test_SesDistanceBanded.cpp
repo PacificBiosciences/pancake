@@ -16,11 +16,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_EmptyQueryEmptyTarget)
     int32_t bandwidth = 30;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {0, 0, 0, true};
+    PacBio::Pancake::SesResults expected = {0, 0, 0, true};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);
@@ -35,11 +35,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_EmptyQueryNonemptyTarget)
     int32_t bandwidth = 30;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {0, 0, 0, true};
+    PacBio::Pancake::SesResults expected = {0, 0, 0, true};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);
@@ -54,11 +54,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_NonEmptyQueryEmptyTarget)
     int32_t bandwidth = 30;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {0, 0, 0, true};
+    PacBio::Pancake::SesResults expected = {0, 0, 0, true};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);
@@ -73,11 +73,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_SimpleExactMatch)
     int32_t bandwidth = 30;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {4, 4, 0, true};
+    PacBio::Pancake::SesResults expected = {4, 4, 0, true};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);
@@ -92,11 +92,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_SimpleSingleDiff)
     int32_t bandwidth = 30;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {3, 4, 1, true};
+    PacBio::Pancake::SesResults expected = {3, 4, 1, true};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);
@@ -111,11 +111,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_SimpleTwoDiffs)
     int32_t bandwidth = 30;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {20, 25, 5, true};
+    PacBio::Pancake::SesResults expected = {20, 25, 5, true};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);
@@ -134,11 +134,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_NormalSmallCase)
     int32_t bandwidth = 30;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {9, 9, 4, true};
+    PacBio::Pancake::SesResults expected = {9, 9, 4, true};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);
@@ -157,11 +157,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_OutOfBandwidth)
     int32_t bandwidth = 3;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {3, 2, 2, false};
+    PacBio::Pancake::SesResults expected = {3, 2, 2, false};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);
@@ -180,11 +180,11 @@ TEST(SesDistanceBanded, SesDistasnceBanded_AboveMaxDiffs)
     int32_t bandwidth = 30;
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::Alignment::SesResults expected = {3, 2, 2, false};
+    PacBio::Pancake::SesResults expected = {3, 2, 2, false};
 
     // Run.
-    PacBio::Pancake::Alignment::SesResults result = PacBio::Pancake::Alignment::SESDistanceBanded(
-        query.c_str(), query.size(), target.c_str(), target.size(), maxDiffs, bandwidth);
+    PacBio::Pancake::SesResults result =
+        PacBio::Pancake::SESDistanceBanded(query, target, maxDiffs, bandwidth);
 
     // Evaluate.
     EXPECT_EQ(expected, result);

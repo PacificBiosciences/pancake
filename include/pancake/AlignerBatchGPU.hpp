@@ -57,9 +57,8 @@ public:
      * or another value describing the reason for rejecting the sequence pair.
      * Calling this function will clear the internal alignment results.
     */
-    StatusAddSequencePair AddSequencePairForGlobalAlignment(const char* query, int32_t queryLen,
-                                                            const char* target,
-                                                            int32_t targetLen) override;
+    StatusAddSequencePair AddSequencePairForGlobalAlignment(std::string_view qseq,
+                                                            std::string_view tseq) override;
 
     /*
      * Adds a single sequence pair for extension alignment to the internal state (modifies the state),
@@ -71,9 +70,8 @@ public:
      * or another value describing the reason for rejecting the sequence pair.
      * Calling this function will clear the internal alignment results.
     */
-    StatusAddSequencePair AddSequencePairForExtensionAlignment(const char* query, int32_t queryLen,
-                                                               const char* target,
-                                                               int32_t targetLen) override;
+    StatusAddSequencePair AddSequencePairForExtensionAlignment(std::string_view qseq,
+                                                               std::string_view tseq) override;
 
     /*
      * Aligns all the sequence pairs added to the aligner, in parallel.

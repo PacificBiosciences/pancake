@@ -19,13 +19,17 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace Alignment {
 
 template <SESAlignMode ALIGN_MODE, SESTrimmingMode TRIM_MODE>
-SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* target,
-                              size_t targetLen, int32_t maxDiffs, int32_t bandwidth)
+SesResults SES2DistanceBanded(std::string_view query, std::string_view target,
+                              const int32_t maxDiffs, int32_t bandwidth)
 {
     SesResults ret;
+
+    const char* queryData = query.data();
+    const char* targetData = target.data();
+    const int32_t queryLen = query.size();
+    const int32_t targetLen = target.size();
 
     if (queryLen == 0 || targetLen == 0) {
         ret.valid = true;
@@ -113,8 +117,8 @@ SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* ta
 
             int32_t x = y + k;
             int32_t minLeft = std::min(qlen - x, tlen - y);
-            const char* querySub = query + x;
-            const char* targetSub = target + y;
+            const char* querySub = queryData + x;
+            const char* targetSub = targetData + y;
             int32_t moves = 0;
 
             while (moves < minLeft && querySub[moves] == targetSub[moves]) {
@@ -179,7 +183,6 @@ SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* ta
 
     return ret;
 }
-}  // namespace Alignment
 }  // namespace Pancake
 }  // namespace PacBio
 

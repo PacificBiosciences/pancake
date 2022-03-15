@@ -2,11 +2,6 @@
 
 #include <pancake/SequenceSeeds.hpp>
 
-#include <cassert>
-#include <cstdio>
-#include <exception>
-#include <type_traits>
-
 namespace PacBio {
 namespace Pancake {
 

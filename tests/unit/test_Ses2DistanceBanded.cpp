@@ -272,8 +272,7 @@ TEST(Ses2DistanceBanded, Semiglobal_AllTests)
 
         // Run.
         SesResults result = SES2DistanceBanded<SESAlignMode::Semiglobal, SESTrimmingMode::Disabled>(
-            data.query.c_str(), data.query.size(), data.target.c_str(), data.target.size(),
-            data.maxDiffs, data.bandwidth);
+            data.query, data.target, data.maxDiffs, data.bandwidth);
 
         // Evaluate.
         EXPECT_EQ(data.expected, result);
@@ -288,8 +287,7 @@ TEST(Ses2DistanceBanded, Global_AllTests)
 
         // Run.
         SesResults result = SES2DistanceBanded<SESAlignMode::Global, SESTrimmingMode::Disabled>(
-            data.query.c_str(), data.query.size(), data.target.c_str(), data.target.size(),
-            data.maxDiffs, data.bandwidth);
+            data.query, data.target, data.maxDiffs, data.bandwidth);
 
         // Evaluate.
         EXPECT_EQ(data.expected, result);

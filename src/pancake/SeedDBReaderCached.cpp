@@ -32,27 +32,27 @@ SeedDBReaderCached::~SeedDBReaderCached() = default;
 
 const SequenceSeeds& SeedDBReaderCached::GetSeedsForSequence(int32_t seqId) const
 {
-    auto it = seqIdToOrdinalId_.find(seqId);
+    const auto it = seqIdToOrdinalId_.find(seqId);
     if (it == seqIdToOrdinalId_.end()) {
         std::ostringstream oss;
         oss << "(SeedDBReaderCached) Invalid seqId, not found in block " << blockId_
             << ". seqId = " << seqId << ", records_.size() = " << records_.size();
         throw std::runtime_error(oss.str());
     }
-    int32_t ordinalId = it->second;
+    const int32_t ordinalId = it->second;
     return records_[ordinalId];
 }
 
 const SequenceSeeds& SeedDBReaderCached::GetSeedsForSequence(const std::string& seqName) const
 {
-    auto it = headerToOrdinalId_.find(seqName);
+    const auto it = headerToOrdinalId_.find(seqName);
     if (it == headerToOrdinalId_.end()) {
         std::ostringstream oss;
         oss << "(SeedDBReaderCached) Invalid seqName, not found in block " << blockId_
             << ". seqName = '" << seqName << ".";
         throw std::runtime_error(oss.str());
     }
-    int32_t ordinalId = it->second;
+    const int32_t ordinalId = it->second;
     return records_[ordinalId];
 }
 

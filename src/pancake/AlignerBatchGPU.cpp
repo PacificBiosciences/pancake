@@ -354,10 +354,8 @@ void AlignerBatchGPU::ResetMaxBandwidth(int32_t maxBandwidth)
     aligner_->reset_max_bandwidth(maxBandwidth);
 }
 
-StatusAddSequencePair AlignerBatchGPU::AddSequencePairForExtensionAlignment(const char* /*query*/,
-                                                                            int32_t /*queryLen*/,
-                                                                            const char* /*target*/,
-                                                                            int32_t /*targetLen*/)
+StatusAddSequencePair AlignerBatchGPU::AddSequencePairForExtensionAlignment(
+    const std::string_view /*qseq*/, const std::string_view /*tseq*/)
 {
     std::ostringstream oss;
     oss << "The GenomeWorks Cudaaligner does not support extension alignment at this "
@@ -366,17 +364,11 @@ StatusAddSequencePair AlignerBatchGPU::AddSequencePairForExtensionAlignment(cons
     return {};
 }
 
-StatusAddSequencePair AlignerBatchGPU::AddSequencePairForGlobalAlignment(const char* query,
-                                                                         int32_t queryLen,
-                                                                         const char* target,
-                                                                         int32_t targetLen)
+StatusAddSequencePair AlignerBatchGPU::AddSequencePairForGlobalAlignment(
+    const std::string_view qseq, const std::string_view tseq)
 {
-    if (queryLen < 0 || targetLen < 0) {
-        return StatusAddSequencePair::SEQUENCE_LEN_BELOW_ZERO;
-    }
-
     const claraparabricks::genomeworks::cudaaligner::StatusType s =
-        aligner_->add_alignment(target, targetLen, query, queryLen);
+        aligner_->add_alignment(tseq.data(), tseq.size(), qseq.data(), qseq.size());
 
     if (s == claraparabricks::genomeworks::cudaaligner::StatusType::exceeded_max_alignments) {
         return StatusAddSequencePair::EXCEEDED_MAX_ALIGNMENTS;
@@ -394,8 +386,8 @@ StatusAddSequencePair AlignerBatchGPU::AddSequencePairForGlobalAlignment(const c
         throw std::runtime_error("Unknown error in cuda aligner!\n");
 
     } else {
-        querySpans_.emplace_back(queryLen);
-        targetSpans_.emplace_back(targetLen);
+        querySpans_.emplace_back(qseq.size());
+        targetSpans_.emplace_back(tseq.size());
         alnResults_.clear();
     }
 

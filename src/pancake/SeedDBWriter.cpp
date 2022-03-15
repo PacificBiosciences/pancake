@@ -13,15 +13,15 @@
 namespace PacBio {
 namespace Pancake {
 
-std::unique_ptr<SeedDBWriter> CreateSeedDBWriter(
-    const std::string& filenamePrefix, bool splitBlocks,
-    const PacBio::Pancake::SeedDB::SeedDBParameters& params)
+std::unique_ptr<SeedDBWriter> CreateSeedDBWriter(const std::string& filenamePrefix,
+                                                 bool splitBlocks,
+                                                 const PacBio::Pancake::SeedDBParameters& params)
 {
     return std::make_unique<SeedDBWriter>(filenamePrefix, splitBlocks, params);
 }
 
 SeedDBWriter::SeedDBWriter(const std::string& filenamePrefix, bool splitBlocks,
-                           const PacBio::Pancake::SeedDB::SeedDBParameters& params)
+                           const PacBio::Pancake::SeedDBParameters& params)
     : params_(params)
     , filenamePrefix_(filenamePrefix)
     , splitBlocks_(splitBlocks)
@@ -61,7 +61,7 @@ void SeedDBWriter::OpenNewSeedsFile_()
 void SeedDBWriter::WriteSeeds(const std::string& seqName, int32_t seqId, int32_t seqLen,
                               const std::vector<PacBio::Pancake::Int128t>& seeds)
 {
-    int64_t numBytes = static_cast<int64_t>(seeds.size() * 16);
+    const int64_t numBytes = static_cast<int64_t>(seeds.size() * 16);
 
     // Only open a new file before writing to it. Otherwise, we'll always end up
     // with an extra empty file at the end of each block.

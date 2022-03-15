@@ -13,11 +13,9 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace Alignment {
 
-SesResults SESDistanceBanded(const char* query, size_t queryLen, const char* target,
-                             size_t targetLen, int32_t maxDiffs, int32_t bandwidth);
-}
+SesResults SESDistanceBanded(std::string_view query, std::string_view target, int32_t maxDiffs,
+                             int32_t bandwidth);
 }  // namespace Pancake
 }  // namespace PacBio
 

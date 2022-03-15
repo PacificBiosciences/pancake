@@ -24,7 +24,7 @@ public:
     int32_t score = 0;
     int32_t maxScore = 0;
     bool zdropped = false;
-    Alignment::DiffCounts diffs;
+    DiffCounts diffs;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const AlignmentResult& b)

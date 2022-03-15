@@ -2,28 +2,32 @@
 
 #include <pancake/SeedHit.hpp>
 
+#include <pbcopper/utility/Ssize.h>
+
 #include <sstream>
 
 namespace PacBio {
 namespace Pancake {
 
-void CalcHitCoverage(const std::vector<SeedHit>& hits, int32_t hitsBegin, int32_t hitsEnd,
-                     int32_t& coveredBasesQuery, int32_t& coveredBasesTarget)
+std::pair<int32_t, int32_t> CalcHitCoverage(const std::vector<SeedHit>& hits,
+                                            const int32_t hitsBegin, int32_t hitsEnd)
 {
     /*
       Expects the seed hits to be sorted!
     */
-    coveredBasesQuery = coveredBasesTarget = 0;
+    int32_t coveredBasesQuery = 0;
+    int32_t coveredBasesTarget = 0;
 
-    if (hits.size() == 0 || hitsBegin >= static_cast<int32_t>(hits.size()) ||
+    if (hits.empty() || hitsBegin >= static_cast<int32_t>(Utility::Ssize(hits)) ||
         (hitsEnd - hitsBegin) <= 0) {
-        return;
+        return {coveredBasesQuery, coveredBasesTarget};
     }
 
     // Add the left part of the tile to the covered bases.
     coveredBasesQuery = hits.front().querySpan;
     coveredBasesTarget = hits.front().targetSpan;
-    hitsEnd = std::min(hitsEnd, (int32_t)hits.size());
+    hitsEnd = std::min<int32_t>(hitsEnd, Utility::Ssize(hits));
+
     for (int32_t i = (hitsBegin + 1); i < hitsEnd; i++) {
         if (hits[i].queryPos < hits[i - 1].queryPos || hits[i].targetPos < hits[i - 1].targetPos) {
             std::ostringstream oss;
@@ -44,6 +48,8 @@ void CalcHitCoverage(const std::vector<SeedHit>& hits, int32_t hitsBegin, int32_
         coveredBasesTarget += std::min(static_cast<int32_t>(hits[i].targetSpan),
                                        (hits[i].targetPos - hits[i - 1].targetPos));
     }
+
+    return {coveredBasesQuery, coveredBasesTarget};
 }
 
 }  // namespace Pancake

@@ -48,15 +48,13 @@ void UpdateSecondaryAndFilter(std::vector<std::vector<MapperBaseResult>>& mappin
                               Parallel::FireAndForget* faf,
                               const std::vector<MapperBatchChunk>& batchChunks);
 
-int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
-                        const AlignmentParameters& alnParamsGlobal,
-                        const AlignerType& alignerTypeExt, const AlignmentParameters& alnParamsExt,
-                        const std::vector<PairForBatchAlignment>& parts, const int32_t numThreads,
+int32_t AlignPartsOnCpu(AlignerType alignerTypeGlobal, const AlignmentParameters& alnParamsGlobal,
+                        AlignerType alignerTypeExt, const AlignmentParameters& alnParamsExt,
+                        const std::vector<PairForBatchAlignment>& parts, int32_t numThreads,
                         std::vector<AlignmentResult>& retAlns);
 
-int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
-                        const AlignmentParameters& alnParamsGlobal,
-                        const AlignerType& alignerTypeExt, const AlignmentParameters& alnParamsExt,
+int32_t AlignPartsOnCpu(AlignerType alignerTypeGlobal, const AlignmentParameters& alnParamsGlobal,
+                        AlignerType alignerTypeExt, const AlignmentParameters& alnParamsExt,
                         const std::vector<PairForBatchAlignment>& parts,
                         Parallel::FireAndForget* faf, std::vector<AlignmentResult>& retAlns);
 

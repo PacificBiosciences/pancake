@@ -22,6 +22,7 @@ class OverlapWriterSAM : public OverlapWriterBase
 {
 public:
     OverlapWriterSAM(FILE* fpOut, bool writeIds, bool writeCigar);
+
     ~OverlapWriterSAM();
 
     void WriteHeader(const PacBio::Pancake::SeqDBReaderCached& targetSeqs) override;

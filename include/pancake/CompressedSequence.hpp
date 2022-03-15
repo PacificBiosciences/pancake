@@ -17,10 +17,10 @@ class CompressedSequence
 {
 public:
     CompressedSequence();
-    CompressedSequence(const std::string& bases);
+    CompressedSequence(std::string_view bases);
     ~CompressedSequence();
 
-    void SetFromBases(const std::string& bases);
+    void SetFromBases(std::string_view bases);
     const std::vector<uint8_t>& GetTwobit() const { return twobit_; }
     const std::vector<PacBio::Pancake::Range>& GetRanges() const { return ranges_; }
     int64_t GetNumUncompressedBases() const { return numUncompressedBases_; }

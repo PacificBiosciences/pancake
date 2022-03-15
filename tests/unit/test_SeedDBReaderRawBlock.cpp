@@ -286,7 +286,7 @@ B	1	1	5	23600
 
     // Expected results. Construct these by loading and flattening the block using
     // the SeedDBReader.
-    std::vector<PacBio::Pancake::SeedDB::SeedRaw> expected;
+    std::vector<PacBio::Pancake::SeedRaw> expected;
     {
         // Create a SeedDB reader.
         PacBio::Pancake::SeedDBReader readerExp(seedDBCache);
@@ -336,7 +336,7 @@ B	0	0	4	16576
 
     // Expected results. Construct these by loading and flattening the block using
     // the SeedDBReader.
-    std::vector<PacBio::Pancake::SeedDB::SeedRaw> expected;
+    std::vector<PacBio::Pancake::SeedRaw> expected;
     {
         // Create a SeedDB reader.
         PacBio::Pancake::SeedDBReader readerExp(seedDBCache);

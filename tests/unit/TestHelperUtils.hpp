@@ -23,8 +23,8 @@ std::vector<std::string> HelperLoadFile(const std::string& inFile);
 void HelperLoadBatchData(
     const std::vector<std::pair<std::string, std::string>>& batchDataSequenceFiles,
     const int32_t seqIdOffset, const double freqPercentile,
-    const PacBio::Pancake::SeedDB::SeedDBParameters& seedParamsPrimary,
-    const PacBio::Pancake::SeedDB::SeedDBParameters& seedParamsFallback,
+    const PacBio::Pancake::SeedDBParameters& seedParamsPrimary,
+    const PacBio::Pancake::SeedDBParameters& seedParamsFallback,
     std::vector<PacBio::Pancake::MapperBatchChunk>& retBatchData,
     std::vector<PacBio::BAM::FastaSequence>& retAllSeqs);
 

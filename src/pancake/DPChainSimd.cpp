@@ -12,6 +12,8 @@
 #include <pancake/util/Math.hpp>
 #include <pancake/util/TicToc.hpp>
 
+#include <pbcopper/utility/Ssize.h>
+
 #include <emmintrin.h>
 #include <smmintrin.h>
 #include <tmmintrin.h>
@@ -182,7 +184,7 @@ inline __attribute__((always_inline)) void SimdDPBlock(
 }
 
 int32_t ChainHitsForwardFastSimd(
-    const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
+    const std::span<const SeedHit> hits, const int32_t chainMaxSkip,
     const int32_t chainMaxPredecessors, const int32_t seedJoinDist, const int32_t diagMargin,
     std::vector<__m128i>& __restrict__ dp, std::vector<__m128i>& __restrict__ pred,
     std::vector<int32_t>& chainId, std::vector<__m128i>& __restrict__ qp,
@@ -202,6 +204,8 @@ int32_t ChainHitsForwardFastSimd(
     qs.clear();
     tid.clear();
     vectorIndices.clear();
+
+    const int32_t hitsSize = Utility::Ssize(hits);
 
     if (hitsSize == 0) {
         return 0;
@@ -428,7 +432,7 @@ int32_t ChainHitsForwardFastSimd(
 }
 
 std::vector<ChainedHits> ChainHitsSimd(
-    const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
+    const std::span<const SeedHit> hits, const int32_t chainMaxSkip,
     const int32_t chainMaxPredecessors, const int32_t seedJoinDist, const int32_t diagMargin,
     const int32_t minNumSeeds, const int32_t minCovBases, const int32_t minDPScore,
     double& timeChaining, double& timeBacktrack, std::shared_ptr<ChainingScratchSpace> ss)
@@ -445,7 +449,7 @@ std::vector<ChainedHits> ChainHitsSimd(
     timeChaining = 0.0;
     timeBacktrack = 0.0;
 
-    if (hitsSize == 0) {
+    if (hits.empty()) {
         return {};
     }
 
@@ -465,7 +469,7 @@ std::vector<ChainedHits> ChainHitsSimd(
 
         std::cerr << "========= TEST NON-SIMD ==========\n";
         const int32_t numChains =
-            ChainHitsForwardFastSisd(hits, hitsSize, chainMaxSkip, chainMaxPredecessors,
+            ChainHitsForwardFastSisd({hits, hitsSize}, chainMaxSkip, chainMaxPredecessors,
                                      seedJoinDist, diagMargin, dp1, pred1, chainId1);
         std::cerr << "==================================\n";
     }
@@ -476,8 +480,8 @@ std::vector<ChainedHits> ChainHitsSimd(
     std::vector<int32_t>& chainId = ss->chainId;
 
     const int32_t numChains = ChainHitsForwardFastSimd(
-        hits, hitsSize, chainMaxSkip, chainMaxPredecessors, seedJoinDist, diagMargin, dp, pred,
-        chainId, ss->qp, ss->tp, ss->qs, ss->tid, ss->vectorIndices);
+        hits, chainMaxSkip, chainMaxPredecessors, seedJoinDist, diagMargin, dp, pred, chainId,
+        ss->qp, ss->tp, ss->qs, ss->tid, ss->vectorIndices);
 
 #ifdef PANCAKE_ENABLE_TIMINGS
     ttPartial.Stop();
@@ -490,11 +494,10 @@ std::vector<ChainedHits> ChainHitsSimd(
     ////////////////////
     const int32_t* dpInt32 = reinterpret_cast<int32_t*>(dp.data());
     const int32_t* predInt32 = reinterpret_cast<int32_t*>(pred.data());
-    const int32_t* chainIdInt32 = chainId.data();
 
     std::vector<ChainedHits> chains =
-        ChainHitsBacktrack(hits, hitsSize, dpInt32, predInt32, chainIdInt32, numChains, minNumSeeds,
-                           minCovBases, minDPScore);
+        ChainHitsBacktrack(hits, {dpInt32, dp.size() * 4}, {predInt32, pred.size() * 4}, chainId,
+                           numChains, minNumSeeds, minCovBases, minDPScore);
 
 #ifdef DEBUG_DP_VERBOSE_
     printf("The DP:\n");

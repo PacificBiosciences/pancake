@@ -66,7 +66,7 @@ public:
     std::string indexParentFolder;
     std::string indexBasename;
     std::string version{"unknown"};
-    PacBio::Pancake::SeedDB::SeedDBParameters seedParams;
+    PacBio::Pancake::SeedDBParameters seedParams;
     std::vector<SeedDBFileLine> fileLines;
     std::vector<SeedDBSeedsLine> seedLines;
     std::vector<SeedDBBlockLine> blockLines;

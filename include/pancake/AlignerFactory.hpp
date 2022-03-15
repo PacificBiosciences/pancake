@@ -21,9 +21,9 @@ enum class AlignerType
     SES2,
 };
 
-std::string AlignerTypeToString(const AlignerType& alignerType);
+std::string AlignerTypeToString(AlignerType alignerType);
 AlignerType AlignerTypeFromString(const std::string& alignerType);
-std::shared_ptr<AlignerBase> AlignerFactory(const AlignerType& alignerType,
+std::shared_ptr<AlignerBase> AlignerFactory(AlignerType alignerType,
                                             const AlignmentParameters& alnParams);
 
 }  // namespace Pancake

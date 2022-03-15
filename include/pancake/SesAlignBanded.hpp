@@ -18,7 +18,6 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace Alignment {
 
 /// \brief Alignment function based on the O(nd) algorithm with modifications for banded alignment.
 ///         this implementation supports both global and semiglobal alignment modes, where semiglobal
@@ -31,9 +30,7 @@ namespace Alignment {
 /// \param TRACEBACK Specifies whether the traceback should be computed.
 ///                     Either: SESTracebackMode::Enabled or SESTracebackMode::Disabled.
 /// \param query Query sequence as a C-type string consisting of [ACTG] characters.
-/// \param queryLen Length of the query sequence string.
 /// \param target Target sequence as a C-type string consisting of [ACTG] characters.
-/// \param targetLen Length of the target sequence string.
 /// \param maxDiffs Maximum allowed number of indel diffs for the alignment. This is a parameter
 ///         specified by the original algorithm ("D"). If you want the maximum number of diffs.
 /// \param bandwidth Bandwidth for banded alignment.
@@ -48,15 +45,17 @@ namespace Alignment {
 ///
 /// \returns A SesResults object containing alignment coordinates, scores and CIGAR vector (if computed).
 template <SESAlignMode ALIGN_MODE, SESTracebackMode TRACEBACK>
-SesResults SESAlignBanded(const char* query, size_t queryLen, const char* target, size_t targetLen,
-                          int32_t maxDiffs, int32_t bandwidth,
-                          std::shared_ptr<SESScratchSpace> ss = nullptr)
+SesResults SESAlignBanded(std::string_view query, std::string_view target, const int32_t maxDiffs,
+                          int32_t bandwidth, std::shared_ptr<SESScratchSpace> ss = nullptr)
 {
     SesResults ret;
 
     if (ss == nullptr) {
         ss = std::make_shared<SESScratchSpace>();
     }
+
+    const int32_t queryLen = query.size();
+    const int32_t targetLen = target.size();
 
     bandwidth = std::min(bandwidth, maxDiffs);
 
@@ -190,7 +189,7 @@ SesResults SESAlignBanded(const char* query, size_t queryLen, const char* target
     if constexpr (TRACEBACK == SESTracebackMode::Enabled) {
         int32_t currD = lastD;
         int32_t currK = lastK;
-        int32_t numPoints = (currD + 1) * 2;
+        const int32_t numPoints = (currD + 1) * 2;
         int32_t currPoint = numPoints - 1;
 
         while (currD > 0) {
@@ -291,7 +290,6 @@ SesResults SESAlignBanded(const char* query, size_t queryLen, const char* target
 
     return ret;
 }
-}  // namespace Alignment
 }  // namespace Pancake
 }  // namespace PacBio
 

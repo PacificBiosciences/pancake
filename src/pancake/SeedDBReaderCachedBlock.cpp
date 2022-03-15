@@ -52,7 +52,7 @@ void SeedDBReaderCachedBlock::LoadBlock(const std::vector<int32_t>& blockIds)
     // Next, get all other parts for all other blocks. If possible, extend
     // the previously added parts, otherwise just append.
     for (size_t i = 1; i < blockIds_.size(); ++i) {
-        std::vector<ContiguousFilePart> newParts =
+        const std::vector<ContiguousFilePart> newParts =
             GetSeedDBContiguousParts(indexCache_, blockIds_[i]);
         for (const auto& newPart : newParts) {
             if (newPart.CanAppendTo(parts.back())) {
@@ -123,7 +123,7 @@ void SeedDBReaderCachedBlock::LoadBlock(const std::vector<int32_t>& blockIds)
 
 const SequenceSeedsCached& SeedDBReaderCachedBlock::GetSeedsForSequence(int32_t seqId) const
 {
-    auto it = seqIdToOrdinalId_.find(seqId);
+    const auto it = seqIdToOrdinalId_.find(seqId);
     if (it == seqIdToOrdinalId_.end()) {
         std::ostringstream oss;
         oss << "(SeedDBReaderCachedBlock) Invalid seqId, not found in blocks: {";
@@ -133,14 +133,14 @@ const SequenceSeedsCached& SeedDBReaderCachedBlock::GetSeedsForSequence(int32_t 
         oss << "}. seqId = " << seqId << ", records_.size() = " << records_.size();
         throw std::runtime_error(oss.str());
     }
-    int32_t ordinalId = it->second;
+    const int32_t ordinalId = it->second;
     return records_[ordinalId];
 }
 
 const SequenceSeedsCached& SeedDBReaderCachedBlock::GetSeedsForSequence(
     const std::string& seqName) const
 {
-    auto it = headerToOrdinalId_.find(seqName);
+    const auto it = headerToOrdinalId_.find(seqName);
     if (it == headerToOrdinalId_.end()) {
         std::ostringstream oss;
         oss << "(SeedDBReaderCachedBlock) Invalid seqName, not found in blocks: {";
@@ -150,7 +150,7 @@ const SequenceSeedsCached& SeedDBReaderCachedBlock::GetSeedsForSequence(
         oss << "}. seqName = '" << seqName << ".";
         throw std::runtime_error(oss.str());
     }
-    int32_t ordinalId = it->second;
+    const int32_t ordinalId = it->second;
     return records_[ordinalId];
 }
 

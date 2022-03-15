@@ -34,7 +34,7 @@ class Mapper
 {
 public:
     Mapper(const OverlapHifiSettings& settings)
-        : settings_{settings}, sesScratch_{std::make_shared<Pancake::Alignment::SESScratchSpace>()}
+        : settings_{settings}, sesScratch_{std::make_shared<Pancake::SESScratchSpace>()}
     {}
     ~Mapper() = default;
 
@@ -58,7 +58,7 @@ public:
 
 private:
     OverlapHifiSettings settings_;
-    std::shared_ptr<PacBio::Pancake::Alignment::SESScratchSpace> sesScratch_;
+    std::shared_ptr<PacBio::Pancake::SESScratchSpace> sesScratch_;
 
     MapperResult MapSingleQuery_(const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs,
                                  const PacBio::Pancake::SeedIndex& index,
@@ -153,12 +153,12 @@ private:
     ///
     static std::vector<OverlapPtr> AlignOverlaps_(
         const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs,
-        const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string reverseQuerySeq,
+        const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string& reverseQuerySeq,
         const std::vector<OverlapPtr>& overlaps, double alignBandwidth, double alignMaxDiff,
         bool useTraceback, bool noSNPs, bool noIndels, bool maskHomopolymers,
         bool maskSimpleRepeats, bool maskHomopolymerSNPs, bool maskHomopolymersArbitrary,
         bool trimAlignment, int32_t trimWindowSize, double trimMatchFraction, bool trimToFirstMatch,
-        std::shared_ptr<PacBio::Pancake::Alignment::SESScratchSpace> sesScratch);
+        std::shared_ptr<PacBio::Pancake::SESScratchSpace> sesScratch);
 
     /// \brief Generates a set of flipped overlaps from a given set of overlaps. A flipped overlap
     ///         is when the A-read and B-read change places, but the A-read is still always kept in
@@ -174,7 +174,7 @@ private:
     /// \param maskSimpleRepeats Ignores indel errors in simple repeats, such as di-nuc.
     static std::vector<OverlapPtr> GenerateFlippedOverlaps_(
         const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs,
-        const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string reverseQuerySeq,
+        const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string& reverseQuerySeq,
         const std::vector<OverlapPtr>& overlaps, bool noSNPs, bool noIndels, bool maskHomopolymers,
         bool maskSimpleRepeats, bool maskHomopolymerSNPs, bool maskHomopolymersArbitrary);
 
@@ -193,18 +193,20 @@ private:
     ///                     identity computation (in terms of mismatches) and CIGAR construction.
     /// \returns A new vector overlap with alignment information and modified coordinates.
     ///
-    static OverlapPtr AlignOverlap_(
-        const PacBio::Pancake::FastaSequenceCached& targetSeq,
-        const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string reverseQuerySeq,
-        const OverlapPtr& ovl, double alignBandwidth, double alignMaxDiff, bool useTraceback,
-        bool noSNPs, bool noIndels, bool maskHomopolymers, bool maskSimpleRepeats,
-        bool maskHomopolymerSNPs, bool maskHomopolymersArbitrary, bool trimAlignment,
-        int32_t trimWindowSize, double trimMatchFraction, bool trimToFirstMatch,
-        std::shared_ptr<PacBio::Pancake::Alignment::SESScratchSpace> sesScratch);
+    static OverlapPtr AlignOverlap_(const PacBio::Pancake::FastaSequenceCached& targetSeq,
+                                    const PacBio::Pancake::FastaSequenceCached& querySeq,
+                                    const std::string& reverseQuerySeq, const OverlapPtr& ovl,
+                                    double alignBandwidth, double alignMaxDiff, bool useTraceback,
+                                    bool noSNPs, bool noIndels, bool maskHomopolymers,
+                                    bool maskSimpleRepeats, bool maskHomopolymerSNPs,
+                                    bool maskHomopolymersArbitrary, bool trimAlignment,
+                                    int32_t trimWindowSize, double trimMatchFraction,
+                                    bool trimToFirstMatch,
+                                    std::shared_ptr<PacBio::Pancake::SESScratchSpace> sesScratch);
 
     static void NormalizeAndExtractVariantsInPlace_(
         OverlapPtr& ovl, const PacBio::Pancake::FastaSequenceCached& targetSeq,
-        const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string reverseQuerySeq,
+        const PacBio::Pancake::FastaSequenceCached& querySeq, const std::string& reverseQuerySeq,
         bool noSNPs, bool noIndels, bool maskHomopolymers, bool maskSimpleRepeats,
         bool maskHomopolymerSNPs, bool maskHomopolymersArbitrary);
 
@@ -251,8 +253,8 @@ private:
     /// \return A vector of filtered overlaps.
     ///
     static std::vector<OverlapPtr> FilterTandemOverlapsSmart_(
-        const std::vector<OverlapPtr>& overlaps, const double secondaryAllowedOverlapFraction,
-        const double secondaryMinScoreFraction);
+        const std::vector<OverlapPtr>& overlaps, double secondaryAllowedOverlapFraction,
+        double secondaryMinScoreFraction);
 
     /// \brief  Helper function which extracts a subsequence from a given sequence, and reverse
     ///         complements if needed.
@@ -272,12 +274,12 @@ private:
 
 std::vector<MapperResult> MapHiFi(const std::vector<std::string>& targetSeqs,
                                   const std::vector<std::string>& querySeqs,
-                                  const PacBio::Pancake::SeedDB::SeedDBParameters& seedParams,
+                                  const PacBio::Pancake::SeedDBParameters& seedParams,
                                   const OverlapHifiSettings& settings);
 
 std::vector<MapperResult> MapHiFi(const FastaSequenceCachedStore& targetSeqs,
                                   const FastaSequenceCachedStore& querySeqs,
-                                  const PacBio::Pancake::SeedDB::SeedDBParameters& seedParams,
+                                  const PacBio::Pancake::SeedDBParameters& seedParams,
                                   const OverlapHifiSettings& settings);
 
 }  // namespace OverlapHiFi

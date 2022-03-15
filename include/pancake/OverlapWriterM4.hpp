@@ -22,6 +22,7 @@ class OverlapWriterM4 : public OverlapWriterBase
 {
 public:
     OverlapWriterM4(FILE* fpOut, bool writeIds, bool writeCigar);
+
     ~OverlapWriterM4();
 
     void WriteHeader(const PacBio::Pancake::SeqDBReaderCached& targetSeqs) override;

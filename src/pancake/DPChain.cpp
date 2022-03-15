@@ -12,9 +12,12 @@
 #include <pancake/util/Math.hpp>
 #include <pancake/util/TicToc.hpp>
 
+#include <pbcopper/utility/Ssize.h>
+
 #include <cassert>
 #include <iostream>
 #include <sstream>
+#include <tuple>
 
 // #define DPCHAIN_DEBUG
 // #define DPCHAIN_SISD_DEBUG
@@ -29,11 +32,13 @@ constexpr int32_t NegativeInf = std::numeric_limits<int32_t>::min() + 10000;
  * \brief Performs the forward pass of the DP chaining procedure (no backtrack included).
  *          The DP results are returned via parameters: dp, pred and chainId.
 */
-int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
+int32_t ChainHitsForward(const std::span<const SeedHit> hits, const int32_t chainMaxSkip,
                          const int32_t chainMaxPredecessors, const int32_t seedJoinDist,
                          const int32_t diagMargin, std::vector<int32_t>& dp,
                          std::vector<int32_t>& pred, std::vector<int32_t>& chainId)
 {
+    const int32_t hitsSize = Utility::Ssize(hits);
+
     dp.clear();
     pred.clear();
     chainId.clear();
@@ -149,11 +154,10 @@ int32_t ChainHitsForward(const SeedHit* hits, const int32_t hitsSize, const int3
     return numChains;
 }
 
-int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
-                                 const int32_t chainMaxSkip, const int32_t chainMaxPredecessors,
-                                 const int32_t seedJoinDist, const int32_t diagMargin,
-                                 std::vector<int32_t>& dp, std::vector<int32_t>& pred,
-                                 std::vector<int32_t>& chainId)
+int32_t ChainHitsForwardFastSisd(const std::span<const SeedHit> hits, const int32_t chainMaxSkip,
+                                 const int32_t chainMaxPredecessors, const int32_t seedJoinDist,
+                                 const int32_t diagMargin, std::vector<int32_t>& dp,
+                                 std::vector<int32_t>& pred, std::vector<int32_t>& chainId)
 {
     /**
      * \brief All differences are just optimizations and should yield identical results as the original
@@ -162,6 +166,8 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
     dp.clear();
     pred.clear();
     chainId.clear();
+
+    const int32_t hitsSize = Utility::Ssize(hits);
 
     if (hitsSize == 0) {
         return 0;
@@ -283,12 +289,15 @@ int32_t ChainHitsForwardFastSisd(const SeedHit* hits, const int32_t hitsSize,
     return numChains;
 }
 
-std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t hitsSize,
-                                            const int32_t* dp, const int32_t* pred,
-                                            const int32_t* chainId, const int32_t numChains,
-                                            const int32_t minNumSeeds, const int32_t minCovBases,
-                                            const int32_t minDPScore)
+std::vector<ChainedHits> ChainHitsBacktrack(const std::span<const SeedHit> hits,
+                                            const std::span<const int32_t> dp,
+                                            const std::span<const int32_t> pred,
+                                            const std::span<const int32_t> chainId,
+                                            const int32_t numChains, const int32_t minNumSeeds,
+                                            const int32_t minCovBases, const int32_t minDPScore)
 {
+    const int32_t hitsSize = Utility::Ssize(hits);
+
     std::vector<ChainedHits> chains;
 
     // Find the maximum of every chain for backtracking.
@@ -354,19 +363,9 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
             chain.hits.emplace_back(hits[node]);
         }
 
-        // Penalize the distance from the end of the query.
-        // Otherwise, shorted chains near the beginning would
-        // prevail longer ones in some cases.
-        // int32_t chain_dist_to_end = qseq.get_sequence_length() - chain->hits().back().QueryPos();
-        // int32_t chain_score = score - chain_dist_to_end * params->chain_penalty_gap;
-        // chain->score(chain_score);
         chain.score = score;
-
-        CalcHitCoverage(chain.hits, 0, chain.hits.size(), chain.coveredBasesQuery,
-                        chain.coveredBasesTarget);
-
-        // int32_t qspan = chain.hits.back().queryPos - chain.hits.front().queryPos;
-        // double frac = (qspan == 0) ? 0 : ((double)chain.coveredBasesQuery) / ((double)qspan);
+        std::tie(chain.coveredBasesQuery, chain.coveredBasesTarget) =
+            CalcHitCoverage(chain.hits, 0, chain.hits.size());
 
         // Add the new chain.
         if (chain.coveredBasesQuery >= minCovBases && chain.coveredBasesTarget >= minCovBases) {
@@ -379,7 +378,7 @@ std::vector<ChainedHits> ChainHitsBacktrack(const SeedHit* hits, const int32_t h
 }
 
 std::vector<ChainedHits> ChainHitsSisd(
-    const SeedHit* hits, const int32_t hitsSize, const int32_t chainMaxSkip,
+    const std::span<const SeedHit> hits, const int32_t chainMaxSkip,
     const int32_t chainMaxPredecessors, const int32_t seedJoinDist, const int32_t diagMargin,
     const int32_t minNumSeeds, const int32_t minCovBases, const int32_t minDPScore,
     double& timeChaining, double& timeBacktrack, std::shared_ptr<ChainingScratchSpace> ss)
@@ -396,7 +395,7 @@ std::vector<ChainedHits> ChainHitsSisd(
     timeChaining = 0.0;
     timeBacktrack = 0.0;
 
-    if (hitsSize == 0) {
+    if (hits.empty()) {
         return {};
     }
 
@@ -412,9 +411,8 @@ std::vector<ChainedHits> ChainHitsSisd(
     std::vector<int32_t>& pred = ss->pred;
     std::vector<int32_t>& chainId = ss->chainId;
 
-    const int32_t numChains =
-        ChainHitsForwardFastSisd(hits, hitsSize, chainMaxSkip, chainMaxPredecessors, seedJoinDist,
-                                 diagMargin, dp, pred, chainId);
+    const int32_t numChains = ChainHitsForwardFastSisd(hits, chainMaxSkip, chainMaxPredecessors,
+                                                       seedJoinDist, diagMargin, dp, pred, chainId);
 
 #ifdef PANCAKE_ENABLE_TIMINGS
     ttPartial.Stop();
@@ -425,9 +423,8 @@ std::vector<ChainedHits> ChainHitsSisd(
     ////////////////////
     /// Backtrack.   ///
     ////////////////////
-    std::vector<ChainedHits> chains =
-        ChainHitsBacktrack(hits, hitsSize, dp.data(), pred.data(), chainId.data(), numChains,
-                           minNumSeeds, minCovBases, minDPScore);
+    std::vector<ChainedHits> chains = ChainHitsBacktrack(hits, dp, pred, chainId, numChains,
+                                                         minNumSeeds, minCovBases, minDPScore);
 
 #ifdef DEBUG_DP_VERBOSE_
     printf("The DP:\n");
@@ -568,7 +565,8 @@ ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
     ret.score = chain.score;
     ret.targetId = chain.targetId;
     ret.targetRev = chain.targetRev;
-    CalcHitCoverage(ret.hits, 0, ret.hits.size(), ret.coveredBasesQuery, ret.coveredBasesTarget);
+    std::tie(ret.coveredBasesQuery, ret.coveredBasesTarget) =
+        CalcHitCoverage(ret.hits, 0, ret.hits.size());
 
     return ret;
 }
@@ -648,7 +646,8 @@ ChainedHits RefineChainedHits2(const ChainedHits& chain, const int32_t minGap,
     ret.score = chain.score;
     ret.targetId = chain.targetId;
     ret.targetRev = chain.targetRev;
-    CalcHitCoverage(ret.hits, 0, ret.hits.size(), ret.coveredBasesQuery, ret.coveredBasesTarget);
+    std::tie(ret.coveredBasesQuery, ret.coveredBasesTarget) =
+        CalcHitCoverage(ret.hits, 0, ret.hits.size());
 
     return ret;
 }
@@ -721,7 +720,9 @@ ChainedHits RefineBadEnds(const ChainedHits& chain, const int32_t bandwidth, con
     ret.score = chain.score;
     ret.targetId = chain.targetId;
     ret.targetRev = chain.targetRev;
-    CalcHitCoverage(ret.hits, 0, ret.hits.size(), ret.coveredBasesQuery, ret.coveredBasesTarget);
+    std::tie(ret.coveredBasesQuery, ret.coveredBasesTarget) =
+        CalcHitCoverage(ret.hits, 0, ret.hits.size());
+
     return ret;
 }
 

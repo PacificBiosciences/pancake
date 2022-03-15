@@ -3,13 +3,14 @@
 #ifndef PANCAKE_LOOKUPS_HPP
 #define PANCAKE_LOOKUPS_HPP
 
+#include <array>
 #include <cstdint>
 
 namespace PacBio {
 namespace Pancake {
 
 // clang-format off
-static const int8_t BaseToTwobit[256] = {
+constexpr std::array<int8_t, 256> BASE_TO_TWO_BIT = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  // 0 - 15
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  // 16 - 31
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  // 32 - 47
@@ -28,7 +29,7 @@ static const int8_t BaseToTwobit[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4   // 240 - 256
 };
 
-const int8_t BaseToTwobitComplement[256] = {
+constexpr std::array<int8_t, 256> BaseToTwobitComplement = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  // 0 - 15
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  // 16 - 31
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,  // 32 - 47
@@ -47,7 +48,7 @@ const int8_t BaseToTwobitComplement[256] = {
     4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4   // 240 - 256
 };
 
-const int8_t TwobitToBase[256] = {
+constexpr std::array<int8_t, 256> TwobitToBase = {
     65, 67, 71, 84, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0 - 15 (A, C, G, T, N)
     0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 16 - 31
     0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 32 - 47
@@ -66,7 +67,7 @@ const int8_t TwobitToBase[256] = {
     0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0   // 240 - 256
 };
 
-const int8_t BaseToBaseComplement[256] = {
+constexpr std::array<int8_t, 256> BaseToBaseComplement = {
     78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78,  // 0 - 15
     78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78,  // 16 - 31
     78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78,  // 32 - 47
@@ -85,7 +86,7 @@ const int8_t BaseToBaseComplement[256] = {
     78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78   // 240 - 256
 };
 
-const int8_t TwobitToTwobitComplement[256] = {
+constexpr std::array<int8_t, 256> TwobitToTwobitComplement = {
     3, 2, 1, 0, 78, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0 - 15 (A, C, G, T, N)
     0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 16 - 31
     0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 32 - 47
@@ -104,7 +105,7 @@ const int8_t TwobitToTwobitComplement[256] = {
     0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0   // 240 - 256
 };
 
-const int8_t IsNucleotide[256] = {
+constexpr std::array<int8_t, 256> IsNucleotide = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0 - 15
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 16 - 31
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 32 - 47
@@ -211,7 +212,7 @@ const char ByteToBases[256][5] = {
     {'T', 'T', 'T', 'A', '\0'}, {'T', 'T', 'T', 'C', '\0'}, {'T', 'T', 'T', 'G', '\0'},
     {'T', 'T', 'T', 'T'}};
 
-static const int32_t CigarCharToNum[256] = {
+constexpr std::array<int32_t, 256> CigarCharToNum = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 0 - 16
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 16 - 32
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 32 - 48
@@ -230,12 +231,12 @@ static const int32_t CigarCharToNum[256] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 // 240 - 256
 };
 
-static const char CigarNumToChar[9] = {
+constexpr std::array<char, 256> CigarNumToChar = {
     'M', 'I', 'D', 'N', 'S', 'H', 'P', '=', 'X'
 };
 
 // This is intentionally an enum and not an enum class, so we
-// can convert the ops to a numeric value.
+// can convert the ops to numeric values.
 enum SamCigarOperations {
     CIGAR_OP_M = 0,
     CIGAR_OP_I = 1,

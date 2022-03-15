@@ -7,7 +7,6 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace SeedDB {
 
 // clang-format off
 class SeedDBParameters
@@ -21,7 +20,7 @@ public:
     bool UseRC = true;
 
     SeedDBParameters() = default;
-    SeedDBParameters(int32_t kmerSize, int32_t minimizerWindow, int32_t spacing, bool useHPC, bool useHPCForSeedsOnly, bool useRC)
+    SeedDBParameters(const int32_t kmerSize, const int32_t minimizerWindow, const int32_t spacing, const bool useHPC, const bool useHPCForSeedsOnly, const bool useRC)
         : KmerSize(kmerSize)
         , MinimizerWindow(minimizerWindow)
         , Spacing(spacing)
@@ -46,7 +45,6 @@ public:
 };
 // clang-format on
 
-}  // namespace SeedDB
 }  // namespace Pancake
 }  // namespace PacBio
 
