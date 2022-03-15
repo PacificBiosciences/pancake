@@ -4,7 +4,7 @@
 #define PANCAKE_COMMON_H
 
 #include <cstdint>
-#include <flat_hash_map/flat_hash_map.hpp>
+#include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 #include <string>
 
 namespace PacBio {

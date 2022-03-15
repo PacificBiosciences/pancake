@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <istl/range_tools.hpp>
+#include <pancake/third-party/istl/range_tools.hpp>
 
 #include <cstdint>
 #include <cstring>

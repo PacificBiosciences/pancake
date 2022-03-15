@@ -3,7 +3,7 @@
 #ifndef PANCAKE_MAPPER_CLR_H
 #define PANCAKE_MAPPER_CLR_H
 
-#include <intervaltree/IntervalTree.h>
+#include <pancake/third-party/intervaltree/IntervalTree.h>
 #include <cstdint>
 #include <memory>
 #include <pancake/AlignerBase.hpp>

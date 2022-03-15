@@ -34,21 +34,21 @@ typedef std::unordered_map<uint64_t, std::pair<int64_t, int64_t>, std::hash<uint
 #endif
 
 #ifdef SEED_INDEX_USING_DENSEHASH
-#include <sparsehash/dense_hash_map>
+#include <pancake/third-party/sparsehash/dense_hash_map>
 using google::dense_hash_map;  // namespace where class lives by default
 // Key: kmer hash, Value: pair of <startId, endId> in the seeds_ vector.
 typedef dense_hash_map<uint64_t, std::pair<int64_t, int64_t>, std::hash<uint64_t>> SeedHashType;
 #endif
 
 #ifdef SEED_INDEX_USING_SPARSEHASH
-#include <sparsehash/sparse_hash_map>
+#include <pancake/third-party/sparsehash/sparse_hash_map>
 using google::sparse_hash_map;  // namespace where class lives by default
 // Key: kmer hash, Value: pair of <startId, endId> in the seeds_ vector.
 typedef sparse_hash_map<uint64_t, std::pair<int64_t, int64_t>, std::hash<uint64_t>> SeedHashType;
 #endif
 
 #ifdef SEED_INDEX_USING_FLATHASHMAP
-#include <flat_hash_map/flat_hash_map.hpp>
+#include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 // Key: kmer hash, Value: pair of <startId, endId> in the seeds_ vector.
 typedef ska::flat_hash_map<uint64_t, std::pair<int64_t, int64_t>> SeedHashType;
 #endif

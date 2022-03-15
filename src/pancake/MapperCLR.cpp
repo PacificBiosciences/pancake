@@ -1,13 +1,12 @@
 // Authors: Ivan Sovic
 
-#include <kxsort/kxsort.h>
+#include <pancake/third-party/kxsort/kxsort.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/third-party/edlib.h>
 #include <algorithm>
 #include <array>
 #include <cstring>
 #include <iostream>
-#include <istl/lis.hpp>
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/DPChain.hpp>
@@ -20,6 +19,7 @@
 #include <pancake/Secondary.hpp>
 #include <pancake/SeedHitWriter.hpp>
 #include <pancake/SesDistanceBanded.hpp>
+#include <pancake/third-party/istl/lis.hpp>
 #include <pancake/util/RunLengthEncoding.hpp>
 #include <pancake/util/TicToc.hpp>
 #include <pancake/util/Util.hpp>

@@ -4,11 +4,11 @@
 #define PANCAKE_SEQDB_INDEX_CACHE_H
 
 #include <cstdint>
-#include <flat_hash_map/flat_hash_map.hpp>
 #include <fstream>
 #include <memory>
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Range.hpp>
+#include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 #include <pancake/util/CommonTypes.hpp>
 #include <pancake/util/Conversion.hpp>
 #include <random>

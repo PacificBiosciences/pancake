@@ -4,12 +4,12 @@
 #define PANCAKE_SEEDDB_INDEX_CACHE_H
 
 #include <cstdint>
-#include <flat_hash_map/flat_hash_map.hpp>
 #include <fstream>
 #include <memory>
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Range.hpp>
 #include <pancake/SeedDBParameters.hpp>
+#include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 #include <pancake/util/CommonTypes.hpp>
 #include <string>
 #include <unordered_map>
