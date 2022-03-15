@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <istl/lis.hpp>
+#include <pancake/third-party/istl/lis.hpp>
 
 #include <cstdint>
 #include <cstring>

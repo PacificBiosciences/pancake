@@ -3,7 +3,7 @@
 #ifndef PANCAKE_OVERLAPHIFI_SECONDARY_H
 #define PANCAKE_OVERLAPHIFI_SECONDARY_H
 
-#include <intervaltree/IntervalTree.h>
+#include <pancake/third-party/intervaltree/IntervalTree.h>
 #include <algorithm>
 #include <cstdint>
 #include <functional>

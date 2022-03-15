@@ -1,12 +1,10 @@
 // Authors: Ivan Sovic
 
-#include <kxsort/kxsort.h>
+#include <pancake/third-party/kxsort/kxsort.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/third-party/edlib.h>
 #include <algorithm>
 #include <iostream>
-#include <istl/lis.hpp>
-#include <istl/range_tools.hpp>
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/DiffCounts.hpp>
 #include <pancake/MapperHiFi.hpp>
@@ -18,6 +16,8 @@
 #include <pancake/Ses2DistanceBanded.hpp>
 #include <pancake/SesAlignBanded.hpp>
 #include <pancake/SesDistanceBanded.hpp>
+#include <pancake/third-party/istl/lis.hpp>
+#include <pancake/third-party/istl/range_tools.hpp>
 #include <pancake/util/RunLengthEncoding.hpp>
 #include <pancake/util/TicToc.hpp>
 #include <pancake/util/Util.hpp>

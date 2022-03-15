@@ -1,6 +1,6 @@
 // Authors: Ivan Sovic
 
-#include <kxsort/kxsort.h>
+#include <pancake/third-party/kxsort/kxsort.h>
 #include <pbcopper/logging/Logging.h>
 #include <algorithm>
 #include <cmath>
