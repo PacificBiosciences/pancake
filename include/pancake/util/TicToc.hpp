@@ -8,8 +8,8 @@
  *      Author: Ivan Sovic
  */
 
-#ifndef SRC_UTIL_TICTOC_H_
-#define SRC_UTIL_TICTOC_H_
+#ifndef PANCAKE_UTIL_TIC_TOC_HPP
+#define PANCAKE_UTIL_TIC_TOC_HPP
 
 #include <chrono>
 #include <ctime>
@@ -35,4 +35,4 @@ private:
     std::chrono::time_point<std::chrono::high_resolution_clock> end_;
 };
 
-#endif /* SRC_UTIL_TICTOC_H_ */
+#endif  // PANCAKE_UTIL_TIC_TOC_HPP

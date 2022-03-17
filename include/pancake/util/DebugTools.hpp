@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_DEBUG_TOOLS_H
-#define PANCAKE_DEBUG_TOOLS_H
+#ifndef PANCAKE_UTIL_DEBUG_TOOLS_HPP
+#define PANCAKE_UTIL_DEBUG_TOOLS_HPP
 
 #include <pancake/util/TicToc.hpp>
 
@@ -42,4 +42,4 @@ inline void LogTicTocAdd([[maybe_unused]] const std::string& label,
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_COMMON_H
+#endif  // PANCAKE_UTIL_DEBUG_TOOLS_HPP

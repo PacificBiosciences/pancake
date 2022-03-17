@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNER_BASE_H
-#define PANCAKE_ALIGNER_BASE_H
+#ifndef PANCAKE_ALIGNER_BASE_HPP
+#define PANCAKE_ALIGNER_BASE_HPP
 
 #include <pancake/AlignmentParameters.hpp>
 #include <pancake/AlignmentResult.hpp>
@@ -32,4 +32,4 @@ AlignmentResult EdgeCaseAlignmentResult(int32_t qlen, int32_t tlen, int32_t matc
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_CLR_H
+#endif  // PANCAKE_ALIGNER_BASE_HPP

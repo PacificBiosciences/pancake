@@ -7,8 +7,8 @@
  * This works only for uncompressed sequences.
 */
 
-#ifndef PANCAKE_SEQDB_READER_CACHED_BLOCK_H
-#define PANCAKE_SEQDB_READER_CACHED_BLOCK_H
+#ifndef PANCAKE_SEQ_DB_READER_CACHED_BLOCK_HPP
+#define PANCAKE_SEQ_DB_READER_CACHED_BLOCK_HPP
 
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceCachedStore.hpp>
@@ -72,4 +72,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_READER_CACHED_BLOCK_H
+#endif  // PANCAKE_SEQ_DB_READER_CACHED_BLOCK_HPP

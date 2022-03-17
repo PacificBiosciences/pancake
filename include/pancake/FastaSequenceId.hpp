@@ -6,8 +6,8 @@
 //
 // Author: Derek Barnett and Ivan Sovic.
 
-#ifndef PANCAKE_FASTASEQUENCE_H
-#define PANCAKE_FASTASEQUENCE_H
+#ifndef PANCAKE_FASTA_SEQUENCE_ID_HPP
+#define PANCAKE_FASTA_SEQUENCE_ID_HPP
 
 #include <pbbam/FastaSequence.h>
 
@@ -73,4 +73,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // FASTASEQUENCE_H
+#endif  // PANCAKE_FASTA_SEQUENCE_ID_HPP

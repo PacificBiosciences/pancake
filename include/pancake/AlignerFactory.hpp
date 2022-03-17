@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNER_FACTORY_H
-#define PANCAKE_ALIGNER_FACTORY_H
+#ifndef PANCAKE_ALIGNER_FACTORY_HPP
+#define PANCAKE_ALIGNER_FACTORY_HPP
 
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignerEdlib.hpp>
@@ -29,4 +29,4 @@ std::shared_ptr<AlignerBase> AlignerFactory(const AlignerType& alignerType,
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNER_FACTORY_H
+#endif  // PANCAKE_ALIGNER_FACTORY_HPP

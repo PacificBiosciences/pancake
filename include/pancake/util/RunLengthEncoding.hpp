@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_RLE_H
-#define PANCAKE_RLE_H
+#ifndef PANCAKE_UTIL_RUN_LENGTH_ENCODING_HPP
+#define PANCAKE_UTIL_RUN_LENGTH_ENCODING_HPP
 
 #include <cstdint>
 #include <string>
@@ -56,4 +56,4 @@ int64_t RunLengthEncoding(const char* seq, int64_t seqLen, std::vector<char>& de
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_RLE_H
+#endif  // PANCAKE_UTIL_RUN_LENGTH_ENCODING_HPP

@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_INDEX_CACHE_H
-#define PANCAKE_SEEDDB_INDEX_CACHE_H
+#ifndef PANCAKE_SEED_DB_INDEX_CACHE_HPP
+#define PANCAKE_SEED_DB_INDEX_CACHE_HPP
 
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Range.hpp>
@@ -111,4 +111,4 @@ void ValidateSeedDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeedDBIndex
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_CACHE_H
+#endif  // PANCAKE_SEED_DB_INDEX_CACHE_HPP

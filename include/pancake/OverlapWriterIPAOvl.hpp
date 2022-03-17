@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_IPA_OVL_H
-#define PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_IPA_OVL_H
+#ifndef PANCAKE_OVERLAP_WRITER_IPA_OVL_HPP
+#define PANCAKE_OVERLAP_WRITER_IPA_OVL_HPP
 
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/Overlap.hpp>
@@ -45,4 +45,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_IPA_OVL_H
+#endif  // PANCAKE_OVERLAP_WRITER_IPA_OVL_HPP

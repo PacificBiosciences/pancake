@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_LOOKUPS_H
-#define PANCAKE_LOOKUPS_H
+#ifndef PANCAKE_LOOKUPS_HPP
+#define PANCAKE_LOOKUPS_HPP
 
 #include <cstdint>
 
@@ -252,4 +252,4 @@ enum SamCigarOperations {
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_LOOKUPS_H
+#endif  // PANCAKE_LOOKUPS_HPP

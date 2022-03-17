@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_UTILITY_H
-#define PANCAKE_MAPPER_UTILITY_H
+#ifndef PANCAKE_MAPPER_UTILITY_HPP
+#define PANCAKE_MAPPER_UTILITY_HPP
 
 #include <pancake/FastaSequenceCachedStore.hpp>
 #include <pancake/Minimizers.hpp>
@@ -47,4 +47,4 @@ int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_UTILITY_H
+#endif  // PANCAKE_MAPPER_UTILITY_HPP

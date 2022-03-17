@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_CONVERSION_H
-#define PANCAKE_CONVERSION_H
+#ifndef PANCAKE_UTIL_CONVERSION_HPP
+#define PANCAKE_UTIL_CONVERSION_HPP
 
 #include <cstdint>
 #include <cstdlib>
@@ -25,4 +25,4 @@ inline bool ConvertStringToInt(const std::string& inVal, int32_t& outVal)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_CONVERSION_H
+#endif  // PANCAKE_UTIL_CONVERSION_HPP

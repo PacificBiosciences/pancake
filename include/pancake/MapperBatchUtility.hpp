@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_BATCH_UTILITY_H
-#define PANCAKE_MAPPER_BATCH_UTILITY_H
+#ifndef PANCAKE_MAPPER_BATCH_UTILITY_HPP
+#define PANCAKE_MAPPER_BATCH_UTILITY_HPP
 
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/FastaSequenceCached.hpp>
@@ -153,4 +153,4 @@ std::vector<std::vector<FastaSequenceId>> ComputeQueryReverseComplements(
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_BATCH_UTILITY_H
+#endif  // PANCAKE_MAPPER_BATCH_UTILITY_HPP

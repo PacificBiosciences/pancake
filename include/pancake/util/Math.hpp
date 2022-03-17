@@ -5,8 +5,8 @@
  *      Author: Ivan Sovic
  */
 
-#ifndef SRC_UTILITY_MATH_HPP_
-#define SRC_UTILITY_MATH_HPP_
+#ifndef PANCAKE_UTIL_MATH_HPP
+#define PANCAKE_UTIL_MATH_HPP
 
 #include <cmath>
 #include <string>
@@ -61,4 +61,4 @@ static inline int ilog2_32(uint32_t v)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif
+#endif  // PANCAKE_UTIL_MATH_HPP

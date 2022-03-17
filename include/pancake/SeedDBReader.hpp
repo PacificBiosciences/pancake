@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_READER_H
-#define PANCAKE_SEEDDB_READER_H
+#ifndef PANCAKE_SEED_DB_READER_HPP
+#define PANCAKE_SEED_DB_READER_HPP
 
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SequenceSeeds.hpp>
@@ -59,4 +59,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_READER_H
+#endif  // PANCAKE_SEED_DB_READER_HPP

@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEQDB_READER_H
-#define PANCAKE_SEQDB_READER_H
+#ifndef PANCAKE_SEQ_DB_READER_HPP
+#define PANCAKE_SEQ_DB_READER_HPP
 
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeqDBReaderBase.hpp>
@@ -61,4 +61,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_READER_H
+#endif  // PANCAKE_SEQ_DB_READER_HPP

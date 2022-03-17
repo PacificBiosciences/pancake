@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_SES_ALIGN_BANDED_H
-#define PANCAKE_ALIGNMENT_SES_ALIGN_BANDED_H
+#ifndef PANCAKE_SES_ALIGN_BANDED_HPP
+#define PANCAKE_SES_ALIGN_BANDED_HPP
 
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/SesOptions.hpp>
@@ -295,4 +295,4 @@ SesResults SESAlignBanded(const char* query, size_t queryLen, const char* target
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_SES_ALIGN_BANDED_H
+#endif  // PANCAKE_SES_ALIGN_BANDED_HPP

@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_RESULT_H
-#define PANCAKE_ALIGNMENT_RESULT_H
+#ifndef PANCAKE_ALIGNMENT_RESULT_HPP
+#define PANCAKE_ALIGNMENT_RESULT_HPP
 
 #include <pancake/DiffCounts.hpp>
 
@@ -50,4 +50,4 @@ inline bool operator==(const AlignmentResult& lhs, const AlignmentResult& rhs)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_RESULT_H
+#endif  // PANCAKE_ALIGNMENT_RESULT_HPP

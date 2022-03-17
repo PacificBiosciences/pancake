@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_TOOLS_H
-#define PANCAKE_ALIGNMENT_TOOLS_H
+#ifndef PANCAKE_ALIGNMENT_TOOLS_HPP
+#define PANCAKE_ALIGNMENT_TOOLS_HPP
 
 #include <pancake/DiffCounts.hpp>
 
@@ -108,4 +108,4 @@ bool CheckAlignmentOutOfBand(const PacBio::Data::Cigar& cigar, const int32_t ban
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_TOOLS_H
+#endif  // PANCAKE_ALIGNMENT_TOOLS_HPP

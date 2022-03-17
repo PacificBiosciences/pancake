@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_SES_RESULTS_H
-#define PANCAKE_ALIGNMENT_SES_RESULTS_H
+#ifndef PANCAKE_SES_RESULTS_HPP
+#define PANCAKE_SES_RESULTS_HPP
 
 #include <pancake/DiffCounts.hpp>
 
@@ -107,4 +107,4 @@ inline std::ostream& operator<<(std::ostream& os, const SesResults& a)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_SES_RESULTS_H
+#endif  // PANCAKE_SES_RESULTS_HPP

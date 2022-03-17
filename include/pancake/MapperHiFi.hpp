@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_OVERLAPHIFI_OVERLAPPER_H
-#define PANCAKE_OVERLAPHIFI_OVERLAPPER_H
+#ifndef PANCAKE_MAPPER_HIFI_HPP
+#define PANCAKE_MAPPER_HIFI_HPP
 
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceCachedStore.hpp>
@@ -284,4 +284,4 @@ std::vector<MapperResult> MapHiFi(const FastaSequenceCachedStore& targetSeqs,
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_OVERLAPHIFI_OVERLAPPER_H
+#endif  // PANCAKE_MAPPER_HIFI_HPP

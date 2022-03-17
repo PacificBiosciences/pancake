@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_COMPRESSED_SEQUENCE_H
-#define PANCAKE_COMPRESSED_SEQUENCE_H
+#ifndef PANCAKE_COMPRESSED_SEQUENCE_HPP
+#define PANCAKE_COMPRESSED_SEQUENCE_HPP
 
 #include <pancake/Range.hpp>
 #include <pancake/Twobit.hpp>
@@ -36,4 +36,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_COMPRESSED_SEQUENCE_H
+#endif  // PANCAKE_COMPRESSED_SEQUENCE_HPP

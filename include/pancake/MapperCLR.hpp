@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_CLR_H
-#define PANCAKE_MAPPER_CLR_H
+#ifndef PANCAKE_MAPPER_CLR_HPP
+#define PANCAKE_MAPPER_CLR_HPP
 
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignerFactory.hpp>
@@ -400,4 +400,4 @@ OverlapPtr CreateMockedAlignment(const OverlapPtr& ovl, const int32_t matchScore
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_CLR_H
+#endif  // PANCAKE_MAPPER_CLR_HPP

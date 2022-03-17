@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#ifndef PANCAKE_OVERLAP_HIFI_SETTINGS_H
-#define PANCAKE_OVERLAP_HIFI_SETTINGS_H
+#ifndef PANCAKE_OVERLAP_HIFI_SETTINGS_HPP
+#define PANCAKE_OVERLAP_HIFI_SETTINGS_HPP
 
 #include <pancake/OverlapWriterFormat.hpp>
 
@@ -119,4 +119,4 @@ struct OverlapHifiSettings
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_SETTINGS_H
+#endif  // PANCAKE_OVERLAP_HIFI_SETTINGS_HPP

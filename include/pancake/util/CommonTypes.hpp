@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_COMMON_H
-#define PANCAKE_COMMON_H
+#ifndef PANCAKE_UTIL_COMMON_TYPES_HPP
+#define PANCAKE_UTIL_COMMON_TYPES_HPP
 
 #include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 
@@ -37,4 +37,4 @@ enum class FilterListType
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_COMMON_H
+#endif  // PANCAKE_UTIL_COMMON_TYPES_HPP

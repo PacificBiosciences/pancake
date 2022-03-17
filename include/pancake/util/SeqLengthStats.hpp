@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_UTIL_SEQ_LENGTH_STATS_H
-#define PANCAKE_UTIL_SEQ_LENGTH_STATS_H
+#ifndef PANCAKE_UTIL_SEQ_LENGTH_STATS_HPP
+#define PANCAKE_UTIL_SEQ_LENGTH_STATS_HPP
 
 #include <pancake/util/GenomicUnit.hpp>
 
@@ -64,4 +64,4 @@ PacBio::JSON::Json SeqLengthStatsToJson(const SeqLengthStats& stats);
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_UTIL_SEQ_LENGTH_STATS_H
+#endif  // PANCAKE_UTIL_SEQ_LENGTH_STATS_HPP

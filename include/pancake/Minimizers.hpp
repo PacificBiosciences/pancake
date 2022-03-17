@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_MINIMIZERS_H
-#define PANCAKE_SEEDDB_MINIMIZERS_H
+#ifndef PANCAKE_MINIMIZERS_HPP
+#define PANCAKE_MINIMIZERS_HPP
 
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/Seed.hpp>
@@ -174,4 +174,4 @@ bool CollectSeedHits(std::vector<SeedHit>& hits, const PacBio::Pancake::SeedDB::
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEEDDB_MINIMIZERS_H
+#endif  // PANCAKE_MINIMIZERS_HPP

@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEQDB_WRITER_BASE_H
-#define PANCAKE_SEQDB_WRITER_BASE_H
+#ifndef PANCAKE_SEQ_DB_WRITER_BASE_HPP
+#define PANCAKE_SEQ_DB_WRITER_BASE_HPP
 
 #include <pancake/CompressedSequence.hpp>
 
@@ -29,4 +29,4 @@ public:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_WRITER_BASE_H
+#endif  // PANCAKE_SEQ_DB_WRITER_BASE_HPP

@@ -8,8 +8,8 @@
 //
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNER_BATCH_GPU_H
-#define PANCAKE_ALIGNER_BATCH_GPU_H
+#ifndef PANCAKE_ALIGNER_BATCH_GPU_HPP
+#define PANCAKE_ALIGNER_BATCH_GPU_HPP
 
 #include <pancake/AlignerBatchBase.hpp>
 #include <pancake/AlignerFactory.hpp>
@@ -114,4 +114,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNER_BATCH_GPU_H
+#endif  // PANCAKE_ALIGNER_BATCH_GPU_HPP

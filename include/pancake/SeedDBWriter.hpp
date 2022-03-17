@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_WRITER_COMPRESSED_H
-#define PANCAKE_SEEDDB_WRITER_COMPRESSED_H
+#ifndef PANCAKE_SEED_DB_WRITER_HPP
+#define PANCAKE_SEED_DB_WRITER_HPP
 
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceId.hpp>
@@ -82,4 +82,4 @@ std::unique_ptr<SeedDBWriter> CreateSeedDBWriter(
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_WRITER_H
+#endif  // PANCAKE_SEED_DB_WRITER_HPP

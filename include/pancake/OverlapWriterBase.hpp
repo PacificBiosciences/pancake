@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_BASE_H
-#define PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_BASE_H
+#ifndef PANCAKE_OVERLAP_WRITER_BASE_HPP
+#define PANCAKE_OVERLAP_WRITER_BASE_HPP
 
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/Overlap.hpp>
@@ -59,4 +59,4 @@ std::ostream& operator<<(std::ostream& os, const Overlap& b);
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_BASE_H
+#endif  // PANCAKE_OVERLAP_WRITER_BASE_HPP

@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_BATCH_H
-#define PANCAKE_MAPPER_BATCH_H
+#ifndef PANCAKE_MAPPER_BATCH_CPU_HPP
+#define PANCAKE_MAPPER_BATCH_CPU_HPP
 
 #include <pancake/AlignerBatchCPU.hpp>
 #include <pancake/FastaSequenceCached.hpp>
@@ -63,4 +63,4 @@ int32_t AlignPartsOnCpu(const AlignerType& alignerTypeGlobal,
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_BATCH_H
+#endif  // PANCAKE_MAPPER_BATCH_CPU_HPP

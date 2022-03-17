@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_BATCH_GPU_H
-#define PANCAKE_MAPPER_BATCH_GPU_H
+#ifndef PANCAKE_MAPPER_BATCH_GPU_HPP
+#define PANCAKE_MAPPER_BATCH_GPU_HPP
 
 #include <pancake/AlignerBatchGPU.hpp>
 #include <pancake/FastaSequenceCached.hpp>
@@ -63,4 +63,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_BATCH_GPU_H
+#endif  // PANCAKE_MAPPER_BATCH_GPU_HPP

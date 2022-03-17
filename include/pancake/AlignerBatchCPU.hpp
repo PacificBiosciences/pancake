@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNER_BATCH_CPU_H
-#define PANCAKE_ALIGNER_BATCH_CPU_H
+#ifndef PANCAKE_ALIGNER_BATCH_CPU_HPP
+#define PANCAKE_ALIGNER_BATCH_CPU_HPP
 
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignerBatchBase.hpp>
@@ -75,4 +75,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNER_BATCH_CPU_H
+#endif  // PANCAKE_ALIGNER_BATCH_CPU_HPP

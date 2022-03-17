@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEED_HIT_WRITER_H
-#define PANCAKE_SEED_HIT_WRITER_H
+#ifndef PANCAKE_SEED_HIT_WRITER_HPP
+#define PANCAKE_SEED_HIT_WRITER_HPP
 
 #include <pancake/SeedHit.hpp>
 
@@ -18,4 +18,4 @@ void WriteSeedHits(const std::string& outPath, const std::vector<SeedHit>& hits,
 }
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEED_HIT_WRITER_H
+#endif  // PANCAKE_SEED_HIT_WRITER_HPP

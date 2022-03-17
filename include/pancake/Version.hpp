@@ -1,7 +1,7 @@
 // Author: Armin Töpfer
 
-#ifndef PANCAKE_VERSION_H
-#define PANCAKE_VERSION_H
+#ifndef PANCAKE_VERSION_HPP
+#define PANCAKE_VERSION_HPP
 
 #include <string>
 #include <tuple>
@@ -17,4 +17,4 @@ std::tuple<int, int, int> PancakeVersionTriple();
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_VERSION_H
+#endif  // PANCAKE_VERSION_HPP

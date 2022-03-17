@@ -1,5 +1,5 @@
-#ifndef PANCAKE_ABSTRACT_MAPPER_BATCH_H
-#define PANCAKE_ABSTRACT_MAPPER_BATCH_H
+#ifndef PANCAKE_MAPPER_BATCH_BASE_HPP
+#define PANCAKE_MAPPER_BATCH_BASE_HPP
 
 #include <pancake/MapperBase.hpp>
 #include <pancake/MapperBatchUtility.hpp>
@@ -20,4 +20,4 @@ public:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ABSTRACT_MAPPER_BATCH_H
+#endif  // PANCAKE_MAPPER_BATCH_BASE_HPP

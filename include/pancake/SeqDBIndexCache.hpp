@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEQDB_INDEX_CACHE_H
-#define PANCAKE_SEQDB_INDEX_CACHE_H
+#ifndef PANCAKE_SEQ_DB_INDEX_CACHE_HPP
+#define PANCAKE_SEQ_DB_INDEX_CACHE_HPP
 
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Range.hpp>
@@ -213,4 +213,4 @@ int32_t GetSequenceIdFromHeader(const std::string& header, bool headerIsNumeric,
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_CACHE_H
+#endif  // PANCAKE_SEQ_DB_INDEX_CACHE_HPP

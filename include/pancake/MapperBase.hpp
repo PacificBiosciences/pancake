@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_BASE_H
-#define PANCAKE_MAPPER_BASE_H
+#ifndef PANCAKE_MAPPER_BASE_HPP
+#define PANCAKE_MAPPER_BASE_HPP
 
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/DPChain.hpp>
@@ -130,4 +130,4 @@ public:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_CLR_H
+#endif  // PANCAKE_MAPPER_BASE_HPP

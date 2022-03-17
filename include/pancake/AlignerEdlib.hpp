@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNER_EDLIB_H
-#define PANCAKE_ALIGNER_EDLIB_H
+#ifndef PANCAKE_ALIGNER_EDLIB_HPP
+#define PANCAKE_ALIGNER_EDLIB_HPP
 
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignmentParameters.hpp>
@@ -35,4 +35,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNER_EDLIB_H
+#endif  // PANCAKE_ALIGNER_EDLIB_HPP
