@@ -1,6 +1,6 @@
 // Authors: Ivan Sovic
 
-#include "OverlapHifiWorkflow.h"
+#include "OverlapHifiWorkflow.hpp"
 
 #include <pancake/MapperHiFi.hpp>
 #include <pancake/OverlapHifiSettings.hpp>

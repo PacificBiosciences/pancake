@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include "SeqFetchWorkflow.h"
-#include "SeqFetchSettings.h"
+#include "SeqFetchWorkflow.hpp"
+#include "SeqFetchSettings.hpp"
 
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBReader.hpp>

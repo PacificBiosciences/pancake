@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include "SeqDBInfoWorkflow.h"
-#include "SeqDBInfoSettings.h"
+#include "SeqDBInfoWorkflow.hpp"
+#include "SeqDBInfoSettings.hpp"
 
 #include <pancake/util/SeqLengthStats.hpp>
 

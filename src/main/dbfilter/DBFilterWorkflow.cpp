@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include "DBFilterWorkflow.h"
-#include "DBFilterSettings.h"
+#include "DBFilterWorkflow.hpp"
+#include "DBFilterSettings.hpp"
 
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SeqDBIndexCache.hpp>

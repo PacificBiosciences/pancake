@@ -4,7 +4,7 @@
 #include <pancake/AlignerBatchCPU.hpp>
 #include <pancake/AlignerFactory.hpp>
 #include <pancake/AlignmentParameters.hpp>
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 
 TEST(AlignerBatchCPU, ArrayOfTests_Small)
 {

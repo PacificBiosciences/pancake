@@ -3,7 +3,7 @@
 #include <iostream>
 #include <pancake/MapperBatchGPU.hpp>
 #include <pancake/OverlapWriterBase.hpp>
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 
 TEST(MapperBatchGPU, BatchMapping_ArrayOfTests)
 {

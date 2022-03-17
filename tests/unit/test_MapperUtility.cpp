@@ -3,7 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <pancake/MapperUtility.hpp>
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 
 TEST(MapperUtility, ComputeOccurrenceThreshold_ArrayOfTests)
 {

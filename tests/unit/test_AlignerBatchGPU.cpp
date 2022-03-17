@@ -7,7 +7,7 @@
 #include <pancake/AlignerBatchGPU.hpp>
 #include <string>
 #include <vector>
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 
 namespace TestsAlignerBatchGPU {
 

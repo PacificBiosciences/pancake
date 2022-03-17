@@ -5,7 +5,7 @@
 #include <pancake/FastaSequenceCachedStore.hpp>
 #include <pancake/MapperCLR.hpp>
 #include <pancake/OverlapWriterBase.hpp>
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 
 TEST(MapperCLR, CheckMappping_LoadFromFile)
 {

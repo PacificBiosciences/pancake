@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include "SeedDBWorkflow.h"
-#include "SeedDBSettings.h"
+#include "SeedDBWorkflow.hpp"
+#include "SeedDBSettings.hpp"
 
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/Minimizers.hpp>
