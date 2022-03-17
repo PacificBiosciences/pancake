@@ -6,14 +6,15 @@
  *
  */
 
-#ifndef PANCAKE_DP_CHAIN_SIMD_H
-#define PANCAKE_DP_CHAIN_SIMD_H
+#ifndef PANCAKE_DP_CHAIN_SIMD_HPP
+#define PANCAKE_DP_CHAIN_SIMD_HPP
 
-#include <cstdint>
-#include <memory>
 #include <pancake/DPChain.hpp>
 #include <pancake/Range.hpp>
 #include <pancake/SeedHit.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {
@@ -37,4 +38,4 @@ std::vector<ChainedHits> ChainHitsSimd(const SeedHit* hits, const int32_t hitsSi
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_DP_CHAIN_SIMD_H
+#endif  // PANCAKE_DP_CHAIN_SIMD_HPP

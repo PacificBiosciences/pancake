@@ -1,15 +1,16 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_BASE_H
-#define PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_BASE_H
+#ifndef PANCAKE_OVERLAP_WRITER_BASE_HPP
+#define PANCAKE_OVERLAP_WRITER_BASE_HPP
 
-#include <cstdint>
-#include <memory>
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/Overlap.hpp>
 #include <pancake/SeqDBReaderCached.hpp>
 #include <pancake/SeqDBReaderCachedBlock.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -58,4 +59,4 @@ std::ostream& operator<<(std::ostream& os, const Overlap& b);
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_BASE_H
+#endif  // PANCAKE_OVERLAP_WRITER_BASE_HPP

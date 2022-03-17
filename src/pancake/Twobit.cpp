@@ -1,8 +1,10 @@
 // Authors: Ivan Sovic
 
-#include <cmath>
-#include <pancake/Lookups.hpp>
 #include <pancake/Twobit.hpp>
+
+#include <pancake/Lookups.hpp>
+
+#include <cmath>
 #include <sstream>
 
 #include <iostream>

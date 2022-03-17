@@ -1,5 +1,7 @@
 // Authors: Ivan Sovic
 
+#include <pancake/util/FileIO.hpp>
+
 #include <pbbam/BamReader.h>
 #include <pbbam/DataSet.h>
 #include <pbbam/IndexedFastaReader.h>
@@ -7,9 +9,9 @@
 #include <pbbam/PbiFilterQuery.h>
 #include <pbbam/PbiFilterTypes.h>
 #include <boost/algorithm/string/predicate.hpp>
+
 #include <deque>
 #include <fstream>
-#include <pancake/util/FileIO.hpp>
 
 namespace PacBio {
 namespace Pancake {

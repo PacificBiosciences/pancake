@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_SES_OPTIONS_H
-#define PANCAKE_ALIGNMENT_SES_OPTIONS_H
+#ifndef PANCAKE_SES_OPTIONS_HPP
+#define PANCAKE_SES_OPTIONS_HPP
 
 namespace PacBio {
 namespace Pancake {
@@ -28,4 +28,4 @@ enum class SESTrimmingMode
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_SES_OPTIONS_H
+#endif  // PANCAKE_SES_OPTIONS_HPP

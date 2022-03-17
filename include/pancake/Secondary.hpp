@@ -1,14 +1,16 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_OVERLAPHIFI_SECONDARY_H
-#define PANCAKE_OVERLAPHIFI_SECONDARY_H
+#ifndef PANCAKE_SECONDARY_HPP
+#define PANCAKE_SECONDARY_HPP
+
+#include <pancake/Overlap.hpp>
 
 #include <pancake/third-party/intervaltree/IntervalTree.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <memory>
-#include <pancake/Overlap.hpp>
 #include <unordered_map>
 #include <vector>
 
@@ -55,4 +57,4 @@ int32_t CalcIntervalOverlap(int32_t s1, int32_t e1, int32_t s2, int32_t e2);
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_OVERLAPHIFI_SECONDARY_H
+#endif  // PANCAKE_SECONDARY_HPP

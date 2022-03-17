@@ -1,18 +1,12 @@
 // Authors: Ivan Sovic
 
-#include <pancake/third-party/kxsort/kxsort.h>
-#include <pbcopper/logging/Logging.h>
-#include <pbcopper/third-party/edlib.h>
-#include <algorithm>
-#include <array>
-#include <cstring>
-#include <iostream>
+#include <pancake/MapperCLR.hpp>
+
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/DPChain.hpp>
 #include <pancake/DPChainSimd.hpp>
 #include <pancake/DiffCounts.hpp>
-#include <pancake/MapperCLR.hpp>
 #include <pancake/MapperUtility.hpp>
 #include <pancake/Minimizers.hpp>
 #include <pancake/OverlapWriterBase.hpp>
@@ -23,9 +17,18 @@
 #include <pancake/util/RunLengthEncoding.hpp>
 #include <pancake/util/TicToc.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <pancake/third-party/kxsort/kxsort.h>
+#include <pbcopper/logging/Logging.h>
+#include <pbcopper/third-party/edlib.h>
+#include "pdqsort.h"
+
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <iostream>
 #include <sstream>
 #include <tuple>
-#include "pdqsort.h"
 
 // #define PANCAKE_MAP_CLR_DEBUG
 // #define PANCAKE_MAP_CLR_DEBUG_2

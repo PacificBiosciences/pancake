@@ -9,6 +9,7 @@
  */
 
 #include <pancake/util/TicToc.hpp>
+
 #include <sstream>
 
 TicToc::TicToc() : start_(), end_()

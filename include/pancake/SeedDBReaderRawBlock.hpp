@@ -1,13 +1,14 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_READER_RAW_BLOCK_H
-#define PANCAKE_SEEDDB_READER_RAW_BLOCK_H
+#ifndef PANCAKE_SEED_DB_READER_RAW_BLOCK_HPP
+#define PANCAKE_SEED_DB_READER_RAW_BLOCK_HPP
 
-#include <memory>
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Seed.hpp>
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -38,4 +39,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEEDDB_READER_RAW_BLOCK_H
+#endif  // PANCAKE_SEED_DB_READER_RAW_BLOCK_HPP

@@ -3,11 +3,12 @@
 #ifndef PANCAKE_SEQFETCH_SETTINGS_H
 #define PANCAKE_SEQFETCH_SETTINGS_H
 
-#include <cstdint>
 #include <pancake/util/CommonTypes.hpp>
-#include <string>
 
 #include <pbcopper/cli2/CLI.h>
+
+#include <cstdint>
+#include <string>
 
 namespace PacBio {
 namespace Pancake {

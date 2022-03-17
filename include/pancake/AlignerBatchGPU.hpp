@@ -8,18 +8,20 @@
 //
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNER_BATCH_GPU_H
-#define PANCAKE_ALIGNER_BATCH_GPU_H
+#ifndef PANCAKE_ALIGNER_BATCH_GPU_HPP
+#define PANCAKE_ALIGNER_BATCH_GPU_HPP
+
+#include <pancake/AlignerBatchBase.hpp>
+#include <pancake/AlignerFactory.hpp>
 
 #include <pbbam/Cigar.h>
 #include <claraparabricks/genomeworks/cudaaligner/aligner.hpp>
 #include <claraparabricks/genomeworks/cudaaligner/alignment.hpp>
 #include <claraparabricks/genomeworks/cudaaligner/cudaaligner.hpp>
 #include <claraparabricks/genomeworks/utils/cudautils.hpp>
+
 #include <cstdint>
 #include <memory>
-#include <pancake/AlignerBatchBase.hpp>
-#include <pancake/AlignerFactory.hpp>
 #include <vector>
 
 namespace PacBio {
@@ -112,4 +114,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNER_BATCH_GPU_H
+#endif  // PANCAKE_ALIGNER_BATCH_GPU_HPP

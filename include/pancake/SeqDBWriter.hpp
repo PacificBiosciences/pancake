@@ -1,14 +1,15 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEQDB_WRITER_COMPRESSED_H
-#define PANCAKE_SEQDB_WRITER_COMPRESSED_H
+#ifndef PANCAKE_SEQ_DB_WRITER_HPP
+#define PANCAKE_SEQ_DB_WRITER_HPP
 
-#include <cstdint>
-#include <memory>
 #include <pancake/CompressedSequence.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBWriterBase.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <string>
 
 /*
@@ -77,4 +78,4 @@ std::unique_ptr<SeqDBWriter> CreateSeqDBWriter(const std::string& filenamePrefix
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_WRITER_H
+#endif  // PANCAKE_SEQ_DB_WRITER_HPP

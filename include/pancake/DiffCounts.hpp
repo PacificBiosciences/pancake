@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_DIFF_COUNTS_H
-#define PANCAKE_DIFF_COUNTS_H
+#ifndef PANCAKE_DIFF_COUNTS_HPP
+#define PANCAKE_DIFF_COUNTS_HPP
 
 #include <algorithm>
 #include <cstdint>
@@ -81,4 +81,4 @@ inline std::ostream& operator<<(std::ostream& os, const DiffCounts& a)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_DIFF_COUNTS_H
+#endif  // PANCAKE_DIFF_COUNTS_HPP

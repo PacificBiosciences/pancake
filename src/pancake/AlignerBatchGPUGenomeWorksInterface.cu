@@ -14,11 +14,12 @@
 #include <claraparabricks/genomeworks/cudaaligner/cudaaligner.hpp>
 #include <claraparabricks/genomeworks/utils/cudautils.hpp>
 #include <claraparabricks/genomeworks/utils/mathutils.hpp>
-#include <limits>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <cuda/atomic>
 #pragma GCC diagnostic pop
+
+#include <limits>
 
 namespace PacBio {
 namespace Pancake {

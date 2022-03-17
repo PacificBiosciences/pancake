@@ -1,15 +1,17 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_BATCH_UTILITY_H
-#define PANCAKE_MAPPER_BATCH_UTILITY_H
+#ifndef PANCAKE_MAPPER_BATCH_UTILITY_HPP
+#define PANCAKE_MAPPER_BATCH_UTILITY_HPP
 
-#include <pbcopper/parallel/FireAndForget.h>
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/MapperBase.hpp>
 #include <pancake/MapperCLR.hpp>
+
+#include <pbcopper/parallel/FireAndForget.h>
+
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -151,4 +153,4 @@ std::vector<std::vector<FastaSequenceId>> ComputeQueryReverseComplements(
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_BATCH_UTILITY_H
+#endif  // PANCAKE_MAPPER_BATCH_UTILITY_HPP

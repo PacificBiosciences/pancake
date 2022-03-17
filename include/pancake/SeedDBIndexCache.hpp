@@ -1,16 +1,17 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_INDEX_CACHE_H
-#define PANCAKE_SEEDDB_INDEX_CACHE_H
+#ifndef PANCAKE_SEED_DB_INDEX_CACHE_HPP
+#define PANCAKE_SEED_DB_INDEX_CACHE_HPP
 
-#include <cstdint>
-#include <fstream>
-#include <memory>
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Range.hpp>
 #include <pancake/SeedDBParameters.hpp>
 #include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <cstdint>
+#include <fstream>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -110,4 +111,4 @@ void ValidateSeedDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeedDBIndex
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_CACHE_H
+#endif  // PANCAKE_SEED_DB_INDEX_CACHE_HPP

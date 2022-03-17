@@ -7,18 +7,18 @@
  * Originally implemented in the Raptor graph-based mapper.
  */
 
-#ifndef PANCAKE_DP_CHAIN_H
-#define PANCAKE_DP_CHAIN_H
+#ifndef PANCAKE_DP_CHAIN_HPP
+#define PANCAKE_DP_CHAIN_HPP
 
-#ifdef PANCAKE_USE_SSE41
-#include <emmintrin.h>
-#endif
+#include <pancake/Range.hpp>
+#include <pancake/SeedHit.hpp>
 
 #include <cstdint>
 #include <memory>
-#include <pancake/Range.hpp>
-#include <pancake/SeedHit.hpp>
 #include <vector>
+#ifdef PANCAKE_USE_SSE41
+#include <emmintrin.h>
+#endif
 
 namespace PacBio {
 namespace Pancake {
@@ -175,4 +175,4 @@ std::vector<Range> DiagonalGroup(const std::vector<SeedHit>& sortedHits,
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_DP_CHAIN_H
+#endif  // PANCAKE_DP_CHAIN_HPP

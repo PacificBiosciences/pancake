@@ -1,15 +1,17 @@
 // Authors: Ivan Sovic
 
+#include <pancake/AlignmentTools.hpp>
+
+#include <pancake/Lookups.hpp>
+
+#include <pbcopper/third-party/edlib.h>
+
 #include <array>
 #include <cassert>
 #include <cstring>
-#include <pancake/AlignmentTools.hpp>
-#include <pancake/Lookups.hpp>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-
-#include <pbcopper/third-party/edlib.h>
 
 namespace PacBio {
 namespace Pancake {

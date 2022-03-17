@@ -1,11 +1,12 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_UTIL_GENOMIC_UNIT_H
-#define PANCAKE_UTIL_GENOMIC_UNIT_H
+#ifndef PANCAKE_UTIL_GENOMIC_UNIT_HPP
+#define PANCAKE_UTIL_GENOMIC_UNIT_HPP
+
+#include <pancake/Lookups.hpp>
 
 #include <cstdio>
 #include <memory>
-#include <pancake/Lookups.hpp>
 #include <sstream>
 #include <vector>
 
@@ -86,4 +87,4 @@ private:  // until we update ScaleLengthByFactor() elsewhere
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_UTIL_GENOMIC_UNIT_H
+#endif  // PANCAKE_UTIL_GENOMIC_UNIT_HPP

@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_FILE_IO_H
-#define PANCAKE_FILE_IO_H
+#ifndef PANCAKE_UTIL_FILE_IO_HPP
+#define PANCAKE_UTIL_FILE_IO_HPP
 
 #include <cstdint>
 #include <set>
@@ -68,4 +68,4 @@ std::vector<std::pair<SequenceFormat, std::string>> ExpandInputFileList(
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_FILE_IO_H
+#endif  // PANCAKE_UTIL_FILE_IO_HPP

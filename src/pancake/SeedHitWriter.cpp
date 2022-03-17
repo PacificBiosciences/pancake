@@ -1,7 +1,8 @@
 // Author: Ivan Sovic
 
-#include <fstream>
 #include <pancake/SeedHitWriter.hpp>
+
+#include <fstream>
 #include <sstream>
 
 namespace PacBio {

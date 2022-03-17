@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_FASTA_SEQUENCE_CACHED_H
-#define PANCAKE_FASTA_SEQUENCE_CACHED_H
+#ifndef PANCAKE_FASTA_SEQUENCE_CACHED_HPP
+#define PANCAKE_FASTA_SEQUENCE_CACHED_HPP
 
 #include <cstdint>
 #include <string>
@@ -61,4 +61,4 @@ inline bool operator==(const FastaSequenceCached& lhs, const FastaSequenceCached
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_FASTA_SEQUENCE_CACHED_H
+#endif  // PANCAKE_FASTA_SEQUENCE_CACHED_HPP

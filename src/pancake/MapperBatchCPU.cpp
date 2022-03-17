@@ -1,17 +1,20 @@
 // Authors: Ivan Sovic
 
-#include <pbcopper/logging/Logging.h>
-#include <pbcopper/parallel/FireAndForget.h>
-#include <pbcopper/parallel/WorkQueue.h>
-#include <algorithm>
-#include <array>
-#include <iostream>
+#include <pancake/MapperBatchCPU.hpp>
+
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignmentTools.hpp>
-#include <pancake/MapperBatchCPU.hpp>
 #include <pancake/MapperBatchUtility.hpp>
 #include <pancake/OverlapWriterFactory.hpp>
 #include <pancake/util/TicToc.hpp>
+
+#include <pbcopper/logging/Logging.h>
+#include <pbcopper/parallel/FireAndForget.h>
+#include <pbcopper/parallel/WorkQueue.h>
+
+#include <algorithm>
+#include <array>
+#include <iostream>
 #include <sstream>
 #include <tuple>
 

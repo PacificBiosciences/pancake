@@ -1,11 +1,13 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_RESULT_H
-#define PANCAKE_ALIGNMENT_RESULT_H
+#ifndef PANCAKE_ALIGNMENT_RESULT_HPP
+#define PANCAKE_ALIGNMENT_RESULT_HPP
+
+#include <pancake/DiffCounts.hpp>
 
 #include <pbbam/Cigar.h>
+
 #include <ostream>
-#include <pancake/DiffCounts.hpp>
 
 namespace PacBio {
 namespace Pancake {
@@ -48,4 +50,4 @@ inline bool operator==(const AlignmentResult& lhs, const AlignmentResult& rhs)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_RESULT_H
+#endif  // PANCAKE_ALIGNMENT_RESULT_HPP

@@ -9,12 +9,13 @@
 // All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#ifndef PANCAKE_ALIGNER_BATCH_GPU_GENOMEWORKS_INTERFACE_H
-#define PANCAKE_ALIGNER_BATCH_GPU_GENOMEWORKS_INTERFACE_H
+#ifndef PANCAKE_ALIGNER_BATCH_GPU_GENOME_WORKS_INTERFACE_HPP
+#define PANCAKE_ALIGNER_BATCH_GPU_GENOME_WORKS_INTERFACE_HPP
 
 #include <cuda_runtime_api.h>
 #include <pbcopper/data/Cigar.h>
 #include <claraparabricks/genomeworks/cudaaligner/aligner.hpp>
+
 #include <cstdint>
 
 namespace PacBio {
@@ -36,4 +37,4 @@ void RunConvertToPacBioCigarAndScoreGpuKernel(
 
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNER_BATCH_GPU_GENOMEWORKS_INTERFACE_H
+#endif  // PANCAKE_ALIGNER_BATCH_GPU_GENOME_WORKS_INTERFACE_HPP

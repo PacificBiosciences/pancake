@@ -1,10 +1,11 @@
 // Authors: Ivan Sovic
 
+#include <pancake/SeedDBReader.hpp>
+
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <limits>
-#include <pancake/SeedDBReader.hpp>
 #include <sstream>
 
 namespace PacBio {

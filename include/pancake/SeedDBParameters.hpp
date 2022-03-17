@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_PARAMETERS_H
-#define PANCAKE_SEEDDB_PARAMETERS_H
+#ifndef PANCAKE_SEED_DB_PARAMETERS_HPP
+#define PANCAKE_SEED_DB_PARAMETERS_HPP
 
 #include <cstdint>
 
@@ -50,4 +50,4 @@ public:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEEDDB_PARAMETERS_H
+#endif  // PANCAKE_SEED_DB_PARAMETERS_HPP

@@ -1,11 +1,12 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_OVERLAPHIFI_SEEDHIT_H
-#define PANCAKE_OVERLAPHIFI_SEEDHIT_H
+#ifndef PANCAKE_SEED_HIT_HPP
+#define PANCAKE_SEED_HIT_HPP
+
+#include <pancake/util/CommonTypes.hpp>
 
 #include <cstdint>
 #include <ostream>
-#include <pancake/util/CommonTypes.hpp>
 #include <vector>
 
 namespace PacBio {
@@ -139,4 +140,4 @@ void CalcHitCoverage(const std::vector<SeedHit>& hits, int32_t hitsBegin, int32_
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_OVERLAPHIFI_SEEDHIT_H
+#endif  // PANCAKE_SEED_HIT_HPP

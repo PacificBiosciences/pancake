@@ -1,7 +1,8 @@
 // Authors: Ivan Sovic
 
-#include <pancake/FastaSequenceCached.hpp>
 #include <pancake/SeedDBWriter.hpp>
+
+#include <pancake/FastaSequenceCached.hpp>
 #include <pancake/util/Util.hpp>
 
 #include <cinttypes>

@@ -1,16 +1,17 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_WRITER_COMPRESSED_H
-#define PANCAKE_SEEDDB_WRITER_COMPRESSED_H
+#ifndef PANCAKE_SEED_DB_WRITER_HPP
+#define PANCAKE_SEED_DB_WRITER_HPP
 
-#include <cstdint>
-#include <memory>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SeedDBParameters.hpp>
 #include <pancake/util/CommonTypes.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -81,4 +82,4 @@ std::unique_ptr<SeedDBWriter> CreateSeedDBWriter(
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_WRITER_H
+#endif  // PANCAKE_SEED_DB_WRITER_HPP

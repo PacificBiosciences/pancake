@@ -1,10 +1,11 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEQDB_READER_BASE_H
-#define PANCAKE_SEQDB_READER_BASE_H
+#ifndef PANCAKE_SEQ_DB_READER_BASE_HPP
+#define PANCAKE_SEQ_DB_READER_BASE_HPP
 
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
+
 #include <string>
 #include <vector>
 
@@ -31,4 +32,4 @@ public:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_READER_COMPRESSED_H
+#endif  // PANCAKE_SEQ_DB_READER_BASE_HPP

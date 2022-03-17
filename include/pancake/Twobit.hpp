@@ -1,9 +1,10 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_TWOBIT_H
-#define PANCAKE_TWOBIT_H
+#ifndef PANCAKE_TWOBIT_HPP
+#define PANCAKE_TWOBIT_HPP
 
 #include <pancake/Range.hpp>
+
 #include <string>
 #include <vector>
 
@@ -78,4 +79,4 @@ void DecompressSequence(const uint8_t* twobit, int64_t twobitLen, int32_t numBas
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_TWOBIT_H
+#endif  // PANCAKE_TWOBIT_HPP

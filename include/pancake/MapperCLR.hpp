@@ -1,11 +1,8 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_CLR_H
-#define PANCAKE_MAPPER_CLR_H
+#ifndef PANCAKE_MAPPER_CLR_HPP
+#define PANCAKE_MAPPER_CLR_HPP
 
-#include <pancake/third-party/intervaltree/IntervalTree.h>
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignerFactory.hpp>
 #include <pancake/AlignmentParameters.hpp>
@@ -22,6 +19,11 @@
 #include <pancake/SeqDBReaderCachedBlock.hpp>
 #include <pancake/SequenceSeedsCached.hpp>
 #include <pancake/util/CommonTypes.hpp>
+
+#include <pancake/third-party/intervaltree/IntervalTree.h>
+
+#include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -398,4 +400,4 @@ OverlapPtr CreateMockedAlignment(const OverlapPtr& ovl, const int32_t matchScore
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_CLR_H
+#endif  // PANCAKE_MAPPER_CLR_HPP

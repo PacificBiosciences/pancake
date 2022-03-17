@@ -1,11 +1,12 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_UTIL_H
-#define PANCAKE_UTIL_H
+#ifndef PANCAKE_UTIL_UTIL_HPP
+#define PANCAKE_UTIL_UTIL_HPP
+
+#include <pancake/Lookups.hpp>
 
 #include <cstdio>
 #include <memory>
-#include <pancake/Lookups.hpp>
 #include <sstream>
 #include <vector>
 
@@ -175,4 +176,4 @@ std::vector<std::pair<T, T>> DistributeJobLoad(int32_t numThreads, T numJobs)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_UTIL_H
+#endif  // PANCAKE_UTIL_UTIL_HPP

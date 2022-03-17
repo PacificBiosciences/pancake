@@ -1,10 +1,8 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPER_BASE_H
-#define PANCAKE_MAPPER_BASE_H
+#ifndef PANCAKE_MAPPER_BASE_HPP
+#define PANCAKE_MAPPER_BASE_HPP
 
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/DPChain.hpp>
 #include <pancake/FastaSequenceCached.hpp>
@@ -12,6 +10,9 @@
 #include <pancake/Overlap.hpp>
 #include <pancake/OverlapWriterBase.hpp>
 #include <pancake/SeedIndex.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -129,4 +130,4 @@ public:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPER_CLR_H
+#endif  // PANCAKE_MAPPER_BASE_HPP

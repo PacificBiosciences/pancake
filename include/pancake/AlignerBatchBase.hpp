@@ -1,10 +1,11 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNER_BATCH_GPU_BASE_H
-#define PANCAKE_ALIGNER_BATCH_GPU_BASE_H
+#ifndef PANCAKE_ALIGNER_BATCH_BASE_HPP
+#define PANCAKE_ALIGNER_BATCH_BASE_HPP
+
+#include <pancake/AlignmentResult.hpp>
 
 #include <cstdint>
-#include <pancake/AlignmentResult.hpp>
 #include <vector>
 
 namespace PacBio {
@@ -81,4 +82,4 @@ public:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNER_BATCH_GPU_BASE_H
+#endif  // PANCAKE_ALIGNER_BATCH_BASE_HPP

@@ -1,7 +1,10 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_SES2_DISTANCE_BANDED_H
-#define PANCAKE_ALIGNMENT_SES2_DISTANCE_BANDED_H
+#ifndef PANCAKE_SES2DISTANCE_BANDED_HPP
+#define PANCAKE_SES2DISTANCE_BANDED_HPP
+
+#include <pancake/SesOptions.hpp>
+#include <pancake/SesResults.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -11,9 +14,6 @@
 #include <memory>
 #include <sstream>
 #include <vector>
-
-#include <pancake/SesOptions.hpp>
-#include <pancake/SesResults.hpp>
 
 // #define SES2_DEBUG
 
@@ -183,4 +183,4 @@ SesResults SES2DistanceBanded(const char* query, size_t queryLen, const char* ta
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_SES_DISTANCE_BANDED_H
+#endif  // PANCAKE_SES2DISTANCE_BANDED_HPP

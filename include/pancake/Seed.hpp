@@ -8,11 +8,12 @@
  *      Author: Ivan Sovic
  */
 
-#ifndef SRC_MINIMIZER_INDEX2_MINIMIZER_H_
-#define SRC_MINIMIZER_INDEX2_MINIMIZER_H_
+#ifndef PANCAKE_SEED_HPP
+#define PANCAKE_SEED_HPP
+
+#include <pancake/util/CommonTypes.hpp>
 
 #include <cstdint>
-#include <pancake/util/CommonTypes.hpp>
 #include <sstream>
 
 namespace PacBio {
@@ -145,4 +146,4 @@ inline std::ostream& operator<<(std::ostream& os, const Seed& b)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif
+#endif  // PANCAKE_SEED_HPP

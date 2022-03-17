@@ -1,9 +1,11 @@
 // Authors: Ivan Sovic
 
-#include <pbcopper/logging/Logging.h>
-#include <pancake/AlignmentTools.hpp>
 #include <pancake/MapperBatchUtility.hpp>
+
+#include <pancake/AlignmentTools.hpp>
 #include <pancake/OverlapWriterBase.hpp>
+
+#include <pbcopper/logging/Logging.h>
 
 namespace PacBio {
 namespace Pancake {

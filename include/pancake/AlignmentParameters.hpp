@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_PARAMETERS_H
-#define PANCAKE_ALIGNMENT_PARAMETERS_H
+#ifndef PANCAKE_ALIGNMENT_PARAMETERS_HPP
+#define PANCAKE_ALIGNMENT_PARAMETERS_HPP
 
 #include <cstdint>
 #include <memory>
@@ -48,4 +48,4 @@ inline std::ostream& operator<<(std::ostream& out, const AlignmentParameters& a)
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_PARAMETERS_H
+#endif  // PANCAKE_ALIGNMENT_PARAMETERS_HPP

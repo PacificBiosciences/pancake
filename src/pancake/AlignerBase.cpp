@@ -1,6 +1,7 @@
 // Authors: Ivan Sovic
 
 #include <pancake/AlignerBase.hpp>
+
 #include <pancake/AlignmentTools.hpp>
 
 namespace PacBio {

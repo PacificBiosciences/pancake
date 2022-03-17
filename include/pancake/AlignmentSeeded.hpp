@@ -1,14 +1,15 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_SEEDED_H
-#define PANCAKE_ALIGNMENT_SEEDED_H
+#ifndef PANCAKE_ALIGNMENT_SEEDED_HPP
+#define PANCAKE_ALIGNMENT_SEEDED_HPP
 
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignerFactory.hpp>
 #include <pancake/DPChain.hpp>
 #include <pancake/Overlap.hpp>
 #include <pancake/Seed.hpp>
+
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {
@@ -120,4 +121,4 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentReg
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_SEEDED_H
+#endif  // PANCAKE_ALIGNMENT_SEEDED_HPP

@@ -1,15 +1,16 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEEDDB_READER_CACHED_BLOCK_H
-#define PANCAKE_SEEDDB_READER_CACHED_BLOCK_H
+#ifndef PANCAKE_SEED_DB_READER_CACHED_BLOCK_HPP
+#define PANCAKE_SEED_DB_READER_CACHED_BLOCK_HPP
 
-#include <memory>
-#include <ostream>
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SeedDBReaderCachedBlock.hpp>
 #include <pancake/SequenceSeedsCached.hpp>
 #include <pancake/util/CommonTypes.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <memory>
+#include <ostream>
 #include <string>
 
 namespace PacBio {
@@ -42,4 +43,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEEDDB_READER_CACHED_BLOCK_H
+#endif  // PANCAKE_SEED_DB_READER_CACHED_BLOCK_HPP

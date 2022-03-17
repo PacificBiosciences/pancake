@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_FORMAT_H
-#define PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_FORMAT_H
+#ifndef PANCAKE_OVERLAP_WRITER_FORMAT_HPP
+#define PANCAKE_OVERLAP_WRITER_FORMAT_HPP
 
 namespace PacBio {
 namespace Pancake {
@@ -17,4 +17,4 @@ enum class OverlapWriterFormat
 }
 }  // namespace PacBio
 
-#endif  // PANCAKE_OVERLAPHIFI_OVERLAP_WRITER_FORMAT_H
+#endif  // PANCAKE_OVERLAP_WRITER_FORMAT_HPP

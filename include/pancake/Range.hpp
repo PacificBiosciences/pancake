@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_MAPPED_RANGE_H
-#define PANCAKE_MAPPED_RANGE_H
+#ifndef PANCAKE_RANGE_HPP
+#define PANCAKE_RANGE_HPP
 
 #include <cstdint>
 #include <ostream>
@@ -34,4 +34,4 @@ inline std::ostream& operator<<(std::ostream& os, const PacBio::Pancake::Range& 
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_MAPPED_RANGE_H
+#endif  // PANCAKE_RANGE_HPP

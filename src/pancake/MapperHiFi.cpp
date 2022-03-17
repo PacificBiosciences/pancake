@@ -1,13 +1,9 @@
 // Authors: Ivan Sovic
 
-#include <pancake/third-party/kxsort/kxsort.h>
-#include <pbcopper/logging/Logging.h>
-#include <pbcopper/third-party/edlib.h>
-#include <algorithm>
-#include <iostream>
+#include <pancake/MapperHiFi.hpp>
+
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/DiffCounts.hpp>
-#include <pancake/MapperHiFi.hpp>
 #include <pancake/Minimizers.hpp>
 #include <pancake/OverlapWriterBase.hpp>
 #include <pancake/Secondary.hpp>
@@ -21,6 +17,13 @@
 #include <pancake/util/RunLengthEncoding.hpp>
 #include <pancake/util/TicToc.hpp>
 #include <pancake/util/Util.hpp>
+
+#include <pancake/third-party/kxsort/kxsort.h>
+#include <pbcopper/logging/Logging.h>
+#include <pbcopper/third-party/edlib.h>
+
+#include <algorithm>
+#include <iostream>
 #include <sstream>
 
 namespace PacBio {

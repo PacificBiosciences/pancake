@@ -1,8 +1,10 @@
 // Authors: Ivan Sovic
 
-#include <pbcopper/third-party/edlib.h>
 #include <pancake/AlignerEdlib.hpp>
+
 #include <pancake/AlignmentTools.hpp>
+
+#include <pbcopper/third-party/edlib.h>
 
 namespace PacBio {
 namespace Pancake {

@@ -5,11 +5,12 @@
 //
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEQUENCE_SEEDS_H
-#define PANCAKE_SEQUENCE_SEEDS_H
+#ifndef PANCAKE_SEQUENCE_SEEDS_HPP
+#define PANCAKE_SEQUENCE_SEEDS_HPP
+
+#include <pancake/util/CommonTypes.hpp>
 
 #include <cstdint>
-#include <pancake/util/CommonTypes.hpp>
 #include <string>
 #include <vector>
 
@@ -100,4 +101,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQUENCE_SEEDS_H
+#endif  // PANCAKE_SEQUENCE_SEEDS_HPP

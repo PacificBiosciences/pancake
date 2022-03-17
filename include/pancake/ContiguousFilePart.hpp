@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_CONTIGUOUS_FILE_PART_H
-#define PANCAKE_CONTIGUOUS_FILE_PART_H
+#ifndef PANCAKE_CONTIGUOUS_FILE_PART_HPP
+#define PANCAKE_CONTIGUOUS_FILE_PART_HPP
 
 #include <cstdint>
 #include <stdexcept>
@@ -52,4 +52,4 @@ public:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_CONTIGUOUS_FILE_PART_H
+#endif  // PANCAKE_CONTIGUOUS_FILE_PART_HPP

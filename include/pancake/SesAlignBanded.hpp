@@ -1,21 +1,20 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNMENT_SES_ALIGN_BANDED_H
-#define PANCAKE_ALIGNMENT_SES_ALIGN_BANDED_H
-
-#include <cstdint>
-
-#include <iostream>
-#include <limits>
-#include <memory>
-#include <sstream>
-
-#include <pbbam/Cigar.h>
-#include <pbbam/CigarOperation.h>
+#ifndef PANCAKE_SES_ALIGN_BANDED_HPP
+#define PANCAKE_SES_ALIGN_BANDED_HPP
 
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/SesOptions.hpp>
 #include <pancake/SesResults.hpp>
+
+#include <pbbam/Cigar.h>
+#include <pbbam/CigarOperation.h>
+
+#include <cstdint>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <sstream>
 
 namespace PacBio {
 namespace Pancake {
@@ -296,4 +295,4 @@ SesResults SESAlignBanded(const char* query, size_t queryLen, const char* target
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNMENT_SES_ALIGN_BANDED_H
+#endif  // PANCAKE_SES_ALIGN_BANDED_HPP

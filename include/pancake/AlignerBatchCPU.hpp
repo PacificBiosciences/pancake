@@ -1,17 +1,19 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_ALIGNER_BATCH_CPU_H
-#define PANCAKE_ALIGNER_BATCH_CPU_H
+#ifndef PANCAKE_ALIGNER_BATCH_CPU_HPP
+#define PANCAKE_ALIGNER_BATCH_CPU_HPP
 
-#include <pbbam/Cigar.h>
-#include <pbcopper/parallel/FireAndForget.h>
-#include <array>
-#include <cstdint>
-#include <memory>
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignerBatchBase.hpp>
 #include <pancake/AlignerFactory.hpp>
 #include <pancake/Range.hpp>
+
+#include <pbbam/Cigar.h>
+#include <pbcopper/parallel/FireAndForget.h>
+
+#include <array>
+#include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace PacBio {
@@ -73,4 +75,4 @@ private:
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_ALIGNER_BATCH_CPU_H
+#endif  // PANCAKE_ALIGNER_BATCH_CPU_HPP

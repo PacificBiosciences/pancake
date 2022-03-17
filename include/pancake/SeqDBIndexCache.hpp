@@ -1,16 +1,17 @@
 // Author: Ivan Sovic
 
-#ifndef PANCAKE_SEQDB_INDEX_CACHE_H
-#define PANCAKE_SEQDB_INDEX_CACHE_H
+#ifndef PANCAKE_SEQ_DB_INDEX_CACHE_HPP
+#define PANCAKE_SEQ_DB_INDEX_CACHE_HPP
 
-#include <cstdint>
-#include <fstream>
-#include <memory>
 #include <pancake/ContiguousFilePart.hpp>
 #include <pancake/Range.hpp>
 #include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 #include <pancake/util/CommonTypes.hpp>
 #include <pancake/util/Conversion.hpp>
+
+#include <cstdint>
+#include <fstream>
+#include <memory>
 #include <random>
 #include <string>
 #include <unordered_map>
@@ -212,4 +213,4 @@ int32_t GetSequenceIdFromHeader(const std::string& header, bool headerIsNumeric,
 }  // namespace Pancake
 }  // namespace PacBio
 
-#endif  // PANCAKE_SEQDB_CACHE_H
+#endif  // PANCAKE_SEQ_DB_INDEX_CACHE_HPP
