@@ -147,7 +147,9 @@ if opt_cuda
       include_directories : [pancake_include_directories, pancake_third_party_include_directories],
       cpp_args : pancake_flags,
       cuda_args : pancake_cuda_flags,
-      override_options : ['warning_level=2'])
+      override_options : [
+        'cuda_std=c++17',
+        'warning_level=2'])
 else
     pancake_lib = library(
       'pancake',
