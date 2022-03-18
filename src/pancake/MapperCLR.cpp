@@ -19,9 +19,9 @@
 #include <pancake/util/Util.hpp>
 
 #include <pancake/third-party/kxsort/kxsort.h>
+#include <pancake/third-party/pdqsort/pdqsort.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/third-party/edlib.h>
-#include "pdqsort.h"
 
 #include <algorithm>
 #include <array>
