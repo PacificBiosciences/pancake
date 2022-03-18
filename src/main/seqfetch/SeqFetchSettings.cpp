@@ -1,6 +1,6 @@
 // Author: Ivan Sovic
 
-#include "SeqFetchSettings.h"
+#include "SeqFetchSettings.hpp"
 
 #include <pancake/Version.hpp>
 

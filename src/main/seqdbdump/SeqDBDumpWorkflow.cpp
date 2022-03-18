@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include "SeqDBDumpWorkflow.h"
-#include "SeqDBDumpSettings.h"
+#include "SeqDBDumpWorkflow.hpp"
+#include "SeqDBDumpSettings.hpp"
 
 #include <pbcopper/logging/LogLevel.h>
 #include <pbcopper/logging/Logging.h>

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <pancake/MapperBatchCPU.hpp>
 #include <pancake/OverlapWriterBase.hpp>
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 
 TEST(MapperBatchCPU, BatchMapping_ArrayOfTests)
 {

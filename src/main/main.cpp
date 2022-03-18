@@ -2,19 +2,19 @@
 
 #include <pancake/OverlapHifiSettings.hpp>
 #include <pancake/Version.hpp>
-#include "dbfilter/DBFilterSettings.h"
-#include "dbfilter/DBFilterWorkflow.h"
-#include "overlaphifi/OverlapHifiWorkflow.h"
-#include "seeddb/SeedDBSettings.h"
-#include "seeddb/SeedDBWorkflow.h"
-#include "seqdb/SeqDBSettings.h"
-#include "seqdb/SeqDBWorkflow.h"
-#include "seqdbdump/SeqDBDumpSettings.h"
-#include "seqdbdump/SeqDBDumpWorkflow.h"
-#include "seqdbinfo/SeqDBInfoSettings.h"
-#include "seqdbinfo/SeqDBInfoWorkflow.h"
-#include "seqfetch/SeqFetchSettings.h"
-#include "seqfetch/SeqFetchWorkflow.h"
+#include "dbfilter/DBFilterSettings.hpp"
+#include "dbfilter/DBFilterWorkflow.hpp"
+#include "overlaphifi/OverlapHifiWorkflow.hpp"
+#include "seeddb/SeedDBSettings.hpp"
+#include "seeddb/SeedDBWorkflow.hpp"
+#include "seqdb/SeqDBSettings.hpp"
+#include "seqdb/SeqDBWorkflow.hpp"
+#include "seqdbdump/SeqDBDumpSettings.hpp"
+#include "seqdbdump/SeqDBDumpWorkflow.hpp"
+#include "seqdbinfo/SeqDBInfoSettings.hpp"
+#include "seqdbinfo/SeqDBInfoWorkflow.hpp"
+#include "seqfetch/SeqFetchSettings.hpp"
+#include "seqfetch/SeqFetchWorkflow.hpp"
 
 #include <pbcopper/cli2/CLI.h>
 

@@ -1,7 +1,7 @@
 // Authors: Ivan Sovic
 
-#include "SeqDBWorkflow.h"
-#include "SeqDBSettings.h"
+#include "SeqDBWorkflow.hpp"
+#include "SeqDBSettings.hpp"
 
 #include <pancake/SeqDBWriter.hpp>
 #include <pancake/util/FileIO.hpp>

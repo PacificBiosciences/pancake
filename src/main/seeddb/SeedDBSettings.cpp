@@ -1,6 +1,6 @@
 // Author: Ivan Sovic
 
-#include "SeedDBSettings.h"
+#include "SeedDBSettings.hpp"
 
 #include <pancake/Version.hpp>
 

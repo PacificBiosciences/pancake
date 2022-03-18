@@ -4,7 +4,7 @@
 #include <memory>
 #include <pancake/MapperHiFi.hpp>
 #include <pancake/OverlapWriterBase.hpp>
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 
 TEST(MapperHiFi, CheckMappping_LoadFromFile)
 {

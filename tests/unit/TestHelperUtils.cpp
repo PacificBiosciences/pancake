@@ -1,6 +1,6 @@
 // Author: Ivan Sovic
 
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 #include <pbbam/FastaReader.h>
 #include <fstream>
 #include <sstream>

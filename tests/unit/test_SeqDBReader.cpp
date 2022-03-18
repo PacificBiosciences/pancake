@@ -7,7 +7,7 @@
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeqDBReader.hpp>
 #include <sstream>
-#include "TestHelperUtils.h"
+#include "TestHelperUtils.hpp"
 
 TEST(SeqDBReaderCompressed, GetNext)
 {

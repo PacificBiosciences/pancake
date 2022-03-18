@@ -1,6 +1,6 @@
 // Author: Ivan Sovic
 
-#include "DBFilterSettings.h"
+#include "DBFilterSettings.hpp"
 
 #include <pancake/Version.hpp>
 

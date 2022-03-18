@@ -1,6 +1,6 @@
 // Author: Ivan Sovic
 
-#include "SeqDBDumpSettings.h"
+#include "SeqDBDumpSettings.hpp"
 
 #include <pancake/Version.hpp>
 
