@@ -3,6 +3,14 @@
 ## Active version in development
 ### Changes
 
+### v1.7.0
+- Reorganized code and files, no functional changes. Version bump because it will break compatibility of library client code.
+
+### v1.6.0
+- Switch to C++20 and C17.
+- Code/repo maintenance.
+- MapperCLRSettings parameter 'maxGap' was overloaded, and is now split into two parameters: seedJoinDist and longMergeBandwidth.
+
 ## v1.5.0
 - LIS performance improvements.
 - Streamlined the SISD DP chaining procedure. Removed all but one branching in the inner loop.
