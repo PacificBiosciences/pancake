@@ -40,10 +40,10 @@ PacBio::Pancake::SequenceSeeds HelperComputeSequenceSeeds(
     const PacBio::Pancake::FastaSequenceId& record, int32_t k, int32_t w, int32_t space,
     bool useHPC, bool useRC)
 {
-    const uint8_t* seqData = reinterpret_cast<const uint8_t*>(record.Bases().data());
-    int32_t seqLen = record.Bases().size();
+    const std::span<const uint8_t> seqData(reinterpret_cast<const uint8_t*>(record.Bases().data()),
+                                           record.Bases().size());
     std::vector<PacBio::Pancake::Int128t> seeds;
-    PacBio::Pancake::GenerateMinimizers(seeds, seqData, seqLen, 0, record.Id(), k, w, space, useRC,
+    PacBio::Pancake::GenerateMinimizers(seeds, record.Bases(), 0, record.Id(), k, w, space, useRC,
                                         useHPC);
     PacBio::Pancake::SequenceSeeds seqSeeds(record.Name(), std::move(seeds), record.Id());
     return seqSeeds;

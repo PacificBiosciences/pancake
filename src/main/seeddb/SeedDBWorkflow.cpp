@@ -27,11 +27,9 @@ void Worker(const std::vector<FastaSequenceCached>& records, const SeedDBSetting
 
     for (int32_t i = start; i < end; ++i) {
         const auto& record = records[i];
-        const uint8_t* seq = reinterpret_cast<const uint8_t*>(record.c_str());
-        int32_t seqLen = record.size();
-        int rv =
-            GenerateMinimizers(seeds[i], seq, seqLen, 0, record.Id(), sp.KmerSize,
-                               sp.MinimizerWindow, sp.Spacing, sp.UseRC, sp.UseHPCForSeedsOnly);
+        const std::string_view seq(record.c_str(), record.size());
+        int rv = GenerateMinimizers(seeds[i], seq, 0, record.Id(), sp.KmerSize, sp.MinimizerWindow,
+                                    sp.Spacing, sp.UseRC, sp.UseHPCForSeedsOnly);
         if (rv)
             throw std::runtime_error(
                 "Generating minimizers failed, startAbs = " + std::to_string(startAbs) +

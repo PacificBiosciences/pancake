@@ -9,24 +9,14 @@
 
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
-// struct SeedHasher {
-//     size_t operator()(const uint64_t& x) const {
-//         return x;
-//     }
-// };
-
-/*
- * Experimental code test performance with different hash maps.
- */
 // #define SEED_INDEX_USING_DENSEHASH
 // #define SEED_INDEX_USING_SPARSEHASH
 // #define SEED_INDEX_USING_UNORDERED_MAP
 #define SEED_INDEX_USING_FLATHASHMAP
-
-const uint64_t SEED_INDEX_EMPTY_HASH_KEY = 0xFFFFFFFFFFFFFFFF;
 
 #ifdef SEED_INDEX_USING_UNORDERED_MAP
 #include <unordered_map>
@@ -38,6 +28,7 @@ typedef std::unordered_map<uint64_t, std::pair<int64_t, int64_t>, std::hash<uint
 #include <pancake/third-party/sparsehash/dense_hash_map>
 using google::dense_hash_map;  // namespace where class lives by default
 // Key: kmer hash, Value: pair of <startId, endId> in the seeds_ vector.
+const uint64_t SEED_INDEX_EMPTY_HASH_KEY = 0xFFFFFFFFFFFFFFFF;
 typedef dense_hash_map<uint64_t, std::pair<int64_t, int64_t>, std::hash<uint64_t>> SeedHashType;
 #endif
 
@@ -57,6 +48,30 @@ typedef ska::flat_hash_map<uint64_t, std::pair<int64_t, int64_t>> SeedHashType;
 namespace PacBio {
 namespace Pancake {
 
+/**
+ * @brief For a given set of query seeds, fetches the count of seed hits and produces
+ *          a histogram of seed hits.
+ * @return The histogram is in a vector form, where each element of the vector consists of
+ *          <occurrence_count, num query seeds that have this count>
+*/
+std::vector<std::pair<int64_t, int64_t>> ComputeSeedHitHistogram(
+    const std::span<const PacBio::Pancake::SeedRaw> querySeeds, const SeedHashType& hash);
+
+/**
+ * @brief Given a vector of query seeds and a set of hashed target seeds, finds all seed hits and
+ *          returns them.
+ * @param hits Return value, all collected hits. Collected hits are returned via parameter to allow memory reuse.
+ * @param querySeeds Input query seeds.
+ * @param queryLen Length of the query sequence.
+ * @param hash Hash of the target seeds for random lookup.
+ * @param targetSeeds Input target seeds.
+ * @param freqCutoff Maximum allowed occurrence of a seed hit to collect it.
+ */
+void CollectSeedHits(std::vector<SeedHit>& hits,
+                     std::span<const PacBio::Pancake::SeedRaw> querySeeds, int32_t queryLen,
+                     const SeedHashType& hash,
+                     std::span<const PacBio::Pancake::SeedRaw> targetSeeds, int64_t freqCutoff);
+
 class SeedIndex
 {
 public:
@@ -66,9 +81,9 @@ public:
     void ComputeFrequencyStats(double percentileCutoff, int64_t& retFreqMax, double& retFreqAvg,
                                double& retFreqMedian, int64_t& retFreqCutoff) const;
     int64_t GetSeeds(uint64_t key, std::vector<PacBio::Pancake::SeedRaw>& seeds) const;
-    bool CollectHits(const std::vector<PacBio::Pancake::SeedRaw>& querySeeds, int32_t queryLen,
+    void CollectHits(const std::vector<PacBio::Pancake::SeedRaw>& querySeeds, int32_t queryLen,
                      std::vector<SeedHit>& hits, int64_t freqCutoff) const;
-    bool CollectHits(const PacBio::Pancake::SeedRaw* querySeeds, int64_t querySeedsSize,
+    void CollectHits(const PacBio::Pancake::SeedRaw* querySeeds, int64_t querySeedsSize,
                      int32_t queryLen, std::vector<SeedHit>& hits, int64_t freqCutoff) const;
 
     int32_t GetMinSeedSpan() const { return minSeedSpan_; }

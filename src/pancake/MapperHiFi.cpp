@@ -1237,9 +1237,8 @@ std::vector<MapperResult> MapHiFi(const FastaSequenceCachedStore& targetSeqs,
 
         // Compute the query seeds.
         std::vector<PacBio::Pancake::Int128t> querySeeds;
-        int32_t seqLen = query.size();
-        const uint8_t* seq = reinterpret_cast<const uint8_t*>(query.data());
-        int rv = GenerateMinimizers(querySeeds, seq, seqLen, 0, queryId, seedParams.KmerSize,
+        const std::string_view seq(query.c_str(), query.size());
+        int rv = GenerateMinimizers(querySeeds, seq, 0, queryId, seedParams.KmerSize,
                                     seedParams.MinimizerWindow, seedParams.Spacing,
                                     seedParams.UseRC, seedParams.UseHPCForSeedsOnly);
         if (rv) {

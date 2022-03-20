@@ -13,6 +13,9 @@
 #include <pancake/Lookups.hpp>
 #include <pancake/Seed.hpp>
 #include <pancake/util/CommonTypes.hpp>
+#include <pancake/util/Math.hpp>
+
+#include <pbcopper/utility/Ssize.h>
 
 #include <deque>
 #include <iostream>
@@ -24,6 +27,7 @@ using minkey_t = uint64_t;
 
 constexpr int32_t MAX_SPACING_IN_SEED = 32;
 constexpr int32_t MAX_WINDOW_BUFFER_SIZE = 512;
+constexpr int32_t MAX_SEED_SPAN = 255;
 
 // #define DEBUG_GENERATE_MINIMIZERS
 
@@ -77,17 +81,15 @@ public:
     }
 };
 
-int GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& minimizers, const uint8_t* seq,
-                       const int32_t seqLen, const int32_t seqOffset, const int32_t seqId,
+int GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& minimizers,
+                       const std::string_view seq, const int32_t seqOffset, const int32_t seqId,
                        const int32_t kmerSize, const int32_t winSize, const int32_t spacing,
                        const bool useReverseComplement, const bool useHPC)
 {
     // clang-format off
 
-    const int32_t MAX_SEED_SPAN = 255;
-
     // Sanity check that the seq is not NULL;
-    if (!seq) {
+    if (!seq.data()) {
         throw std::runtime_error("Cannot generate minimizers. The sequence is NULL.");
     }
     // Sanity check for the size of kmer. It can't
@@ -108,6 +110,9 @@ int GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& minimizers, const 
             "Cannot generate minimizers. The spacing is out of bounds, should be in range [0, " +
             std::to_string(MAX_SPACING_IN_SEED) + "]. spacing = " + std::to_string(spacing));
     }
+
+    const int32_t seqLen = Utility::Ssize(seq);
+
     // Not technically an error if the seqLen is 0,
     // but there's nothing to do, so return.
     if (seqLen == 0) {
@@ -473,18 +478,17 @@ int GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& minimizers, const 
 }
 
 void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
-                        const std::vector<FastaSequenceCached>& targetSeqs, const int32_t kmerSize,
+                        const std::vector<FastaSequenceCached>& seqs, const int32_t kmerSize,
                         const int32_t winSize, const int32_t spacing,
                         const bool useReverseComplement, const bool useHPC)
 {
     retSeeds.clear();
-    for (int32_t recordId = 0; recordId < static_cast<int32_t>(targetSeqs.size()); ++recordId) {
-        const auto& record = targetSeqs[recordId];
-        const uint8_t* seq = reinterpret_cast<const uint8_t*>(record.data());
+    for (int32_t recordId = 0; recordId < static_cast<int32_t>(Utility::Ssize(seqs)); ++recordId) {
+        const auto& record = seqs[recordId];
+        const std::string_view seq(record.data(), record.size());
         const int32_t seqId = record.Id();
-        int32_t seqLen = record.size();
         std::vector<PacBio::Pancake::Int128t> newSeeds;
-        int rv = GenerateMinimizers(newSeeds, seq, seqLen, 0, seqId, kmerSize, winSize, spacing,
+        int rv = GenerateMinimizers(newSeeds, seq, 0, seqId, kmerSize, winSize, spacing,
                                     useReverseComplement, useHPC);
         if (rv)
             throw std::runtime_error("Generating minimizers failed for the target sequence, id = " +
@@ -499,12 +503,11 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
                         const bool useReverseComplement, const bool useHPC)
 {
     retSeeds.clear();
-    for (int32_t seqId = 0; seqId < static_cast<int32_t>(targetSeqs.size()); ++seqId) {
+    for (int32_t seqId = 0; seqId < static_cast<int32_t>(Utility::Ssize(targetSeqs)); ++seqId) {
         const auto& record = targetSeqs[seqId];
-        const uint8_t* seq = reinterpret_cast<const uint8_t*>(record.data());
-        int32_t seqLen = record.size();
+        const std::string_view seq(record.data(), record.size());
         std::vector<PacBio::Pancake::Int128t> newSeeds;
-        int rv = GenerateMinimizers(newSeeds, seq, seqLen, 0, seqId, kmerSize, winSize, spacing,
+        int rv = GenerateMinimizers(newSeeds, seq, 0, seqId, kmerSize, winSize, spacing,
                                     useReverseComplement, useHPC);
         if (rv)
             throw std::runtime_error("Generating minimizers failed for the target sequence, id = " +
@@ -522,14 +525,14 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
     retSeeds.clear();
     retSequenceLengths.clear();
     retSequenceLengths.reserve(targetSeqs.size());
-    for (int32_t recordId = 0; recordId < static_cast<int32_t>(targetSeqs.size()); ++recordId) {
+    for (int32_t recordId = 0; recordId < static_cast<int32_t>(Utility::Ssize(targetSeqs));
+         ++recordId) {
         const auto& record = targetSeqs[recordId];
-        const uint8_t* seq = reinterpret_cast<const uint8_t*>(record.data());
+        const std::string_view seq(record.data(), record.size());
         const int32_t seqId = record.Id();
-        int32_t seqLen = record.size();
-        retSequenceLengths.emplace_back(seqLen);
+        retSequenceLengths.emplace_back(record.size());
         std::vector<PacBio::Pancake::Int128t> newSeeds;
-        int rv = GenerateMinimizers(newSeeds, seq, seqLen, 0, seqId, kmerSize, winSize, spacing,
+        int rv = GenerateMinimizers(newSeeds, seq, 0, seqId, kmerSize, winSize, spacing,
                                     useReverseComplement, useHPC);
         if (rv)
             throw std::runtime_error("Generating minimizers failed for the target sequence, id = " +
@@ -545,7 +548,7 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
                         const bool useReverseComplement, const bool useHPC)
 {
     std::vector<FastaSequenceCached> targetSeqsCached;
-    for (int32_t i = 0; i < static_cast<int32_t>(targetSeqs.size()); ++i) {
+    for (int32_t i = 0; i < static_cast<int32_t>(Utility::Ssize(targetSeqs)); ++i) {
         targetSeqsCached.emplace_back(
             FastaSequenceCached(std::to_string(i), targetSeqs[i].c_str(), targetSeqs[i].size(), i));
     }

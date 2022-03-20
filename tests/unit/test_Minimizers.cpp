@@ -2,6 +2,7 @@
 #include <pancake/Minimizers.hpp>
 #include <pancake/Seed.hpp>
 #include <pancake/util/CommonTypes.hpp>
+#include <pancake/util/Math.hpp>
 // #include <iostream>
 
 using namespace PacBio::Pancake;
@@ -12,26 +13,25 @@ void HelperTestGenerateMinimizers(const std::string& seq, int32_t seqId, int32_t
                                   bool expectedThrow)
 {
     // Run the unit under test.
-    const uint8_t* seqData = reinterpret_cast<const uint8_t*>(seq.data());
-    int32_t seqLen = seq.size();
+    const std::span<const uint8_t> seqData(reinterpret_cast<const uint8_t*>(seq.data()),
+                                           seq.size());
     std::vector<PacBio::Pancake::Int128t> seeds;
 
     if (expectedThrow) {
         EXPECT_THROW(
             {
-                PacBio::Pancake::GenerateMinimizers(seeds, seqData, seqLen, 0, seqId, k, w, space,
-                                                    useRC, useHPC);
+                PacBio::Pancake::GenerateMinimizers(seeds, seq, 0, seqId, k, w, space, useRC,
+                                                    useHPC);
             },
             std::runtime_error);
 
     } else {
-        const int rv = PacBio::Pancake::GenerateMinimizers(seeds, seqData, seqLen, 0, seqId, k, w,
-                                                           space, useRC, useHPC);
+        const int rv =
+            PacBio::Pancake::GenerateMinimizers(seeds, seq, 0, seqId, k, w, space, useRC, useHPC);
 
         // std::cerr << "Results:\n";
         // for (const auto& val : seeds) {
         //     auto s = PacBio::Pancake::Seed(val);
-        //     // std::cerr << s.Verbose() << "\n";
         //     std::cerr << "PacBio::Pancake::Seed::Encode(" << s.key << ", " << s.span << ", "
         //               << s.seqID << ", " << s.pos << ", " << s.seqRev << "),\n";
         // }
@@ -511,9 +511,7 @@ TEST(GenerateMinimizers, HPC2)
     std::vector<PacBio::Pancake::Int128t> seedsWithHP;
     int32_t rvWithHP = 0;
     {
-        const uint8_t* seqData = reinterpret_cast<const uint8_t*>(seqWithHP.data());
-        int32_t seqLen = seqWithHP.size();
-        rvWithHP = PacBio::Pancake::GenerateMinimizers(seedsWithHP, seqData, seqLen, 0, seqId, k, w,
+        rvWithHP = PacBio::Pancake::GenerateMinimizers(seedsWithHP, seqWithHP, 0, seqId, k, w,
                                                        space, useRC, true);
 
         // Reset the span because this will differ between the no-hpc and with-hpc runs.
@@ -528,10 +526,8 @@ TEST(GenerateMinimizers, HPC2)
     std::vector<PacBio::Pancake::Int128t> seedsNoHP;
     int32_t rvNoHP = 0;
     {
-        const uint8_t* seqData = reinterpret_cast<const uint8_t*>(seqWithoutHP.data());
-        int32_t seqLen = seqWithoutHP.size();
-        rvNoHP = PacBio::Pancake::GenerateMinimizers(seedsNoHP, seqData, seqLen, 0, seqId, k, w,
-                                                     space, useRC, false);
+        rvNoHP = PacBio::Pancake::GenerateMinimizers(seedsNoHP, seqWithoutHP, 0, seqId, k, w, space,
+                                                     useRC, false);
 
         // Reset the span because this will differ between the no-hpc and with-hpc runs.
         for (auto& val : seedsNoHP) {

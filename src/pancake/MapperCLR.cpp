@@ -238,12 +238,11 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
 #endif
 
         std::vector<PacBio::Pancake::Int128t> querySeeds;
-        int32_t seqLen = query.size();
-        const uint8_t* seq = reinterpret_cast<const uint8_t*>(query.data());
-        int rv = GenerateMinimizers(
-            querySeeds, seq, seqLen, 0, queryId, settings.map.seedParams.KmerSize,
-            settings.map.seedParams.MinimizerWindow, settings.map.seedParams.Spacing,
-            settings.map.seedParams.UseRC, settings.map.seedParams.UseHPCForSeedsOnly);
+        const std::string_view seq(query.c_str(), query.size());
+        int rv = GenerateMinimizers(querySeeds, seq, 0, queryId, settings.map.seedParams.KmerSize,
+                                    settings.map.seedParams.MinimizerWindow,
+                                    settings.map.seedParams.Spacing, settings.map.seedParams.UseRC,
+                                    settings.map.seedParams.UseHPCForSeedsOnly);
         if (rv)
             throw std::runtime_error("Generating minimizers failed for the query sequence i = " +
                                      std::to_string(i) + ", id = " + std::to_string(queryId));
@@ -254,7 +253,7 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
 
         if (queryResults.mappings.empty() && seedIndexFallback != nullptr) {
             rv = GenerateMinimizers(
-                querySeeds, seq, seqLen, 0, queryId, settings.map.seedParamsFallback.KmerSize,
+                querySeeds, seq, 0, queryId, settings.map.seedParamsFallback.KmerSize,
                 settings.map.seedParamsFallback.MinimizerWindow,
                 settings.map.seedParamsFallback.Spacing, settings.map.seedParamsFallback.UseRC,
                 settings.map.seedParamsFallback.UseHPCForSeedsOnly);
@@ -335,8 +334,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
                     << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
 
         const std::vector<std::pair<int64_t, int64_t>> debugSeedHist =
-            PacBio::Pancake::ComputeSeedHitHistogram(querySeeds.data(), querySeeds.size(),
-                                                     index.GetHash());
+            PacBio::Pancake::ComputeSeedHitHistogram(querySeeds, index.GetHash());
 
         int64_t totalHits = 0;
         for (size_t i = 0; i < debugSeedHist.size(); ++i) {
@@ -357,8 +355,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     // Compute the seed hit histogram, but only if needed.
     std::vector<std::pair<int64_t, int64_t>> seedHitHistogram;
     if (settings.map.seedOccurrenceMaxMemory > 0) {
-        seedHitHistogram = PacBio::Pancake::ComputeSeedHitHistogram(
-            querySeeds.data(), querySeeds.size(), index.GetHash());
+        seedHitHistogram = PacBio::Pancake::ComputeSeedHitHistogram(querySeeds, index.GetHash());
     }
 
     const int64_t occThreshold = ComputeOccurrenceThreshold(

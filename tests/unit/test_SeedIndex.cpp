@@ -924,8 +924,7 @@ TEST(SeedIndex, ComputeSeedHitHistogram_ArrayOfTests)
 
         // Run unit under test.
         const std::vector<std::pair<int64_t, int64_t>> results =
-            PacBio::Pancake::ComputeSeedHitHistogram(data.querySeeds.data(), data.querySeeds.size(),
-                                                     si.GetHash());
+            PacBio::Pancake::ComputeSeedHitHistogram(data.querySeeds, si.GetHash());
 
         EXPECT_EQ(data.expected, results);
     }

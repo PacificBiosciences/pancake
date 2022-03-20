@@ -156,18 +156,90 @@ int64_t SeedIndex::GetSeeds(uint64_t key, std::vector<PacBio::Pancake::SeedRaw>&
     return (end - start);
 }
 
-bool SeedIndex::CollectHits(const std::vector<PacBio::Pancake::SeedRaw>& querySeeds,
+void SeedIndex::CollectHits(const std::vector<PacBio::Pancake::SeedRaw>& querySeeds,
                             int32_t queryLen, std::vector<SeedHit>& hits, int64_t freqCutoff) const
 {
-    return CollectHits(querySeeds.data(), querySeeds.size(), queryLen, hits, freqCutoff);
+    CollectHits(querySeeds.data(), querySeeds.size(), queryLen, hits, freqCutoff);
 }
 
-bool SeedIndex::CollectHits(const PacBio::Pancake::SeedRaw* querySeeds, int64_t querySeedsSize,
+void SeedIndex::CollectHits(const PacBio::Pancake::SeedRaw* querySeeds, int64_t querySeedsSize,
                             int32_t queryLen, std::vector<SeedHit>& hits, int64_t freqCutoff) const
 {
-    return PacBio::Pancake::CollectSeedHits<SeedHashType>(hits, querySeeds, querySeedsSize,
-                                                          queryLen, hash_, seeds_.data(),
-                                                          seeds_.size(), freqCutoff);
+    PacBio::Pancake::CollectSeedHits(hits, {querySeeds, static_cast<size_t>(querySeedsSize)},
+                                     queryLen, hash_, seeds_, freqCutoff);
+}
+
+std::vector<std::pair<int64_t, int64_t>> ComputeSeedHitHistogram(
+    const std::span<const PacBio::Pancake::SeedRaw> querySeeds, const SeedHashType& hash)
+{
+    std::unordered_map<int64_t, int64_t> hist;
+    for (int64_t seedId = 0; seedId < std::ssize(querySeeds); ++seedId) {
+        const auto& querySeed = querySeeds[seedId];
+        auto decodedQuery = PacBio::Pancake::Seed(querySeed);
+        auto it = hash.find(decodedQuery.key);
+        if (it != hash.end()) {
+            int64_t start = std::get<0>(it->second);
+            int64_t end = std::get<1>(it->second);
+            hist[end - start] += 1;
+        } else {
+            hist[0] += 1;
+        }
+    }
+
+    std::vector<std::pair<int64_t, int64_t>> histVec(hist.begin(), hist.end());
+    std::sort(histVec.begin(), histVec.end());
+
+    return histVec;
+}
+
+void CollectSeedHits(std::vector<SeedHit>& hits,
+                     const std::span<const PacBio::Pancake::SeedRaw> querySeeds,
+                     const int32_t queryLen, const SeedHashType& hash,
+                     const std::span<const PacBio::Pancake::SeedRaw> targetSeeds,
+                     const int64_t freqCutoff)
+{
+    hits.clear();
+
+    for (int64_t seedId = 0; seedId < std::ssize(querySeeds); ++seedId) {
+        const auto& querySeed = querySeeds[seedId];
+        const auto decodedQuery = PacBio::Pancake::Seed(querySeed);
+        const auto it = hash.find(decodedQuery.key);
+
+        if (it != hash.end()) {
+            const int64_t start = std::get<0>(it->second);
+            const int64_t end = std::get<1>(it->second);
+
+            // Skip very frequent seeds.
+            if (freqCutoff > 0 && (end - start) > freqCutoff) {
+                continue;
+            }
+
+            for (int64_t i = start; i < end; ++i) {
+                const auto decodedTarget = PacBio::Pancake::Seed(targetSeeds[i]);
+                const int32_t targetPos = decodedTarget.pos;
+                const int32_t querySpan = decodedQuery.span;
+                const int32_t targetSpan = decodedTarget.span;
+                bool isRev = false;
+                int32_t queryPos = decodedQuery.pos;
+
+                if (decodedQuery.IsRev() != decodedTarget.IsRev()) {
+                    isRev = true;
+                    // End pos in fwd is start pos in rev.
+                    queryPos = queryLen - (decodedQuery.pos + querySpan);
+                }
+
+                const SeedHit hit{static_cast<int32_t>(decodedTarget.seqID),
+                                  isRev,
+                                  targetPos,
+                                  queryPos,
+                                  targetSpan,
+                                  querySpan,
+                                  0};
+
+                hits.emplace_back(hit);
+            }
+        }
+    }
 }
 
 }  // namespace Pancake
