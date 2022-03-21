@@ -395,7 +395,7 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentReg
         break;
     }
     // Construct the new overlap.
-    OverlapPtr ret = createOverlap(ovl);
+    OverlapPtr ret = CreateOverlap(ovl);
     ret->Astart = globalAlnQueryStart - alns.offsetFrontQuery;
     ret->Aend = globalAlnQueryEnd + alns.offsetBackQuery;
     ret->Bstart = globalAlnTargetStart - alns.offsetFrontTarget;

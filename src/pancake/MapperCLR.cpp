@@ -1200,7 +1200,7 @@ void WrapFlagSecondaryAndSupplementary(
             continue;
         }
         inputOverlapToTmpOverlap[i] = tmpOverlaps.size();
-        tmpOverlaps.emplace_back(createOverlap(allChainedRegions[i]->mapping));
+        tmpOverlaps.emplace_back(CreateOverlap(allChainedRegions[i]->mapping));
     }
     // Flag the secondary and supplementary overlaps.
     std::vector<OverlapPriority> overlapPriorities = FlagSecondaryAndSupplementary(
@@ -1291,7 +1291,7 @@ std::unique_ptr<ChainedRegion> MapperCLR::CreateMockedMapping_(const int32_t que
                          queryLen,
                          targetLen};
 
-    OverlapPtr newOvl = createOverlap(queryId, targetId, alnScore, identity, isRev, 0, queryLen,
+    OverlapPtr newOvl = CreateOverlap(queryId, targetId, alnScore, identity, isRev, 0, queryLen,
                                       queryLen, false, 0, targetLen, targetLen, editDist, numSeeds,
                                       OverlapType::Unknown, OverlapType::Unknown);
 
@@ -1320,7 +1320,7 @@ OverlapPtr CreateMockedAlignment(const OverlapPtr& ovl, const int32_t matchScore
     const float identity = 1.0;
     const int32_t editDist = 0;
     const int32_t numSeeds = ovl->Alen;
-    OverlapPtr newOvl = createOverlap(
+    OverlapPtr newOvl = CreateOverlap(
         ovl->Aid, ovl->Bid, score, identity, false, 0, ovl->Alen, ovl->Alen, false, 0, ovl->Blen,
         ovl->Blen, editDist, numSeeds, OverlapType::Unknown, OverlapType::Unknown,
         // OverlapType::Contains, OverlapType::Contains,

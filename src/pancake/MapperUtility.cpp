@@ -36,7 +36,7 @@ OverlapPtr MakeOverlap(const std::vector<SeedHit>& sortedHits, int32_t queryId, 
     const int32_t targetLen = targetSeqs.GetSequence(targetId).size();
 
     OverlapPtr ret =
-        createOverlap(queryId, targetId, score, identity, beginHit.targetRev, beginHit.queryPos,
+        CreateOverlap(queryId, targetId, score, identity, beginHit.targetRev, beginHit.queryPos,
                       endHit.queryPos + endHit.querySpan, queryLen, false, beginHit.targetPos,
                       endHit.targetPos + endHit.targetSpan, targetLen, editDist, numSeeds,
                       OverlapType::Unknown, OverlapType::Unknown);

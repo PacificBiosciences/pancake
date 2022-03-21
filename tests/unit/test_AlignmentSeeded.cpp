@@ -697,7 +697,7 @@ TEST(AlignmentSeeded, AlignmentSeeded_ArrayOfTests)
 
         const std::string querySeqRev =
             PacBio::Pancake::ReverseComplement(data.querySeq, 0, data.querySeq.size());
-        auto ovl = createOverlap(data.ovl);
+        auto ovl = CreateOverlap(data.ovl);
 
         std::vector<AlignmentRegion> regions = ExtractAlignmentRegions(
             data.sortedHits, data.querySeq.size(), data.targetSeq.size(), data.ovl.Brev,

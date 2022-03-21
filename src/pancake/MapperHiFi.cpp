@@ -238,7 +238,7 @@ OverlapPtr Mapper::MakeOverlap_(const std::vector<SeedHit>& sortedHits,
     const int32_t targetLen = targetSeqs.GetSequence(targetId).size();
 
     OverlapPtr ret =
-        createOverlap(querySeq.Id(), targetId, score, identity, beginHit.targetRev,
+        CreateOverlap(querySeq.Id(), targetId, score, identity, beginHit.targetRev,
                       beginHit.queryPos, endHit.queryPos + endHit.querySpan, querySeq.Size(), false,
                       beginHit.targetPos, endHit.targetPos + endHit.targetSpan, targetLen, editDist,
                       numSeeds, OverlapType::Unknown, OverlapType::Unknown);
@@ -592,7 +592,7 @@ std::vector<OverlapPtr> Mapper::FilterOverlaps_(const std::vector<OverlapPtr>& o
             ovl->Alen < minQueryLen || ovl->Blen < minTargetLen) {
             continue;
         }
-        auto newOvl = createOverlap(ovl);
+        auto newOvl = CreateOverlap(ovl);
         newOvl->Atype =
             DetermineOverlapType(ovl->Arev, ovl->AstartFwd(), ovl->AendFwd(), ovl->Alen, ovl->Brev,
                                  ovl->BstartFwd(), ovl->BendFwd(), ovl->Blen, allowedDovetailDist);
@@ -665,25 +665,26 @@ std::vector<OverlapPtr> Mapper::FilterTandemOverlaps_(const std::vector<OverlapP
     }
 
     // Make an internal copy for sorting.
-    std::vector<OverlapPtr> overlaps_copy;
+    std::vector<OverlapPtr> ovlCopy;
+    ovlCopy.reserve(overlaps.size());
     for (const auto& ovl : overlaps) {
-        overlaps_copy.emplace_back(createOverlap(ovl));
+        ovlCopy.emplace_back(CreateOverlap(ovl));
     }
 
     // Sort by length.
-    std::sort(overlaps_copy.begin(), overlaps_copy.end(), [](const auto& a, const auto& b) {
+    std::sort(ovlCopy.begin(), ovlCopy.end(), [](const auto& a, const auto& b) {
         return a->Bid < b->Bid || (a->Bid == b->Bid && std::max(a->ASpan(), a->BSpan()) >
                                                            std::max(b->ASpan(), b->BSpan()));
     });
 
     // Accumulate the results.
     std::vector<OverlapPtr> ret;
-    ret.emplace_back(createOverlap(overlaps_copy.front()));
-    for (const auto& ovl : overlaps_copy) {
+    ret.emplace_back(CreateOverlap(ovlCopy.front()));
+    for (const auto& ovl : ovlCopy) {
         if (ovl->Bid == ret.back()->Bid) {
             continue;
         }
-        ret.emplace_back(createOverlap(ovl));
+        ret.emplace_back(CreateOverlap(ovl));
     }
 
     return ret;
@@ -699,8 +700,9 @@ std::vector<OverlapPtr> Mapper::FilterTandemOverlapsSmart_(
 
     // Make an internal copy for sorting.
     std::vector<OverlapPtr> ovlCopy;
+    ovlCopy.reserve(overlaps.size());
     for (const auto& ovl : overlaps) {
-        ovlCopy.emplace_back(createOverlap(ovl));
+        ovlCopy.emplace_back(CreateOverlap(ovl));
     }
 
     // Sort by length.
@@ -875,7 +877,7 @@ OverlapPtr Mapper::AlignOverlap_(const PacBio::Pancake::FastaSequenceCached& tar
     PBLOG_INFO << "Initial: " << *ovl;
 #endif
 
-    OverlapPtr ret = createOverlap(ovl);
+    OverlapPtr ret = CreateOverlap(ovl);
     PacBio::Pancake::SesResults sesResultRight;
     PacBio::Pancake::SesResults sesResultLeft;
 

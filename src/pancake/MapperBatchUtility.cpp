@@ -204,7 +204,7 @@ OverlapPtr StitchSingleAlignment(const OverlapPtr& aln,
         return nullptr;
     }
 
-    auto ret = createOverlap(aln);
+    auto ret = CreateOverlap(aln);
     ret->Cigar.clear();
 
     int32_t newQueryStart = -1;
