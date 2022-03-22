@@ -508,7 +508,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
                      (maskHomopolymersArbitrary && queryPos > 0 && (queryPos + 1) < queryLen &&
                       query[queryPos - 1] ==
                           query[queryPos + 1]) ||  // Insertion of different base into a HP.
-                     (target[targetPos] == prevBase) ||
+                     (targetPos < targetLen && target[targetPos] == prevBase) ||
                      (targetPos > 0 && target[targetPos - 1] == prevBase))) {
                     isMasked = true;
                 }
@@ -588,7 +588,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
                      (maskHomopolymersArbitrary && targetPos > 0 && (targetPos + 1) < targetLen &&
                       target[targetPos - 1] ==
                           target[targetPos + 1]) ||  // Insertion of different base into a HP.
-                     (query[queryPos] == prevBase) ||
+                     (queryPos < queryLen && query[queryPos] == prevBase) ||
                      (queryPos > 0 && query[queryPos - 1] == prevBase))) {
                     isMasked = true;
                 }
