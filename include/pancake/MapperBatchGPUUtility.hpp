@@ -13,7 +13,7 @@ namespace PacBio {
 namespace Pancake {
 
 int32_t AlignPartsOnGPU(const std::vector<PairForBatchAlignment>& parts, AlignerBatchBase& aligner,
-                        std::vector<AlignmentResult>& retAlns);
+                        int32_t maxAllowedGap, std::vector<AlignmentResult>& retAlns);
 
 }  // namespace Pancake
 }  // namespace PacBio

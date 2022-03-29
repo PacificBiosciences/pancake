@@ -27,10 +27,10 @@ class MapperBatchGPU : public MapperBatchBase
 public:
     MapperBatchGPU(const MapperCLRAlignSettings& alignSettings, Parallel::FireAndForget* faf,
                    int32_t gpuStartBandwidth, int32_t gpuMaxBandwidth, uint32_t gpuDeviceId,
-                   int64_t gpuMemoryBytes, bool alignRemainingOnCpu);
+                   int64_t gpuMemoryBytes, int32_t maxAllowedGapForGpu, bool alignRemainingOnCpu);
     MapperBatchGPU(const MapperCLRAlignSettings& alignSettings, int32_t numThreads,
                    int32_t gpuStartBandwidth, int32_t gpuMaxBandwidth, uint32_t gpuDeviceId,
-                   int64_t gpuMemoryBytes, bool alignRemainingOnCpu);
+                   int64_t gpuMemoryBytes, int32_t maxAllowedGapForGpu, bool alignRemainingOnCpu);
     ~MapperBatchGPU() override;
 
     std::vector<std::vector<MapperBaseResult>> MapAndAlign(
@@ -41,6 +41,7 @@ private:
     int32_t numThreads_;
     int32_t gpuStartBandwidth_;
     int32_t gpuMaxBandwidth_;
+    int32_t maxAllowedGapForGpu_;
     bool alignRemainingOnCpu_;
     Parallel::FireAndForget* faf_;
     std::unique_ptr<Parallel::FireAndForget> fafFallback_;
@@ -48,9 +49,9 @@ private:
 
     static std::vector<std::vector<MapperBaseResult>> MapAndAlignImpl_(
         const std::vector<MapperBatchChunk>& batchChunks,
-        const MapperCLRAlignSettings& alignSettings, bool alignRemainingOnCpu,
-        int32_t gpuStartBandwidth, int32_t gpuMaxBandwidth, AlignerBatchGPU& aligner,
-        Parallel::FireAndForget* faf);
+        const MapperCLRAlignSettings& alignSettings, int32_t maxAllowedGapForGpu,
+        bool alignRemainingOnCpu, int32_t gpuStartBandwidth, int32_t gpuMaxBandwidth,
+        AlignerBatchGPU& aligner, Parallel::FireAndForget* faf);
 
     static void WorkerMapper_(const std::vector<MapperBatchChunk>& batchChunks, int32_t startId,
                               int32_t endId, std::vector<std::vector<MapperBaseResult>>& results);

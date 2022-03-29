@@ -36,10 +36,11 @@ namespace Pancake {
 MapperBatchGPU::MapperBatchGPU(const MapperCLRAlignSettings& alignSettings, int32_t numThreads,
                                int32_t gpuStartBandwidth, int32_t gpuMaxBandwidth,
                                uint32_t gpuDeviceId, int64_t gpuMemoryBytes,
-                               bool alignRemainingOnCpu)
+                               const int32_t maxAllowedGapForGpu, bool alignRemainingOnCpu)
     : alignSettings_{alignSettings}
     , gpuStartBandwidth_(gpuStartBandwidth)
     , gpuMaxBandwidth_(gpuMaxBandwidth)
+    , maxAllowedGapForGpu_(maxAllowedGapForGpu)
     , alignRemainingOnCpu_(alignRemainingOnCpu)
     , faf_{nullptr}
     , fafFallback_(nullptr)
@@ -54,10 +55,12 @@ MapperBatchGPU::MapperBatchGPU(const MapperCLRAlignSettings& alignSettings, int3
 MapperBatchGPU::MapperBatchGPU(const MapperCLRAlignSettings& alignSettings,
                                Parallel::FireAndForget* faf, int32_t gpuStartBandwidth,
                                int32_t gpuMaxBandwidth, uint32_t gpuDeviceId,
-                               int64_t gpuMemoryBytes, bool alignRemainingOnCpu)
+                               int64_t gpuMemoryBytes, int32_t maxAllowedGapForGpu,
+                               bool alignRemainingOnCpu)
     : alignSettings_{alignSettings}
     , gpuStartBandwidth_(gpuStartBandwidth)
     , gpuMaxBandwidth_(gpuMaxBandwidth)
+    , maxAllowedGapForGpu_(maxAllowedGapForGpu)
     , alignRemainingOnCpu_(alignRemainingOnCpu)
     , faf_{faf}
     , fafFallback_(nullptr)
@@ -78,8 +81,9 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlign(
     assert(aligner_);
 
     try {
-        return MapAndAlignImpl_(batchData, alignSettings_, alignRemainingOnCpu_, gpuStartBandwidth_,
-                                gpuMaxBandwidth_, *aligner_, faf_);
+        return MapAndAlignImpl_(batchData, alignSettings_, maxAllowedGapForGpu_,
+                                alignRemainingOnCpu_, gpuStartBandwidth_, gpuMaxBandwidth_,
+                                *aligner_, faf_);
     } catch (const std::exception& e) {
         // Log, but do not fail. Important for clients of this class.
         // Return a vector of the size of the input, but with empty subvectors.
@@ -92,8 +96,8 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlign(
 
 std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
     const std::vector<MapperBatchChunk>& batchChunks, const MapperCLRAlignSettings& alignSettings,
-    bool alignRemainingOnCpu, int32_t gpuStartBandwidth, int32_t gpuMaxBandwidth,
-    AlignerBatchGPU& aligner, Parallel::FireAndForget* faf)
+    const int32_t maxAllowedGapForGpu, bool alignRemainingOnCpu, int32_t gpuStartBandwidth,
+    int32_t gpuMaxBandwidth, AlignerBatchGPU& aligner, Parallel::FireAndForget* faf)
 {
     const int32_t numThreads = faf ? faf->NumThreads() : 1;
     // Determine how many records should land in each thread, spread roughly evenly.
@@ -153,7 +157,8 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
         while (true) {
             PBLOG_TRACE << "Trying bandwidth: " << currentBandwidth;
             aligner.ResetMaxBandwidth(currentBandwidth);
-            numInternalNotValid = AlignPartsOnGPU(partsGlobal, aligner, internalAlns);
+            numInternalNotValid =
+                AlignPartsOnGPU(partsGlobal, aligner, maxAllowedGapForGpu, internalAlns);
             if (numInternalNotValid == 0) {
                 break;
             }

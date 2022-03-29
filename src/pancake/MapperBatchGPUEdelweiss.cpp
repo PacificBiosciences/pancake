@@ -27,10 +27,11 @@ namespace Pancake {
 MapperBatchGPUEdelweiss::MapperBatchGPUEdelweiss(
     const MapperCLRAlignSettings& alignSettings, const int32_t numThreads,
     const int32_t gpuStartBandwidth, const int32_t gpuMaxBandwidth, const int32_t gpuDeviceId,
-    const int64_t gpuMemoryBytes, const bool alignRemainingOnCpu)
+    const int64_t gpuMemoryBytes, const int32_t maxAllowedGapForGpu, const bool alignRemainingOnCpu)
     : alignSettings_{alignSettings}
     , gpuStartBandwidth_(gpuStartBandwidth)
     , gpuMaxBandwidth_(gpuMaxBandwidth)
+    , maxAllowedGapForGpu_(maxAllowedGapForGpu)
     , alignRemainingOnCpu_(alignRemainingOnCpu)
     , faf_{nullptr}
     , fafFallback_(nullptr)
@@ -45,10 +46,11 @@ MapperBatchGPUEdelweiss::MapperBatchGPUEdelweiss(
 MapperBatchGPUEdelweiss::MapperBatchGPUEdelweiss(
     const MapperCLRAlignSettings& alignSettings, Parallel::FireAndForget* faf,
     const int32_t gpuStartBandwidth, const int32_t gpuMaxBandwidth, const int32_t gpuDeviceId,
-    const int64_t gpuMemoryBytes, const bool alignRemainingOnCpu)
+    const int64_t gpuMemoryBytes, const int32_t maxAllowedGapForGpu, const bool alignRemainingOnCpu)
     : alignSettings_{alignSettings}
     , gpuStartBandwidth_(gpuStartBandwidth)
     , gpuMaxBandwidth_(gpuMaxBandwidth)
+    , maxAllowedGapForGpu_(maxAllowedGapForGpu)
     , alignRemainingOnCpu_(alignRemainingOnCpu)
     , faf_{faf}
     , fafFallback_(nullptr)
@@ -67,13 +69,14 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlign(
     const std::vector<MapperBatchChunk>& batchData)
 {
     assert(aligner_);
-    return MapAndAlignImpl_(batchData, alignSettings_, alignRemainingOnCpu_, gpuStartBandwidth_,
-                            gpuMaxBandwidth_, *aligner_, faf_);
+    return MapAndAlignImpl_(batchData, alignSettings_, maxAllowedGapForGpu_, alignRemainingOnCpu_,
+                            gpuStartBandwidth_, gpuMaxBandwidth_, *aligner_, faf_);
 }
 
 std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignImpl_(
     const std::vector<MapperBatchChunk>& batchChunks, const MapperCLRAlignSettings& alignSettings,
-    const bool alignRemainingOnCpu, const int32_t gpuStartBandwidth, const int32_t gpuMaxBandwidth,
+    const int32_t maxAllowedGapForGpu, const bool alignRemainingOnCpu,
+    const int32_t gpuStartBandwidth, const int32_t gpuMaxBandwidth,
     AlignerBatchGPUEdelweiss& aligner, Parallel::FireAndForget* faf)
 {
     const int32_t numThreads = faf ? faf->NumThreads() : 1;
@@ -122,6 +125,8 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
             partsSemiglobal, alnStitchInfo, longestSequenceForAln);
         PBLOG_TRACE << "partsGlobal.size() = " << partsGlobal.size();
         PBLOG_TRACE << "partsSemiglobal.size() = " << partsSemiglobal.size();
+        std::cerr << "partsGlobal.size() = " << partsGlobal.size() << "\n";
+        std::cerr << "partsSemiglobal.size() = " << partsSemiglobal.size() << "\n";
 
         // Global alignment on GPU. Try using different bandwidths,
         // increasing the bandwidth for the failed parts each iteration.
@@ -132,10 +137,13 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
             (gpuMaxBandwidth <= 0) ? (longestSequenceForAln * 2 + 1) : gpuMaxBandwidth;
 
         while (true) {
-            PBLOG_TRACE << "Trying bandwidth: " << currentBandwidth;
+            PBLOG_TRACE << "[internal] Trying bandwidth: " << currentBandwidth;
+            std::cerr << "[internal] Trying bandwidth: " << currentBandwidth << "\n";
             aligner.ResetMaxBandwidth(currentBandwidth);
-            numInternalNotValid = AlignPartsOnGPU(partsGlobal, aligner, internalAlns);
-            // std::cerr << "numInternalNotValid = " << numInternalNotValid << "\n";
+            numInternalNotValid =
+                AlignPartsOnGPU(partsGlobal, aligner, maxAllowedGapForGpu, internalAlns);
+            std::cerr << "[internal while] currentBandwidth = " << currentBandwidth
+                      << ", numInternalNotValid = " << numInternalNotValid << "\n";
             if (numInternalNotValid == 0) {
                 break;
             }
@@ -149,17 +157,24 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
             }
         }
 
+        std::cerr << "[internal] After GPU alignment: numInternalNotValid = " << numInternalNotValid
+                  << "\n";
+
         // Fallback to the CPU if there are any unaligned parts left.
         if (alignRemainingOnCpu && numInternalNotValid > 0) {
-            PBLOG_TRACE << "Trying to align remaining parts on CPU.";
+            PBLOG_TRACE << "[internal] Trying to align remaining parts on CPU.";
+            std::cerr << "[internal] Trying to align remaining parts on CPU.\n";
             const int32_t numNotValidInternal =
                 AlignPartsOnCpu(alignSettings.alignerTypeGlobal, alignSettings.alnParamsGlobal,
                                 alignSettings.alignerTypeExt, alignSettings.alnParamsExt,
                                 partsGlobal, faf, internalAlns);
             PBLOG_TRACE << "Total not valid: " << numNotValidInternal << " / "
                         << internalAlns.size() << "\n";
+            std::cerr << "[internal] Total not valid: " << numNotValidInternal << " / "
+                      << internalAlns.size() << "\n";
         }
-        PBLOG_TRACE << "internalAlns.size() = " << internalAlns.size();
+        PBLOG_TRACE << "[internal] internalAlns.size() = " << internalAlns.size();
+        std::cerr << "[internal] internalAlns.size() = " << internalAlns.size() << "\n";
 
         // Flank alignment on CPU.
         std::vector<AlignmentResult> flankAlns;
@@ -167,8 +182,10 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
             AlignPartsOnCpu(alignSettings.alignerTypeGlobal, alignSettings.alnParamsGlobal,
                             alignSettings.alignerTypeExt, alignSettings.alnParamsExt,
                             partsSemiglobal, faf, flankAlns);
-        PBLOG_TRACE << "Total not valid: " << numNotValidFlanks << " / " << flankAlns.size()
-                    << "\n";
+        PBLOG_TRACE << "[flanks] Total flanks not valid: " << numNotValidFlanks << " / "
+                    << flankAlns.size();
+        std::cerr << "[flanks] Total flanks not valid: " << numNotValidFlanks << " / "
+                  << flankAlns.size() << "\n";
 
         StitchAlignmentsInParallel(results, batchChunks, querySeqsRevStore, internalAlns, flankAlns,
                                    alnStitchInfo, faf);

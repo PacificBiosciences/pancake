@@ -299,10 +299,11 @@ TEST(MapperBatchGPUEdelweiss, BatchMapping_ArrayOfTests)
         const int32_t numThreads = 4;
         const int32_t startBandwidth = 500;
         const int32_t maxBandwidth = 500;
+        const int32_t maxAllowedGapForGpu = -1;
         bool alignRemainingOnCpu = false;
-        PacBio::Pancake::MapperBatchGPUEdelweiss mapper(currentSettings.align, numThreads,
-                                                        startBandwidth, maxBandwidth, gpuDeviceId,
-                                                        gpuMaxMemoryCap, alignRemainingOnCpu);
+        PacBio::Pancake::MapperBatchGPUEdelweiss mapper(
+            currentSettings.align, numThreads, startBandwidth, maxBandwidth, gpuDeviceId,
+            gpuMaxMemoryCap, maxAllowedGapForGpu, alignRemainingOnCpu);
 
         // Run the unit under test.
         std::vector<std::vector<MapperBaseResult>> results = mapper.MapAndAlign(batchData);
@@ -819,6 +820,7 @@ TEST(MapperBatchGPUEdelweiss, EdelweissEdgeCases_ArrayOfTests)
     const int32_t numThreads = 4;
     const int32_t startBandwidth = 256;
     const int32_t maxBandwidth = 256;
+    const int32_t maxAllowedGapForGpu = -1;
     bool alignRemainingOnCpu = false;
 
     for (const auto& data : testData) {
@@ -835,7 +837,7 @@ TEST(MapperBatchGPUEdelweiss, EdelweissEdgeCases_ArrayOfTests)
 
         PacBio::Pancake::MapperBatchGPUEdelweiss mapper(settings.align, numThreads, startBandwidth,
                                                         maxBandwidth, gpuDeviceId, gpuMaxMemoryCap,
-                                                        alignRemainingOnCpu);
+                                                        maxAllowedGapForGpu, alignRemainingOnCpu);
 
         // Run the unit under test.
         std::vector<std::vector<MapperBaseResult>> results = mapper.MapAndAlign(batchData);

@@ -216,10 +216,11 @@ TEST(MapperBatchGPU, BatchMapping_ArrayOfTests)
         const int32_t numThreads = 4;
         const int32_t startBandwidth = 500;
         const int32_t maxBandwidth = 2000;
+        const int32_t maxAllowedGapForGpu = -1;
         bool alignRemainingOnCpu = false;
         PacBio::Pancake::MapperBatchGPU mapper(alignSettings, numThreads, startBandwidth,
                                                maxBandwidth, gpuDeviceId, gpuMaxMemoryCap,
-                                               alignRemainingOnCpu);
+                                               maxAllowedGapForGpu, alignRemainingOnCpu);
 
         // Run the unit under test.
         // std::vector<std::vector<MapperBaseResult>> results = mapper.DummyMapAndAlign(batchData);
@@ -614,10 +615,11 @@ TEST(MapperBatchGPU, CheckSelfHitPolicyAndSkippingSymmetrical)
         const int32_t numThreads = 4;
         const int32_t startBandwidth = 500;
         const int32_t maxBandwidth = 2000;
+        const int32_t maxAllowedGapForGpu = -1;
         bool alignRemainingOnCpu = false;
         PacBio::Pancake::MapperBatchGPU mapper(alignSettings, numThreads, startBandwidth,
                                                maxBandwidth, gpuDeviceId, gpuMaxMemoryCap,
-                                               alignRemainingOnCpu);
+                                               maxAllowedGapForGpu, alignRemainingOnCpu);
 
         // Run the unit under test.
         // std::vector<std::vector<MapperBaseResult>> results = mapper.DummyMapAndAlign(batchData);

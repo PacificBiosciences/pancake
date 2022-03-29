@@ -11,14 +11,24 @@ namespace PacBio {
 namespace Pancake {
 
 int32_t AlignPartsOnGPU(const std::vector<PairForBatchAlignment>& parts, AlignerBatchBase& aligner,
-                        std::vector<AlignmentResult>& retAlns)
+                        int32_t maxAllowedGap, std::vector<AlignmentResult>& retAlns)
 {
+    auto PartBandwidthAboveLimit = [](const PairForBatchAlignment& part,
+                                      const int32_t maxAllowedGap_) {
+        if (maxAllowedGap_ < 0) {
+            return false;
+        }
+        const int32_t lenDiff = std::abs(part.queryLen - part.targetLen);
+        return lenDiff > maxAllowedGap_;
+    };
+
     const std::string logPrefix("[" + std::string(__FUNCTION__) + "]");
 
     retAlns.resize(parts.size());
 
     int32_t totalNumNotValid = 0;
     size_t partId = 0;
+    int32_t numSkipped = 0;
     while (partId < parts.size()) {
         aligner.Clear();
 
@@ -32,6 +42,13 @@ int32_t AlignPartsOnGPU(const std::vector<PairForBatchAlignment>& parts, Aligner
             if (retAlns[partId].valid) {
                 continue;
             }
+
+            // Skip parts with bandwidth above the bin size.
+            if (PartBandwidthAboveLimit(part, maxAllowedGap)) {
+                ++numSkipped;
+                continue;
+            }
+
             partIds.emplace_back(partId);
 
             StatusAddSequencePair rv;
@@ -70,7 +87,7 @@ int32_t AlignPartsOnGPU(const std::vector<PairForBatchAlignment>& parts, Aligner
 
         std::vector<AlignmentResult>& partInternalAlns = aligner.GetAlnResults();
 
-        int32_t numNotValid = 0;
+        int32_t numNotValid = numSkipped;
         for (size_t i = 0; i < partInternalAlns.size(); ++i) {
             const auto& aln = partInternalAlns[i];
             if (aln.valid == false) {
