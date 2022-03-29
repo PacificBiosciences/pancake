@@ -1122,7 +1122,7 @@ void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& ch
 
     std::unordered_set<int32_t> doSort;
 
-    int32_t lastId = candidates[0];
+    int32_t lastId = candidates.at(0);
     for (int32_t i = 1; i < static_cast<int32_t>(candidates.size()); ++i) {
         const int32_t currId = candidates[i];
         auto& last = chainedRegions[lastId];
