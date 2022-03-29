@@ -91,13 +91,19 @@ if not meson.is_subproject()
       ]),
       subdir : 'pancake/util')
 
-  if opt_cuda
+  if opt_cuda_edelweiss
+      install_headers(
+        files([
+          'pancake/AlignerBatchGPUEdelweiss.hpp',
+          'pancake/MapperBatchGPUEdelweiss.hpp',
+          ]),
+          subdir : 'pancake')
+  endif
+  if opt_cuda_genomeworks
       install_headers(
         files([
           'pancake/AlignerBatchGPU.hpp',
-          'pancake/AlignerBatchGPUEdelweiss.hpp',
           'pancake/MapperBatchGPU.hpp',
-          'pancake/MapperBatchGPUEdelweiss.hpp',
           ]),
           subdir : 'pancake')
   endif

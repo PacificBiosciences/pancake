@@ -38,7 +38,8 @@ endforeach
 pancake_flags = pancake_warning_flags + ['-DHAVE_KALLOC', '-D__STDC_FORMAT_MACROS']
 
 opt_tests = get_option('tests')
-opt_cuda = get_option('gpu-cuda')
+opt_cuda_edelweiss = get_option('gpu-cuda')
+opt_cuda_genomeworks = get_option('gpu-cuda-gw')
 opt_time = get_option('time')
 opt_sse41 = get_option('sse41')
 
@@ -96,15 +97,24 @@ pancake_lib_deps = [
   pancake_rt_dep,
 ]
 
-if opt_cuda
+if opt_cuda_edelweiss or opt_cuda_genomeworks
     add_languages('cuda')
     nvcc = meson.get_compiler('cuda')
     add_project_arguments('-DGW_ENABLE_CACHING_ALLOCATOR', language : ['cpp', 'cuda'])
-    pancake_gw_dep = dependency('genomeworks', fallback : ['genomeworks', 'genomeworks_dep'])
+endif
+
+if opt_cuda_edelweiss
     pbedelweiss_dep = dependency('pbedelweiss', fallback : ['pbedelweiss', 'pbedelweiss_dep'])
     pancake_lib_deps += [
-        pancake_gw_dep,
         pbedelweiss_dep,
+    ]
+endif
+
+
+if opt_cuda_genomeworks
+    pancake_gw_dep = dependency('genomeworks', fallback : ['genomeworks', 'genomeworks_dep'])
+    pancake_lib_deps += [
+        pancake_gw_dep,
     ]
 endif
 

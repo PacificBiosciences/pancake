@@ -34,12 +34,16 @@ pancake_test_cpp_sources = files([
   'unit/TestHelperUtils.cpp',
 ])
 
-if opt_cuda
+if opt_cuda_edelweiss
+    pancake_test_cpp_sources += files([
+      'unit/test_AlignerBatchGPUEdelweiss.cpp',
+      'unit/test_MapperBatchGPUEdelweiss.cpp',
+    ])
+endif
+if opt_cuda_genomeworks
     pancake_test_cpp_sources += files([
       'unit/test_AlignerBatchGPU.cpp',
-      'unit/test_AlignerBatchGPUEdelweiss.cpp',
       'unit/test_MapperBatchGPU.cpp',
-      'unit/test_MapperBatchGPUEdelweiss.cpp',
     ])
 endif
 if opt_sse41
