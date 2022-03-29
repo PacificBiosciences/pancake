@@ -13,8 +13,6 @@
 
 #include <pbcopper/parallel/FireAndForget.h>
 
-#include <claraparabricks/genomeworks/utils/cudautils.hpp>
-
 #include <cstdint>
 #include <memory>
 #include <string>

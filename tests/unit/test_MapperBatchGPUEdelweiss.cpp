@@ -12,35 +12,6 @@ namespace PacBio {
 namespace Pancake {
 namespace MapperBatchGPUEdelweissTests {
 
-int64_t HelperGetMaxDeviceMemory(int64_t requestedMemory)
-{
-    if (requestedMemory < -1) {
-        throw std::invalid_argument(
-            "requestedMemory has to be either -1 (=all available GPU "
-            "memory) or greater or equal than 0.");
-    }
-
-    const int64_t availableMem =
-        claraparabricks::genomeworks::cudautils::find_largest_contiguous_device_memory_section();
-
-    if (availableMem == 0) {
-        throw std::runtime_error("No GPU memory available for caching.");
-    }
-
-    if (requestedMemory > availableMem) {
-        throw std::runtime_error(
-            "Requested amount of memory exceeds the largest contigous memory section. requested "
-            "= " +
-            std::to_string(requestedMemory) + ", available = " + std::to_string(availableMem));
-    }
-
-    if (requestedMemory >= 0) {
-        return requestedMemory;
-    }
-
-    return availableMem;
-}
-
 TEST(MapperBatchGPUEdelweiss, BatchMapping_ArrayOfTests)
 {
     using namespace PacBio::Pancake;
@@ -844,7 +815,7 @@ TEST(MapperBatchGPUEdelweiss, EdelweissEdgeCases_ArrayOfTests)
     const PacBio::Pancake::MapperCLRSettings settings =
         PacBio::PancakeTests::HelperInitPancakeSettingsSubread();
     const uint32_t gpuDeviceId = 0;
-    const int64_t gpuMaxMemoryCap = HelperGetMaxDeviceMemory(-1);
+    const int64_t gpuMaxMemoryCap = 10 * 1024LL * 1024LL * 1024LL;
     const int32_t numThreads = 1;
     const int32_t startBandwidth = 256;
     const int32_t maxBandwidth = 256;
