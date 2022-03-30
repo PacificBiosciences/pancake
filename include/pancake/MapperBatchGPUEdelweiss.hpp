@@ -54,10 +54,6 @@ private:
 
     static void WorkerMapper_(const std::vector<MapperBatchChunk>& batchChunks, int32_t startId,
                               int32_t endId, std::vector<std::vector<MapperBaseResult>>& results);
-
-    static int32_t AlignPartsOnGPU_(AlignerBatchGPUEdelweiss& aligner,
-                                    const std::vector<PairForBatchAlignment>& parts,
-                                    std::vector<AlignmentResult>& retInternalAlns);
 };
 
 }  // namespace Pancake

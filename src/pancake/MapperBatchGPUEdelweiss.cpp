@@ -5,6 +5,7 @@
 #include <pancake/AlignerBatchGPUEdelweiss.hpp>
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/AlignmentTools.hpp>
+#include <pancake/MapperBatchGPUUtility.hpp>
 #include <pancake/OverlapWriterFactory.hpp>
 #include <pancake/util/TicToc.hpp>
 
@@ -133,7 +134,7 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
         while (true) {
             PBLOG_TRACE << "Trying bandwidth: " << currentBandwidth;
             aligner.ResetMaxBandwidth(currentBandwidth);
-            numInternalNotValid = AlignPartsOnGPU_(aligner, partsGlobal, internalAlns);
+            numInternalNotValid = AlignPartsOnGPU(partsGlobal, aligner, internalAlns);
             // std::cerr << "numInternalNotValid = " << numInternalNotValid << "\n";
             if (numInternalNotValid == 0) {
                 break;
@@ -199,74 +200,6 @@ void MapperBatchGPUEdelweiss::WorkerMapper_(const std::vector<MapperBatchChunk>&
 
         results[i] = mapper.MapAndAlign(chunk.targetSeqs, chunk.querySeqs);
     }
-}
-
-int32_t MapperBatchGPUEdelweiss::AlignPartsOnGPU_(AlignerBatchGPUEdelweiss& aligner,
-                                                  const std::vector<PairForBatchAlignment>& parts,
-                                                  std::vector<AlignmentResult>& retInternalAlns)
-{
-    retInternalAlns.resize(parts.size());
-
-    int32_t totalNumNotValid = 0;
-    size_t partId = 0;
-    while (partId < parts.size()) {
-        aligner.Clear();
-
-        std::vector<size_t> partIds;
-        partIds.reserve(parts.size());
-
-        PBLOG_TRACE << "Preparing sequences for GPU alignment.";
-        for (; partId < parts.size(); ++partId) {
-            const PairForBatchAlignment& part = parts[partId];
-
-            if (retInternalAlns[partId].valid) {
-                continue;
-            }
-            partIds.emplace_back(partId);
-
-            StatusAddSequencePair rv;
-            if (part.regionType == RegionType::FRONT) {
-                // Reverse the sequences for front flank alignment. No need to complement.
-                std::string query(part.query, part.queryLen);
-                std::reverse(query.begin(), query.end());
-                std::string target(part.target, part.targetLen);
-                std::reverse(target.begin(), target.end());
-                rv = aligner.AddSequencePairForGlobalAlignment(query, target);
-            } else {
-                rv = aligner.AddSequencePairForGlobalAlignment(
-                    {part.query, static_cast<size_t>(part.queryLen)},
-                    {part.target, static_cast<size_t>(part.targetLen)});
-            }
-
-            if (rv == StatusAddSequencePair::EXCEEDED_MAX_ALIGNMENTS) {
-                break;
-
-            } else if (rv != StatusAddSequencePair::OK) {
-                throw std::runtime_error(
-                    "Error occurred while trying to add sequences for batch alignment to "
-                    "AlignerBatchGPUEdelweiss.");
-            }
-        }
-
-        PBLOG_TRACE << "Aligning batch of " << aligner.BatchSize() << " sequence pairs.";
-        aligner.AlignAll();
-
-        std::vector<AlignmentResult>& partInternalAlns = aligner.GetAlnResults();
-
-        int32_t numNotValid = 0;
-        for (size_t i = 0; i < partInternalAlns.size(); ++i) {
-            const auto& aln = partInternalAlns[i];
-            if (aln.valid == false) {
-                ++numNotValid;
-            }
-            // retInternalAlns.emplace_back(std::move(partInternalAlns[i]));
-            retInternalAlns[partIds[i]] = std::move(partInternalAlns[i]);
-        }
-        totalNumNotValid += numNotValid;
-    }
-    PBLOG_TRACE << "Total not valid: " << totalNumNotValid << " / " << retInternalAlns.size()
-                << "\n";
-    return totalNumNotValid;
 }
 
 }  // namespace Pancake

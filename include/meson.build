@@ -91,6 +91,13 @@ if not meson.is_subproject()
       ]),
       subdir : 'pancake/util')
 
+  if opt_cuda_edelweiss or opt_cuda_genomeworks
+      install_headers(
+        files([
+          'pancake/MapperBatchGPUUtility.hpp',
+          ]),
+          subdir : 'pancake')
+  endif
   if opt_cuda_edelweiss
       install_headers(
         files([

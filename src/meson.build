@@ -115,6 +115,10 @@ if opt_cuda
     if (get_option('b_ndebug') == 'true') or ((get_option('b_ndebug') == 'if-release') and (get_option('buildtype') == 'release'))
       pancake_cuda_flags += '-DNDEBUG'
     endif
+
+    pancake_cpp_sources += files([
+        'pancake/MapperBatchGPUUtility.cpp',
+    ])
 endif
 
 if opt_cuda_edelweiss
