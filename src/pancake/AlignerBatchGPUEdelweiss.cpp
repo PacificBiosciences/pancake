@@ -19,11 +19,10 @@ namespace Pancake {
 
 AlignerBatchGPUEdelweiss::AlignerBatchGPUEdelweiss(const int32_t numThreads,
                                                    const AlignmentParameters& alnParams,
-                                                   int32_t minBandwidth, int32_t maxBandwidth,
+                                                   const int32_t maxBandwidth,
                                                    const int32_t deviceId,
                                                    const int64_t maxGPUMemoryCap)
-    : AlignerBatchGPUEdelweiss(nullptr, alnParams, deviceId, minBandwidth, maxBandwidth,
-                               maxGPUMemoryCap)
+    : AlignerBatchGPUEdelweiss(nullptr, alnParams, deviceId, maxBandwidth, maxGPUMemoryCap)
 {
     fafFallback_ = std::make_unique<Parallel::FireAndForget>(numThreads);
     faf_ = fafFallback_.get();
@@ -31,7 +30,7 @@ AlignerBatchGPUEdelweiss::AlignerBatchGPUEdelweiss(const int32_t numThreads,
 
 AlignerBatchGPUEdelweiss::AlignerBatchGPUEdelweiss(Parallel::FireAndForget* faf,
                                                    const AlignmentParameters& alnParams,
-                                                   int32_t minBandwidth, int32_t maxBandwidth,
+                                                   const int32_t maxBandwidth,
                                                    const int32_t deviceId,
                                                    const int64_t maxGPUMemoryCap)
     : faf_{faf}
@@ -39,7 +38,6 @@ AlignerBatchGPUEdelweiss::AlignerBatchGPUEdelweiss(Parallel::FireAndForget* faf,
     , aligner_{deviceId, maxGPUMemoryCap}
     , deviceId_(deviceId)
     , maxGPUMemoryCap_(maxGPUMemoryCap)
-    , minBandwidth_(minBandwidth)
     , maxBandwidth_(maxBandwidth)
     , alnParams_(alnParams)
 {}
@@ -123,7 +121,7 @@ void AlignerBatchGPUEdelweiss::AlignAll()
 
     // Edelweiss::Aligner aligner{deviceId_, maxGPUMemoryCap_};
     const std::vector<Edelweiss::Aligner::OutputAlignment> edelResults =
-        aligner_.Align(edelweissSeqs, minBandwidth_, maxBandwidth_, edelweissAlnParams);
+        aligner_.Align(edelweissSeqs, maxBandwidth_, edelweissAlnParams);
 
     PopulateResults_(querySpans_, targetSpans_, alnParams_, edelResults, alnResults_, faf_);
 }

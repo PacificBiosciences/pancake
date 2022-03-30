@@ -80,10 +80,9 @@ TEST(AlignerBatchGPUEdelweiss, ArrayOfTests_Small)
 
     const int32_t numThreads = 1;
     const int64_t maxMemoryCap = 10 * 1024 * 1024 * 1024LL;
-    int32_t minBandwidth = 0;
     int32_t maxBandwidth = 256;
-    auto aligner = PacBio::Pancake::AlignerBatchGPUEdelweiss(
-        numThreads, alnParams, deviceId, minBandwidth, maxBandwidth, maxMemoryCap);
+    auto aligner = PacBio::Pancake::AlignerBatchGPUEdelweiss(numThreads, alnParams, deviceId,
+                                                             maxBandwidth, maxMemoryCap);
 
     for (const auto& data : testData) {
         // Debug info.
@@ -130,10 +129,9 @@ TEST(AlignerBatchGPUEdelweiss, ArrayOfTests_Small_ShouldThrow)
 
     const int32_t numThreads = 1;
     const int64_t maxMemoryCap = 10 * 1024 * 1024 * 1024LL;
-    int32_t minBandwidth = 0;
     int32_t maxBandwidth = 256;
-    auto aligner = PacBio::Pancake::AlignerBatchGPUEdelweiss(
-        numThreads, alnParams, deviceId, minBandwidth, maxBandwidth, maxMemoryCap);
+    auto aligner = PacBio::Pancake::AlignerBatchGPUEdelweiss(numThreads, alnParams, deviceId,
+                                                             maxBandwidth, maxMemoryCap);
 
     for (const auto& data : testData) {
         // Debug info.

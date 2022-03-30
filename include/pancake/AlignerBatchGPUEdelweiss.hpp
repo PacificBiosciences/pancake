@@ -22,12 +22,10 @@ class AlignerBatchGPUEdelweiss : public AlignerBatchBase
 {
 public:
     AlignerBatchGPUEdelweiss(int32_t numThreads, const AlignmentParameters& alnParams,
-                             int32_t minBandwidth, int32_t maxBandwidth, int32_t deviceId,
-                             int64_t maxGPUMemoryCap);
+                             int32_t maxBandwidth, int32_t deviceId, int64_t maxGPUMemoryCap);
 
     AlignerBatchGPUEdelweiss(Parallel::FireAndForget* faf, const AlignmentParameters& alnParams,
-                             int32_t minBandwidth, int32_t maxBandwidth, int32_t deviceId,
-                             int64_t maxGPUMemoryCap);
+                             int32_t maxBandwidth, int32_t deviceId, int64_t maxGPUMemoryCap);
 
     ~AlignerBatchGPUEdelweiss() override;
 
@@ -96,7 +94,6 @@ private:
     Edelweiss::Aligner aligner_;
     int32_t deviceId_ = 0;
     int64_t maxGPUMemoryCap_ = 0;
-    int32_t minBandwidth_ = 64;
     int32_t maxBandwidth_ = 256;
     AlignmentParameters alnParams_;
     std::vector<char> concatQueries_;

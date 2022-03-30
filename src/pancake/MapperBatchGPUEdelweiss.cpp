@@ -37,9 +37,8 @@ MapperBatchGPUEdelweiss::MapperBatchGPUEdelweiss(
 {
     fafFallback_ = std::make_unique<Parallel::FireAndForget>(numThreads);
     faf_ = fafFallback_.get();
-    aligner_ = std::make_unique<AlignerBatchGPUEdelweiss>(faf_, alignSettings.alnParamsGlobal,
-                                                          gpuStartBandwidth, gpuMaxBandwidth,
-                                                          gpuDeviceId, gpuMemoryBytes);
+    aligner_ = std::make_unique<AlignerBatchGPUEdelweiss>(
+        faf_, alignSettings.alnParamsGlobal, gpuStartBandwidth, gpuDeviceId, gpuMemoryBytes);
 }
 
 MapperBatchGPUEdelweiss::MapperBatchGPUEdelweiss(
@@ -52,9 +51,8 @@ MapperBatchGPUEdelweiss::MapperBatchGPUEdelweiss(
     , alignRemainingOnCpu_(alignRemainingOnCpu)
     , faf_{faf}
     , fafFallback_(nullptr)
-    , aligner_{std::make_unique<AlignerBatchGPUEdelweiss>(faf, alignSettings.alnParamsGlobal,
-                                                          gpuStartBandwidth, gpuMaxBandwidth,
-                                                          gpuDeviceId, gpuMemoryBytes)}
+    , aligner_{std::make_unique<AlignerBatchGPUEdelweiss>(
+          faf, alignSettings.alnParamsGlobal, gpuStartBandwidth, gpuDeviceId, gpuMemoryBytes)}
 {}
 
 MapperBatchGPUEdelweiss::~MapperBatchGPUEdelweiss()
