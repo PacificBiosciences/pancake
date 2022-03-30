@@ -117,9 +117,9 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
         std::vector<PairForBatchAlignment> partsSemiglobal;
         std::vector<AlignmentStitchInfo> alnStitchInfo;
         int32_t longestSequenceForAln = 0;
-        PrepareSequencesForBatchAlignment(batchChunks, querySeqsRevStore, results,
-                                          alignSettings.selfHitPolicy, partsGlobal, partsSemiglobal,
-                                          alnStitchInfo, longestSequenceForAln);
+        PrepareSequencesForBatchAlignmentInParallel(
+            faf, batchChunks, querySeqsRevStore, results, alignSettings.selfHitPolicy, partsGlobal,
+            partsSemiglobal, alnStitchInfo, longestSequenceForAln);
         PBLOG_TRACE << "partsGlobal.size() = " << partsGlobal.size();
         PBLOG_TRACE << "partsSemiglobal.size() = " << partsSemiglobal.size();
 

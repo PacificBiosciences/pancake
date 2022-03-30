@@ -296,7 +296,7 @@ TEST(MapperBatchGPUEdelweiss, BatchMapping_ArrayOfTests)
         const uint32_t gpuDeviceId = 0;
         const int64_t gpuMaxMemoryCap =
             static_cast<int64_t>(10000) * static_cast<int64_t>(1024 * 1024);
-        const int32_t numThreads = 1;
+        const int32_t numThreads = 4;
         const int32_t startBandwidth = 500;
         const int32_t maxBandwidth = 500;
         bool alignRemainingOnCpu = false;
@@ -816,7 +816,7 @@ TEST(MapperBatchGPUEdelweiss, EdelweissEdgeCases_ArrayOfTests)
         PacBio::PancakeTests::HelperInitPancakeSettingsSubread();
     const uint32_t gpuDeviceId = 0;
     const int64_t gpuMaxMemoryCap = 10 * 1024LL * 1024LL * 1024LL;
-    const int32_t numThreads = 1;
+    const int32_t numThreads = 4;
     const int32_t startBandwidth = 256;
     const int32_t maxBandwidth = 256;
     bool alignRemainingOnCpu = false;
