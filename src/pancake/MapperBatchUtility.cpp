@@ -199,7 +199,8 @@ void PrepareSequencesForBatchAlignmentInParallel(
     Parallel::FireAndForget* faf, const std::vector<MapperBatchChunk>& batchChunks,
     const std::vector<FastaSequenceCachedStore>& querySeqsRev,
     const std::vector<std::vector<MapperBaseResult>>& mappingResults,
-    const MapperSelfHitPolicy selfHitPolicy, std::vector<PairForBatchAlignment>& retPartsGlobal,
+    const MapperSelfHitPolicy selfHitPolicy, const bool sortPartsByLength,
+    std::vector<PairForBatchAlignment>& retPartsGlobal,
     std::vector<PairForBatchAlignment>& retPartsSemiglobal,
     std::vector<AlignmentStitchInfo>& retAlnStitchInfo, int32_t& retLongestSequence)
 {
@@ -402,6 +403,62 @@ void PrepareSequencesForBatchAlignmentInParallel(
     // Find the longest sequence length.
     for (const int32_t longestSeq : threadLongestSequence) {
         retLongestSequence = std::max(retLongestSequence, longestSeq);
+    }
+
+    ////////////////////////
+    /// Sorting.         ///
+    ////////////////////////
+    if (sortPartsByLength) {
+        // Sort global parts.
+        std::vector<size_t> indexKeyGlobal(retPartsGlobal.size(), -1);
+        {
+            std::vector<std::pair<int32_t, size_t>> sortedIndices(retPartsGlobal.size());
+            for (size_t i = 0; i < retPartsGlobal.size(); ++i) {
+                const auto& v = retPartsGlobal[i];
+                sortedIndices[i] = std::make_pair(std::max(v.queryLen, v.targetLen), i);
+            }
+            std::sort(sortedIndices.begin(), sortedIndices.end());
+            // The indexKeyGlobal holds a conversion from oldPartId -> newPartId after sorting.
+            for (size_t i = 0; i < sortedIndices.size(); ++i) {
+                indexKeyGlobal[sortedIndices[i].second] = i;
+            }
+            // Create the sorted array.
+            std::vector<PairForBatchAlignment> sortedParts(retPartsGlobal.size());
+            for (size_t i = 0; i < indexKeyGlobal.size(); ++i) {
+                sortedParts[i] = retPartsGlobal[sortedIndices[i].second];
+            }
+            std::swap(sortedParts, retPartsGlobal);
+        }
+        // Sort semiglobal parts.
+        std::vector<size_t> indexKeySemiglobal(retPartsSemiglobal.size(), -1);
+        {
+            std::vector<std::pair<int32_t, size_t>> sortedIndices(retPartsSemiglobal.size());
+            for (size_t i = 0; i < retPartsSemiglobal.size(); ++i) {
+                const auto& v = retPartsSemiglobal[i];
+                sortedIndices[i] = std::make_pair(std::max(v.queryLen, v.targetLen), i);
+            }
+            std::sort(sortedIndices.begin(), sortedIndices.end());
+            // The indexKey holds a conversion from oldPartId -> newPartId after sorting.
+            for (size_t i = 0; i < sortedIndices.size(); ++i) {
+                indexKeySemiglobal[sortedIndices[i].second] = i;
+            }
+            // Create the sorted array.
+            std::vector<PairForBatchAlignment> sortedParts(retPartsSemiglobal.size());
+            for (size_t i = 0; i < indexKeySemiglobal.size(); ++i) {
+                sortedParts[i] = retPartsSemiglobal[sortedIndices[i].second];
+            }
+            std::swap(sortedParts, retPartsSemiglobal);
+        }
+        // Update the part indices after sorting.
+        for (auto& alnInfo : retAlnStitchInfo) {
+            for (auto& part : alnInfo.parts) {
+                if (part.regionType == RegionType::GLOBAL) {
+                    part.partId = indexKeyGlobal[part.partId];
+                } else {
+                    part.partId = indexKeySemiglobal[part.partId];
+                }
+            }
+        }
     }
 }
 

@@ -121,12 +121,10 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
         std::vector<AlignmentStitchInfo> alnStitchInfo;
         int32_t longestSequenceForAln = 0;
         PrepareSequencesForBatchAlignmentInParallel(
-            faf, batchChunks, querySeqsRevStore, results, alignSettings.selfHitPolicy, partsGlobal,
-            partsSemiglobal, alnStitchInfo, longestSequenceForAln);
+            faf, batchChunks, querySeqsRevStore, results, alignSettings.selfHitPolicy, true,
+            partsGlobal, partsSemiglobal, alnStitchInfo, longestSequenceForAln);
         PBLOG_TRACE << "partsGlobal.size() = " << partsGlobal.size();
         PBLOG_TRACE << "partsSemiglobal.size() = " << partsSemiglobal.size();
-        std::cerr << "partsGlobal.size() = " << partsGlobal.size() << "\n";
-        std::cerr << "partsSemiglobal.size() = " << partsSemiglobal.size() << "\n";
 
         // Global alignment on GPU. Try using different bandwidths,
         // increasing the bandwidth for the failed parts each iteration.

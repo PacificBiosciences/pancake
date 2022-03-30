@@ -139,7 +139,8 @@ void PrepareSequencesForBatchAlignmentInParallel(
     Parallel::FireAndForget* faf, const std::vector<MapperBatchChunk>& batchChunks,
     const std::vector<FastaSequenceCachedStore>& querySeqsRev,
     const std::vector<std::vector<MapperBaseResult>>& mappingResults,
-    const MapperSelfHitPolicy selfHitPolicy, std::vector<PairForBatchAlignment>& retPartsGlobal,
+    const MapperSelfHitPolicy selfHitPolicy, bool sortPartsByLength,
+    std::vector<PairForBatchAlignment>& retPartsGlobal,
     std::vector<PairForBatchAlignment>& retPartsSemiglobal,
     std::vector<AlignmentStitchInfo>& retAlnStitchInfo, int32_t& retLongestSequence);
 

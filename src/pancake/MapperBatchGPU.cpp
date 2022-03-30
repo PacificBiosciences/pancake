@@ -141,8 +141,8 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPU::MapAndAlignImpl_(
         std::vector<AlignmentStitchInfo> alnStitchInfo;
         int32_t longestSequenceForAln = 0;
         PrepareSequencesForBatchAlignmentInParallel(
-            faf, batchChunks, querySeqsRevStore, results, alignSettings.selfHitPolicy, partsGlobal,
-            partsSemiglobal, alnStitchInfo, longestSequenceForAln);
+            faf, batchChunks, querySeqsRevStore, results, alignSettings.selfHitPolicy, true,
+            partsGlobal, partsSemiglobal, alnStitchInfo, longestSequenceForAln);
         PBLOG_TRACE << "partsGlobal.size() = " << partsGlobal.size();
         PBLOG_TRACE << "partsSemiglobal.size() = " << partsSemiglobal.size();
 
