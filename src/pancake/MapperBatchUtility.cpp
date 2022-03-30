@@ -6,6 +6,7 @@
 #include <pancake/OverlapWriterBase.hpp>
 
 #include <pbcopper/logging/Logging.h>
+#include <pbcopper/utility/Ssize.h>
 
 namespace PacBio {
 namespace Pancake {
@@ -191,6 +192,216 @@ void PrepareSequencesForBatchAlignment(
                 retAlnStitchInfo.emplace_back(std::move(singleAlnStitches));
             }
         }
+    }
+}
+
+void PrepareSequencesForBatchAlignmentInParallel(
+    Parallel::FireAndForget* faf, const std::vector<MapperBatchChunk>& batchChunks,
+    const std::vector<FastaSequenceCachedStore>& querySeqsRev,
+    const std::vector<std::vector<MapperBaseResult>>& mappingResults,
+    const MapperSelfHitPolicy selfHitPolicy, std::vector<PairForBatchAlignment>& retPartsGlobal,
+    std::vector<PairForBatchAlignment>& retPartsSemiglobal,
+    std::vector<AlignmentStitchInfo>& retAlnStitchInfo, int32_t& retLongestSequence)
+{
+    /*
+        - Outter vector: chunks (chunk 0..N for the entire batch).
+        - Inner vector: queries in a chunk. One or more.
+        - MapperBaseResult: Contains zero or more mappings of that query onto the set of target sequences.
+        const std::vector<std::vector<MapperBaseResult>>& mappingResults,
+     */
+
+    retPartsGlobal.clear();
+    retPartsSemiglobal.clear();
+    retAlnStitchInfo.clear();
+    retLongestSequence = 0;
+
+    // Determine how many records should land in each thread, spread roughly evenly.
+    const int32_t numThreads = faf ? faf->NumThreads() : 1;
+    const int32_t numRecords = batchChunks.size();
+    const std::vector<std::pair<int32_t, int32_t>> jobsPerThread =
+        PacBio::Pancake::DistributeJobLoad<int32_t>(numThreads, numRecords);
+
+    std::vector<std::vector<PairForBatchAlignment>> threadPartsGlobal(numThreads);
+    std::vector<std::vector<PairForBatchAlignment>> threadPartsSemiglobal(numThreads);
+    std::vector<std::vector<AlignmentStitchInfo>> threadAlnStitchInfo(numThreads);
+    std::vector<int32_t> threadLongestSequence(numThreads, 0);
+
+    const auto Submit = [&jobsPerThread, &batchChunks, &querySeqsRev, &mappingResults,
+                         &selfHitPolicy, &threadPartsGlobal, &threadPartsSemiglobal,
+                         &threadAlnStitchInfo, &threadLongestSequence](int32_t idx) {
+        const int32_t jobStart = jobsPerThread[idx].first;
+        const int32_t jobEnd = jobsPerThread[idx].second;
+
+        std::vector<PairForBatchAlignment> partsGlobal;
+        std::vector<PairForBatchAlignment> partsSemiglobal;
+        std::vector<AlignmentStitchInfo> alnStitchInfo;
+        int32_t longestSequence = 0;
+
+        for (int32_t chunkId = jobStart; chunkId < jobEnd; ++chunkId) {
+            const auto& result = mappingResults[chunkId];
+            const auto& chunk = batchChunks[chunkId];
+
+            // One chunk can have multiple queries (subreads).
+            for (size_t ordinalQueryId = 0; ordinalQueryId < result.size(); ++ordinalQueryId) {
+                // Find the actual sequence ID from one valid mapping.
+                int32_t Aid = -1;
+                for (size_t mapId = 0; mapId < result[ordinalQueryId].mappings.size(); ++mapId) {
+                    if (result[ordinalQueryId].mappings[mapId] == nullptr ||
+                        result[ordinalQueryId].mappings[mapId]->mapping == nullptr) {
+                        continue;
+                    }
+                    Aid = result[ordinalQueryId].mappings[mapId]->mapping->Aid;
+                    break;
+                }
+                if (Aid < 0) {
+                    continue;
+                }
+
+                // Prepare the forward query data.
+                // Fetch the query sequence without throwing if it doesn't exist for some reason.
+                const char* qSeqFwd =
+                    FetchSequenceFromCacheStore(chunk.querySeqs, Aid, true, __FUNCTION__,
+                                                "Query fwd. Aid = " + std::to_string(Aid), NULL);
+                if (qSeqFwd == nullptr) {
+                    PBLOG_ERROR << "qSeqFwd == NULL! Skipping and continuing anyway.";
+                    assert(false);
+                    continue;
+                }
+
+                // Prepare the reverse query data.
+                const char* qSeqRev =
+                    FetchSequenceFromCacheStore(querySeqsRev[chunkId], Aid, true, __FUNCTION__,
+                                                "Query rev. Aid = " + std::to_string(Aid), NULL);
+                if (qSeqRev == nullptr) {
+                    PBLOG_ERROR << "qSeqRev == NULL! Skipping and continuing anyway.";
+                    assert(false);
+                    continue;
+                }
+
+                // Each query can have multiple mappings.
+                for (size_t mapId = 0; mapId < result[ordinalQueryId].mappings.size(); ++mapId) {
+                    if (result[ordinalQueryId].mappings[mapId] == nullptr) {
+                        continue;
+                    }
+
+                    const auto& mapping = result[ordinalQueryId].mappings[mapId];
+
+                    if (mapping->mapping == nullptr) {
+                        continue;
+                    }
+
+                    // Shorthand to the mapped data.
+                    const auto& aln = mapping->mapping;
+
+                    // Skip self-hits unless the default policy is used, in which case align all.
+                    if (selfHitPolicy != MapperSelfHitPolicy::DEFAULT && aln->Aid == aln->Bid) {
+                        continue;
+                    }
+
+                    // Fetch the target sequence without throwing if it doesn't exist for some reason.
+                    const char* tSeq = FetchSequenceFromCacheStore(
+                        chunk.targetSeqs, mapping->mapping->Bid, true, __FUNCTION__, "Target.",
+                        mapping->mapping.get());
+                    if (tSeq == NULL) {
+                        PBLOG_ERROR << "tSeq == NULL. Overlap: " << *mapping->mapping
+                                    << ". Skipping and continuing anyway.";
+                        assert(false);
+                        continue;
+                    }
+
+                    AlignmentStitchInfo singleAlnStitches(chunkId, ordinalQueryId, mapId);
+
+                    // Each mapping is split into regions in between seed hits for alignment.
+                    for (size_t regId = 0; regId < mapping->regionsForAln.size(); ++regId) {
+                        const auto& region = mapping->regionsForAln[regId];
+
+                        // Prepare the sequences for alignment.
+                        const char* qSeqInStrand = region.queryRev ? qSeqRev : qSeqFwd;
+                        const char* tSeqInStrand = tSeq;
+                        int32_t qStart = region.qStart;
+                        int32_t tStart = region.tStart;
+                        const int32_t qSpan = region.qSpan;
+                        const int32_t tSpan = region.tSpan;
+
+                        const PairForBatchAlignment part{qSeqInStrand + qStart, qSpan,
+                                                         tSeqInStrand + tStart, tSpan,
+                                                         region.type,           region.queryRev};
+
+                        longestSequence = std::max(longestSequence, std::max(qSpan, tSpan));
+
+                        if (region.type == RegionType::GLOBAL) {
+                            singleAlnStitches.parts.emplace_back(AlignmentStitchPart{
+                                region.type, static_cast<int64_t>(partsGlobal.size()),
+                                static_cast<int64_t>(regId)});
+                            partsGlobal.emplace_back(part);
+                        } else {
+                            singleAlnStitches.parts.emplace_back(AlignmentStitchPart{
+                                region.type, static_cast<int64_t>(partsSemiglobal.size()),
+                                static_cast<int64_t>(regId)});
+                            partsSemiglobal.emplace_back(part);
+                        }
+                    }
+                    alnStitchInfo.emplace_back(std::move(singleAlnStitches));
+                }
+            }
+        }
+
+        std::swap(partsGlobal, threadPartsGlobal[idx]);
+        std::swap(partsSemiglobal, threadPartsSemiglobal[idx]);
+        std::swap(alnStitchInfo, threadAlnStitchInfo[idx]);
+        threadLongestSequence[idx] = longestSequence;
+    };
+
+    Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
+
+    auto ConcatResults = [](auto& globalResults, const auto& perThreadResults) {
+        globalResults.clear();
+        int64_t numItems = 0;
+        for (const auto& vec : perThreadResults) {
+            numItems += Utility::Ssize(vec);
+        }
+        globalResults.reserve(numItems);
+        for (const auto& vec : perThreadResults) {
+            globalResults.insert(globalResults.end(), vec.begin(), vec.end());
+        }
+    };
+
+    // Collect the results.
+    ConcatResults(retPartsGlobal, threadPartsGlobal);
+    ConcatResults(retPartsSemiglobal, threadPartsSemiglobal);
+
+    // The AlnStitchInfo needs to be handled separately because indices need to be updated.
+    {
+        retAlnStitchInfo.clear();
+        int64_t numItems = 0;
+        for (const auto& vec : threadAlnStitchInfo) {
+            numItems += Utility::Ssize(vec);
+        }
+        retAlnStitchInfo.reserve(numItems);
+
+        // Adjust the part IDs.
+        int64_t offsetGlobal = 0;
+        int64_t offsetSemiglobal = 0;
+        for (const auto& vec : threadAlnStitchInfo) {
+            for (const auto& alnInfo : vec) {
+                retAlnStitchInfo.emplace_back(alnInfo);
+                auto& last = retAlnStitchInfo.back();
+                for (auto& part : last.parts) {
+                    if (part.regionType == RegionType::GLOBAL) {
+                        part.partId = offsetGlobal;
+                        ++offsetGlobal;
+                    } else {
+                        part.partId = offsetSemiglobal;
+                        ++offsetSemiglobal;
+                    }
+                }
+            }
+        }
+    }
+
+    // Find the longest sequence length.
+    for (const int32_t longestSeq : threadLongestSequence) {
+        retLongestSequence = std::max(retLongestSequence, longestSeq);
     }
 }
 

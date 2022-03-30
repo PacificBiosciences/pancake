@@ -50,6 +50,14 @@ struct PairForBatchAlignment
     bool regionIsRev = false;
 };
 
+inline std::ostream& operator<<(std::ostream& os, const PairForBatchAlignment& b)
+{
+    os << "queryLen = " << b.queryLen << ", targetLen = " << b.targetLen
+       << ", regionType = " << RegionTypeToString(b.regionType)
+       << ", regionIsRev = " << b.regionIsRev;
+    return os;
+}
+
 /*
  * \brief The AlignmentStitchPart is used to relate the alignment regions
  * created during mapping to the actual alignment parts.
@@ -68,6 +76,12 @@ struct AlignmentStitchPart
     // (it's a std::vector<AlignmentRegion>).
     int64_t regionId = 0;
 };
+inline std::ostream& operator<<(std::ostream& os, const AlignmentStitchPart& b)
+{
+    os << "regionType = " << RegionTypeToString(b.regionType) << ", partId = " << b.partId
+       << ", regionId = " << b.regionId;
+    return os;
+}
 
 /*
  * \brief Keeps the information needed to stitch the batch alignment for a particular query.
@@ -93,7 +107,10 @@ public:
 inline std::ostream& operator<<(std::ostream& os, const AlignmentStitchInfo& b)
 {
     os << "ordinalBatchId = " << b.ordinalBatchId << ", ordinalQueryId = " << b.ordinalQueryId
-       << ", ordinalMapId = " << b.ordinalMapId;
+       << ", ordinalMapId = " << b.ordinalMapId << ", parts = " << b.parts.size() << "\n";
+    for (size_t i = 0; i < b.parts.size(); ++i) {
+        os << "    [part i = " << i << "] " << b.parts[i] << "\n";
+    }
     return os;
 }
 
@@ -112,6 +129,14 @@ std::vector<PacBio::Pancake::MapperBatchChunk> ConstructBatchData(
 
 void PrepareSequencesForBatchAlignment(
     const std::vector<MapperBatchChunk>& batchChunks,
+    const std::vector<FastaSequenceCachedStore>& querySeqsRev,
+    const std::vector<std::vector<MapperBaseResult>>& mappingResults,
+    const MapperSelfHitPolicy selfHitPolicy, std::vector<PairForBatchAlignment>& retPartsGlobal,
+    std::vector<PairForBatchAlignment>& retPartsSemiglobal,
+    std::vector<AlignmentStitchInfo>& retAlnStitchInfo, int32_t& retLongestSequence);
+
+void PrepareSequencesForBatchAlignmentInParallel(
+    Parallel::FireAndForget* faf, const std::vector<MapperBatchChunk>& batchChunks,
     const std::vector<FastaSequenceCachedStore>& querySeqsRev,
     const std::vector<std::vector<MapperBaseResult>>& mappingResults,
     const MapperSelfHitPolicy selfHitPolicy, std::vector<PairForBatchAlignment>& retPartsGlobal,
