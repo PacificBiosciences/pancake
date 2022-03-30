@@ -233,11 +233,7 @@ int32_t AlignPartsOnCpu(const AlignerType alignerTypeGlobal,
             std::string target(part.target, part.targetLen);
             std::reverse(target.begin(), target.end());
 
-            if (part.regionType == RegionType::GLOBAL) {
-                aligner.AddSequencePairForGlobalAlignment(query, target);
-            } else {
-                aligner.AddSequencePairForExtensionAlignment(query, target);
-            }
+            aligner.AddSequencePairForExtensionAlignment(query, target);
         } else {
             if (part.regionType == RegionType::GLOBAL) {
                 aligner.AddSequencePairForGlobalAlignment(
