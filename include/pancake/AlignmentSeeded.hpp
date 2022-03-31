@@ -44,11 +44,13 @@ public:
     bool queryRev = false;
     RegionType type = RegionType::GLOBAL;
     int32_t regionId = -1;
+    int32_t maxGap = 0;
 
     bool operator==(const AlignmentRegion& b) const
     {
-        return qStart == b.qStart && qSpan == b.qSpan && tStart == b.tStart && tSpan == b.tSpan &&
-               queryRev == b.queryRev && type == b.type && regionId == b.regionId;
+        return std::tie(qStart, qSpan, tStart, tSpan, queryRev, type, regionId, maxGap) ==
+               std::tie(b.qStart, b.qSpan, b.tStart, b.tSpan, b.queryRev, b.type, b.regionId,
+                        b.maxGap);
     }
 };
 inline std::ostream& operator<<(std::ostream& os, const AlignmentRegion& b)

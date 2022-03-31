@@ -48,13 +48,14 @@ struct PairForBatchAlignment
     int32_t targetLen = 0;
     RegionType regionType = RegionType::GLOBAL;
     bool regionIsRev = false;
+    int32_t maxGap = 0;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const PairForBatchAlignment& b)
 {
     os << "queryLen = " << b.queryLen << ", targetLen = " << b.targetLen
        << ", regionType = " << RegionTypeToString(b.regionType)
-       << ", regionIsRev = " << b.regionIsRev;
+       << ", regionIsRev = " << b.regionIsRev << ", maxGap = " << b.maxGap;
     return os;
 }
 

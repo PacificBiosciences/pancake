@@ -324,9 +324,9 @@ void PrepareSequencesForBatchAlignmentInParallel(
                         const int32_t qSpan = region.qSpan;
                         const int32_t tSpan = region.tSpan;
 
-                        const PairForBatchAlignment part{qSeqInStrand + qStart, qSpan,
-                                                         tSeqInStrand + tStart, tSpan,
-                                                         region.type,           region.queryRev};
+                        const PairForBatchAlignment part{
+                            qSeqInStrand + qStart, qSpan,           tSeqInStrand + tStart, tSpan,
+                            region.type,           region.queryRev, region.maxGap};
 
                         longestSequence = std::max(longestSequence, std::max(qSpan, tSpan));
 

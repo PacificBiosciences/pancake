@@ -19,7 +19,7 @@ int32_t AlignPartsOnGPU(const std::vector<PairForBatchAlignment>& parts, Aligner
             return false;
         }
         const int32_t lenDiff = std::abs(part.queryLen - part.targetLen);
-        return lenDiff > maxAllowedGap_;
+        return (lenDiff > maxAllowedGap_) || (part.maxGap > maxAllowedGap_);
     };
 
     const std::string logPrefix("[" + std::string(__FUNCTION__) + "]");

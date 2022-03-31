@@ -112,6 +112,11 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         const auto& h2 = hits[i];
         const auto& hPrev = hits[i - 1];
 
+        // Compute the maximum indel gap between the two neighboring seed hits.
+        const int32_t distQuery = h2.queryPos - hPrev.queryPos;
+        const int32_t distTarget = h2.targetPos - hPrev.targetPos;
+        const int32_t currGap = std::abs(distTarget - distQuery);
+
         // Sanity check that the strands are valid.
         if (h2.targetRev != hPrev.targetRev || h2.targetId != hPrev.targetId) {
             std::ostringstream oss;
@@ -157,6 +162,7 @@ std::vector<AlignmentRegion> ExtractAlignmentRegions(const std::vector<SeedHit>&
         region.type = RegionType::GLOBAL;
         region.queryRev = isRev;
         region.regionId = numRegions;
+        region.maxGap = std::max(region.maxGap, currGap);
 
         // Sanity check that the spans are valid.
         if (region.qSpan < 0 || region.tSpan < 0) {
