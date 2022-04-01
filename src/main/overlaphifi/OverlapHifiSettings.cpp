@@ -2,6 +2,7 @@
 
 #include <pancake/OverlapHifiSettings.hpp>
 
+#include <pancake/OverlapWriterFormat.hpp>
 #include <pancake/Version.hpp>
 
 namespace PacBio {
@@ -323,20 +324,6 @@ R"({
 
 OverlapHifiSettings::OverlapHifiSettings() = default;
 
-OverlapWriterFormat ParseOutFormat(const std::string& val)
-{
-    if (val == "m4") {
-        return OverlapWriterFormat::M4;
-    } else if (val == "ipa") {
-        return OverlapWriterFormat::IPAOvl;
-    } else if (val == "paf") {
-        return OverlapWriterFormat::PAF;
-    } else if (val == "sam") {
-        return OverlapWriterFormat::SAM;
-    }
-    return OverlapWriterFormat::Unknown;
-}
-
 OverlapHifiSettings::OverlapHifiSettings(const PacBio::CLI_v2::Results& options)
     : TargetDBPrefix{options[OverlapHiFiOptionNames::TargetDBPrefix]}
     , QueryDBPrefix{options[OverlapHiFiOptionNames::QueryDBPrefix]}
@@ -403,7 +390,7 @@ OverlapHifiSettings::OverlapHifiSettings(const PacBio::CLI_v2::Results& options)
             "Option '--mask-hp-arbitrary' can only be used together with '--mask-hp'.");
     }
 
-    OutFormat = ParseOutFormat(options[OverlapHiFiOptionNames::OutFormat]);
+    OutFormat = ParseOverlapWriterFormat(std::string(options[OverlapHiFiOptionNames::OutFormat]));
     if (OutFormat == OverlapWriterFormat::Unknown) {
         throw std::runtime_error("Unknown output format: '" +
                                  std::string(options[OverlapHiFiOptionNames::OutFormat]) + "'.");
