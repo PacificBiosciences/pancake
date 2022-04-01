@@ -10,6 +10,7 @@
 #include <pancake/Overlap.hpp>
 #include <pancake/OverlapWriterBase.hpp>
 #include <pancake/SeedIndex.hpp>
+#include <pancake/SequenceSeedsCached.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -120,11 +121,11 @@ public:
     virtual std::vector<MapperBaseResult> MapAndAlign(
         const FastaSequenceCachedStore& targetSeqs, const FastaSequenceCachedStore& querySeqs) = 0;
 
-    virtual MapperBaseResult MapAndAlignSingleQuery(
-        const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
-        const FastaSequenceCached& querySeq,
-        const std::vector<PacBio::Pancake::Int128t>& querySeeds, int32_t queryId,
-        int64_t freqCutoff) = 0;
+    virtual MapperBaseResult MapAndAlignSingleQuery(const FastaSequenceCachedStore& targetSeqs,
+                                                    const PacBio::Pancake::SeedIndex& index,
+                                                    const FastaSequenceCached& querySeq,
+                                                    const SequenceSeedsCached& querySeeds,
+                                                    const int32_t queryId, int64_t freqCutoff) = 0;
 };
 
 }  // namespace Pancake

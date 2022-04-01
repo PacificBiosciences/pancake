@@ -246,18 +246,17 @@ public:
      * and provided from the outside.
     */
     MapperBaseResult MapAndAlignSingleQuery(const FastaSequenceCachedStore& targetSeqs,
-                                            const PacBio::Pancake::SeedIndex& index,
+                                            const SeedIndex& index,
                                             const FastaSequenceCached& querySeq,
-                                            const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                                            int32_t queryId, int64_t freqCutoff) override;
+                                            const SequenceSeedsCached& querySeeds,
+                                            const int32_t queryId, int64_t freqCutoff) override;
 
     /*
      * \brief Maps the query sequence to the targets, where targets are provided by the SeedIndex.
     */
-    MapperBaseResult Map(const FastaSequenceCachedStore& targetSeqs,
-                         const PacBio::Pancake::SeedIndex& index,
-                         const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                         const int32_t queryLen, int32_t queryId, int64_t freqCutoff);
+    MapperBaseResult Map(const FastaSequenceCachedStore& targetSeqs, const SeedIndex& index,
+                         const SequenceSeedsCached& querySeeds, const int32_t queryLen,
+                         const int32_t queryId, int64_t freqCutoff);
 
     /*
      * \brief Aligns a precomputed mapping result.
@@ -280,10 +279,9 @@ private:
      * of the mapping process).
     */
     static MapperBaseResult WrapMapAndAlign_(
-        const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
-        const FastaSequenceCached& querySeq,
-        const std::vector<PacBio::Pancake::Int128t>& querySeeds, int32_t queryId,
-        int64_t freqCutoff, const MapperCLRSettings& settings,
+        const FastaSequenceCachedStore& targetSeqs, const SeedIndex& index,
+        const FastaSequenceCached& querySeq, const SequenceSeedsCached& querySeeds,
+        const int32_t queryId, int64_t freqCutoff, const MapperCLRSettings& settings,
         std::shared_ptr<ChainingScratchSpace> ssChain, std::vector<SeedHit>& ssSeedHits,
         AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt);
 
@@ -307,10 +305,9 @@ private:
     */
     static MapperBaseResult Map_(const FastaSequenceCachedStore& targetSeqs,
                                  const PacBio::Pancake::SeedIndex& index,
-                                 const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                                 int32_t queryLen, int32_t queryId,
-                                 const MapperCLRSettings& settings, int64_t freqCutoff,
-                                 std::shared_ptr<ChainingScratchSpace> ssChain,
+                                 const SequenceSeedsCached& querySeeds, const int32_t queryLen,
+                                 const int32_t queryId, const MapperCLRSettings& settings,
+                                 int64_t freqCutoff, std::shared_ptr<ChainingScratchSpace> ssChain,
                                  std::vector<SeedHit>& ssSeedHits);
 
     /*

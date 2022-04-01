@@ -109,10 +109,11 @@ std::vector<MapperBaseResult> MapperCLR::MapAndAlign(const FastaSequenceCachedSt
                                                   ssSeedHits_, alignerGlobal_, alignerExt_);
 }
 
-MapperBaseResult MapperCLR::MapAndAlignSingleQuery(
-    const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
-    const FastaSequenceCached& querySeq, const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-    const int32_t queryId, int64_t freqCutoff)
+MapperBaseResult MapperCLR::MapAndAlignSingleQuery(const FastaSequenceCachedStore& targetSeqs,
+                                                   const PacBio::Pancake::SeedIndex& index,
+                                                   const FastaSequenceCached& querySeq,
+                                                   const SequenceSeedsCached& querySeeds,
+                                                   const int32_t queryId, int64_t freqCutoff)
 {
     return WrapMapAndAlign_(targetSeqs, index, querySeq, querySeeds, queryId, freqCutoff, settings_,
                             ssChain_, ssSeedHits_, alignerGlobal_, alignerExt_);
@@ -120,8 +121,8 @@ MapperBaseResult MapperCLR::MapAndAlignSingleQuery(
 
 MapperBaseResult MapperCLR::Map(const FastaSequenceCachedStore& targetSeqs,
                                 const PacBio::Pancake::SeedIndex& index,
-                                const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                                const int32_t queryLen, const int32_t queryId, int64_t freqCutoff)
+                                const SequenceSeedsCached& querySeeds, const int32_t queryLen,
+                                const int32_t queryId, int64_t freqCutoff)
 {
     return Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings_, freqCutoff, ssChain_,
                 ssSeedHits_);
@@ -247,8 +248,12 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
             throw std::runtime_error("Generating minimizers failed for the query sequence i = " +
                                      std::to_string(i) + ", id = " + std::to_string(queryId));
 
+        // Prepare the view of the seeds.
+        const PacBio::Pancake::SequenceSeedsCached querySeedsCached(query.Name(), querySeeds.data(),
+                                                                    querySeeds.size(), queryId);
+
         MapperBaseResult queryResults =
-            WrapMapAndAlign_(targetSeqs, *seedIndex, query, querySeeds, queryId, freqCutoff,
+            WrapMapAndAlign_(targetSeqs, *seedIndex, query, querySeedsCached, queryId, freqCutoff,
                              settings, ssChain, ssSeedHits, alignerGlobal, alignerExt);
 
         if (queryResults.mappings.empty() && seedIndexFallback != nullptr) {
@@ -262,9 +267,13 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
                     "Generating minimizers failed for the query sequence, id = " +
                     std::to_string(queryId));
 
-            queryResults = WrapMapAndAlign_(targetSeqs, *seedIndexFallback, query, querySeeds,
-                                            queryId, freqCutoffFallback, settings, ssChain,
-                                            ssSeedHits, alignerGlobal, alignerExt);
+            // Prepare the view of the fallback seeds.
+            const PacBio::Pancake::SequenceSeedsCached querySeedsCachedFallback(
+                query.Name(), querySeeds.data(), querySeeds.size(), queryId);
+
+            queryResults = WrapMapAndAlign_(
+                targetSeqs, *seedIndexFallback, query, querySeedsCachedFallback, queryId,
+                freqCutoffFallback, settings, ssChain, ssSeedHits, alignerGlobal, alignerExt);
         }
 
         for (const auto& m : queryResults.mappings) {
@@ -282,7 +291,7 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
 
 MapperBaseResult MapperCLR::WrapMapAndAlign_(
     const FastaSequenceCachedStore& targetSeqs, const PacBio::Pancake::SeedIndex& index,
-    const FastaSequenceCached& querySeq, const std::vector<PacBio::Pancake::Int128t>& querySeeds,
+    const FastaSequenceCached& querySeq, const SequenceSeedsCached& querySeeds,
     const int32_t queryId, int64_t freqCutoff, const MapperCLRSettings& settings,
     std::shared_ptr<ChainingScratchSpace> ssChain, std::vector<SeedHit>& ssSeedHits,
     AlignerBasePtr& alignerGlobal, AlignerBasePtr& alignerExt)
@@ -307,12 +316,10 @@ MapperBaseResult MapperCLR::WrapMapAndAlign_(
     return result;
 }
 
-MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
-                                 const PacBio::Pancake::SeedIndex& index,
-                                 const std::vector<PacBio::Pancake::Int128t>& querySeeds,
-                                 const int32_t queryLen, const int32_t queryId,
-                                 const MapperCLRSettings& settings, int64_t freqCutoff,
-                                 std::shared_ptr<ChainingScratchSpace> ssChain,
+MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, const SeedIndex& index,
+                                 const SequenceSeedsCached& querySeeds, const int32_t queryLen,
+                                 const int32_t queryId, const MapperCLRSettings& settings,
+                                 int64_t freqCutoff, std::shared_ptr<ChainingScratchSpace> ssChain,
                                  std::vector<SeedHit>& ssSeedHits)
 {
     TicToc ttMapAll;
@@ -355,7 +362,8 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
     // Compute the seed hit histogram, but only if needed.
     std::vector<std::pair<int64_t, int64_t>> seedHitHistogram;
     if (settings.map.seedOccurrenceMaxMemory > 0) {
-        seedHitHistogram = PacBio::Pancake::ComputeSeedHitHistogram(querySeeds, index.GetHash());
+        seedHitHistogram = PacBio::Pancake::ComputeSeedHitHistogram(
+            {querySeeds.Seeds(), static_cast<size_t>(querySeeds.Size())}, index.GetHash());
     }
 
     const int64_t occThreshold = ComputeOccurrenceThreshold(
@@ -366,7 +374,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs,
 
     // Collect seed hits.
     auto& hits = ssSeedHits;
-    index.CollectHits(querySeeds.data(), querySeeds.size(), queryLen, hits, occThreshold);
+    index.CollectHits(querySeeds.Seeds(), querySeeds.Size(), queryLen, hits, occThreshold);
     LogTicToc("map-L1-02-collect", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
