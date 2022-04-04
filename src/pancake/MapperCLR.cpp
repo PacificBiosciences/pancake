@@ -341,7 +341,8 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
                     << " Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
 
         const std::vector<std::pair<int64_t, int64_t>> debugSeedHist =
-            PacBio::Pancake::ComputeSeedHitHistogram(querySeeds, index.GetHash());
+            PacBio::Pancake::ComputeSeedHitHistogram(
+                {querySeeds.Seeds(), static_cast<size_t>(querySeeds.Size())}, index.GetHash());
 
         int64_t totalHits = 0;
         for (size_t i = 0; i < debugSeedHist.size(); ++i) {
