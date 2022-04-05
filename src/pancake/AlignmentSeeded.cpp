@@ -409,6 +409,40 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentReg
     ret->Cigar = std::move(alns.cigar);
     ret->Score = alns.score;
 
+    // Validate here, before we reverse the coordinates and the CIGAR to satisfy the internal convention.
+    {
+        const char* querySeqForValidation = (ret->Brev) ? querySeqRev.data() : querySeqFwd.data();
+        try {
+            ValidateCigar(std::string_view(querySeqForValidation + ret->Astart, ret->ASpan()),
+                          std::string_view(targetSeq.data() + ret->Bstart, ret->BSpan()),
+                          ret->Cigar, "Full length validation.");
+        } catch (const std::exception& e) {
+            PBLOG_DEBUG << "[Note: Exception when aligning!] " << e.what() << "\n";
+            PBLOG_DEBUG << "Q: " << std::string_view(querySeqForValidation, ret->ASpan()) << "\n";
+            PBLOG_DEBUG << "T: " << targetSeq << "\n";
+            return nullptr;
+        }
+    }
+
+    /**
+     * IMPORTANT:
+     * Internal convention is as follows:
+     *      - Query is ALWAYS FWD in the internal representation.
+     *      - Target can be fwd or rev - in the strand of the alignment.
+     *      - CIGAR is oriented so that the query is always FWD and the target is complemented.
+     *      - To avoid copying the target and reversing it, we need to reorient the coordinates here.
+     *
+     * Opposed to that, this function performs alignment in the following manner:
+     *      - Query coordinate is in strand of alignment (fwd or rev).
+     *      - Target coordinate is ALWAYS fwd.
+     *      - CIGAR is oriented so that the target is always FWD and the query is copmlemented.
+     * This is done so that we can reuse the query sequence for which we already have the reverse complement here.
+     * Also, there is a general assumption that the query sequence is smaller than the target sequence.
+     *
+     * The following block is then intended to convert the conventions.
+     *
+     * TODO: Change the internal representation. It could be a substantial effort though.
+     */
     // Reverse the CIGAR and the coordinates if needed.
     if (ovl->Brev) {
         // CIGAR reversal.
@@ -428,37 +462,6 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentReg
     // Set the alignment identity and edit distance.
     DiffCounts diffs = CigarDiffCounts(ret->Cigar);
     diffs.Identity(false, false, ret->Identity, ret->EditDistance);
-
-    const int32_t qstart = ret->Astart;
-    const int32_t tstart = ret->Bstart;
-    const char* querySeqFwdData = querySeqFwd.data();
-    const std::string targetSeqForValidation =
-        (ret->Brev) ? PacBio::Pancake::ReverseComplement(targetSeq.data(), 0, targetLen)
-                    : targetSeq.data();
-
-    // Validation. In case an alignment was dropped.
-    try {
-        ValidateCigar(std::string_view(querySeqFwdData + qstart, ret->ASpan()),
-                      std::string_view(targetSeqForValidation.c_str() + tstart, ret->BSpan()),
-                      ret->Cigar, "Full length validation.");
-    } catch (std::exception& e) {
-        // std::cerr << "[Note: Exception when aligning!] " << e.what() << "\n";
-        // std::cerr << "Input overlap: "
-        //           << *ovl << "\n";
-        // std::cerr << "ASpan = " << ret->ASpan() << ", BSpan = " << ret->BSpan() << "\n";
-        // std::cerr << "Q: " << std::string(querySeqFwd, queryLen) << "\n";
-        // std::cerr << "T: " << targetSeqForValidation << "\n";
-        // std::cerr << "\n";
-        // std::cerr << "regions.size() = " << regions.size() << "\n";
-        // for (size_t i = 0; i < regions.size(); ++i) {
-        //     std::cerr << "[region i = " << i << "] " << regions[i] << "\n";
-        // }
-        // std::cerr.flush();
-        PBLOG_DEBUG << "[Note: Exception when aligning!] " << e.what() << "\n";
-        PBLOG_DEBUG << "Q: " << std::string_view(querySeqFwdData, ret->ASpan()) << "\n";
-        PBLOG_DEBUG << "T: " << targetSeqForValidation << "\n";
-        ret = nullptr;
-    }
 
     return ret;
 }
