@@ -229,7 +229,8 @@ void OverlapWriterBase::PrintOverlapAsSAM(FILE* fpOut, const Overlap& ovl, const
     const int32_t flag = tIsRev ? 16 : 0;
     int32_t mapq = 60;
     const std::string seq =
-        (ovl.Brev) ? ReverseComplement(query, queryLen, 0, queryLen) : std::string(query, queryLen);
+        (ovl.Brev) ? ReverseComplement({query, static_cast<size_t>(queryLen)}, 0, queryLen)
+                   : std::string(query, queryLen);
     const std::string qual = "*";
 
     // Query and target names, flag, pos and mapq.

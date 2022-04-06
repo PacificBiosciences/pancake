@@ -785,7 +785,8 @@ std::vector<std::vector<FastaSequenceId>> ComputeQueryReverseComplements(
                 const auto& query = batchChunks[chunkId].querySeqs.records()[qId];
                 std::string queryRev;
                 if (shouldReverse[chunkId][qId]) {
-                    queryRev = PacBio::Pancake::ReverseComplement(query.c_str(), 0, query.size());
+                    queryRev = PacBio::Pancake::ReverseComplement(
+                        {query.c_str(), static_cast<size_t>(query.size())}, 0, query.size());
                 }
                 revSeqs.emplace_back(PacBio::Pancake::FastaSequenceId(
                     query.Name(), std::move(queryRev), query.Id()));

@@ -631,8 +631,8 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
     MapperBaseResult alignedResult;
 
     // Reverse the query sequence, needed for alignment.
-    const std::string querySeqRev =
-        PacBio::Pancake::ReverseComplement(querySeq.c_str(), 0, querySeq.size());
+    const std::string querySeqRev = PacBio::Pancake::ReverseComplement(
+        {querySeq.c_str(), static_cast<size_t>(querySeq.size())}, 0, querySeq.size());
 
     for (size_t i = 0; i < mappingResult.mappings.size(); ++i) {
         // const auto& chain = result.mappings[i]->chain;

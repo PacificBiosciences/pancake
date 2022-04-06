@@ -124,8 +124,8 @@ MapperResult Mapper::MapSingleQuery_(const PacBio::Pancake::FastaSequenceCachedS
     PBLOG_INFO << "\n";
 #endif
 
-    const std::string reverseQuerySeq =
-        PacBio::Pancake::ReverseComplement(querySeq.Bases(), querySeq.Size(), 0, querySeq.Size());
+    const std::string reverseQuerySeq = PacBio::Pancake::ReverseComplement(
+        {querySeq.Bases(), static_cast<size_t>(querySeq.Size())}, 0, querySeq.Size());
 
     TicToc ttAlign;
     overlaps = AlignOverlaps_(

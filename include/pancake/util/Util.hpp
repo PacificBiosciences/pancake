@@ -99,33 +99,9 @@ inline std::string JoinPathWindows(std::string left, const std::string& right)
 
 #endif
 
-inline std::string ReverseComplement(const std::string& seq, int64_t start, int64_t end)
+inline std::string ReverseComplement(const std::string_view seq, int64_t start, int64_t end)
 {
     int64_t seqLen = seq.size();
-    if (seqLen == 0) {
-        return {};
-    }
-    if (start < 0 || end < 0 || start >= end || start > seqLen || end > seqLen) {
-        std::ostringstream oss;
-        oss << "Invalid start or end in a call to ReverseComplement. start = " << start
-            << ", end = " << end << ", seqLen = " << seqLen << ".";
-        throw std::runtime_error(oss.str());
-    }
-    int64_t span = end - start;
-    std::string ret(span, '\0');
-    int64_t maxI = span / 2;
-    for (int64_t i = start, j = 0, k = span - 1; i < maxI; ++i, ++j, --k) {
-        ret[j] = PacBio::Pancake::BaseToBaseComplement[static_cast<int32_t>(seq[k + start])];
-        ret[k] = PacBio::Pancake::BaseToBaseComplement[static_cast<int32_t>(seq[i])];
-    }
-    if ((span & 0x01) != 0) {
-        ret[maxI] = PacBio::Pancake::BaseToBaseComplement[static_cast<int32_t>(seq[maxI + start])];
-    }
-    return ret;
-}
-
-inline std::string ReverseComplement(const char* seq, int64_t seqLen, int64_t start, int64_t end)
-{
     if (seqLen == 0) {
         return {};
     }
