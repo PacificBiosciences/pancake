@@ -24,6 +24,8 @@
 namespace PacBio {
 namespace Pancake {
 
+namespace OverlapHiFiCLI {
+
 void Worker(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqDBReader,
             const PacBio::Pancake::SeedIndex& index,
             const PacBio::Pancake::SeqDBReaderCachedBlock& querySeqDBReader,
@@ -48,6 +50,7 @@ void Worker(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqDBReader,
                                 freqCutoff, generateFlippedOverlaps);
     }
 }
+}  // namespace OverlapHiFiCLI
 
 int OverlapHifiWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 {
@@ -209,10 +212,11 @@ int OverlapHifiWorkflow::Runner(const PacBio::CLI_v2::Results& options)
             for (size_t i = 0; i < jobsPerThread.size(); ++i) {
                 const int32_t jobStart = jobsPerThread[i].first;
                 const int32_t jobEnd = jobsPerThread[i].second;
-                faf.ProduceWith(Worker, std::cref(targetSeqDBReader), std::cref(index),
-                                std::cref(querySeqDBReader), std::cref(querySeedDBReader),
-                                std::cref(settings), std::cref(mappers[i]), freqCutoff,
-                                settings.WriteReverseOverlaps, jobStart, jobEnd, std::ref(results));
+                faf.ProduceWith(OverlapHiFiCLI::Worker, std::cref(targetSeqDBReader),
+                                std::cref(index), std::cref(querySeqDBReader),
+                                std::cref(querySeedDBReader), std::cref(settings),
+                                std::cref(mappers[i]), freqCutoff, settings.WriteReverseOverlaps,
+                                jobStart, jobEnd, std::ref(results));
             }
             faf.Finalize();
 

@@ -17,7 +17,7 @@
 
 namespace PacBio {
 namespace Pancake {
-namespace SeedDB {
+namespace SeedDBCLI {
 
 void Worker(const std::vector<FastaSequenceCached>& records, const SeedDBSettings& settings,
             int32_t start, int32_t end, int32_t startAbs,
@@ -36,7 +36,7 @@ void Worker(const std::vector<FastaSequenceCached>& records, const SeedDBSetting
                 ", return code = " + std::to_string(rv));
     }
 }
-}  // namespace SeedDB
+}  // namespace SeedDBCLI
 
 int SeedDBWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 {
@@ -64,7 +64,7 @@ int SeedDBWorkflow::Runner(const PacBio::CLI_v2::Results& options)
         std::vector<std::vector<PacBio::Pancake::Int128t>> results(numRecords);
         PacBio::Parallel::FireAndForget faf(settings.NumThreads);
         for (int32_t i = 0; i < numRecords; ++i) {
-            faf.ProduceWith(SeedDB::Worker, std::cref(reader.records()), std::cref(settings), i,
+            faf.ProduceWith(SeedDBCLI::Worker, std::cref(reader.records()), std::cref(settings), i,
                             i + 1, i + absOffset, std::ref(results));
         }
         faf.Finalize();

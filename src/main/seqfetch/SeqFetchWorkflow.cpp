@@ -30,6 +30,8 @@
 namespace PacBio {
 namespace Pancake {
 
+namespace SeqFetchCLI {
+
 void WriteSeq(std::ostream& os, const std::string& seqName, const std::string& seq,
               const std::string& quals, char dummyQV, bool useProvidedQuals,
               const SeqFetchOutFormat& outFmt)
@@ -182,6 +184,8 @@ void FetchFromSeqDB(std::shared_ptr<std::ostream>& osPtr, std::shared_ptr<std::o
     }
 }
 
+}  // namespace SeqFetchCLI
+
 int SeqFetchWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 {
     SeqFetchSettings settings{options};
@@ -260,21 +264,24 @@ int SeqFetchWorkflow::Runner(const PacBio::CLI_v2::Results& options)
         std::vector<std::string> foundSeqs;
 
         if (inFmt == SequenceFormat::Fasta) {
-            FetchFromFasta(osPtr, osRlePtr, foundSeqs, inFile, remainingToFind, settings.DummyQV,
-                           settings.OutputFormat, settings.UseHPC, settings.UseRLE);
+            SeqFetchCLI::FetchFromFasta(osPtr, osRlePtr, foundSeqs, inFile, remainingToFind,
+                                        settings.DummyQV, settings.OutputFormat, settings.UseHPC,
+                                        settings.UseRLE);
 
         } else if (inFmt == SequenceFormat::Fastq) {
-            FetchFromFastq(osPtr, osRlePtr, foundSeqs, inFile, remainingToFind, settings.DummyQV,
-                           settings.OutputFormat, settings.UseHPC, settings.UseRLE);
+            SeqFetchCLI::FetchFromFastq(osPtr, osRlePtr, foundSeqs, inFile, remainingToFind,
+                                        settings.DummyQV, settings.OutputFormat, settings.UseHPC,
+                                        settings.UseRLE);
 
         } else if (inFmt == SequenceFormat::SeqDB) {
-            FetchFromSeqDB(osPtr, osRlePtr, foundSeqs, inFile, remainingToFind, settings.DummyQV,
-                           settings.WriteIds, settings.OutputFormat, settings.UseHPC,
-                           settings.UseRLE);
+            SeqFetchCLI::FetchFromSeqDB(osPtr, osRlePtr, foundSeqs, inFile, remainingToFind,
+                                        settings.DummyQV, settings.WriteIds, settings.OutputFormat,
+                                        settings.UseHPC, settings.UseRLE);
 
         } else if (inFmt == SequenceFormat::Bam) {
-            FetchFromBam(osPtr, osRlePtr, foundSeqs, inFile, remainingToFind, settings.DummyQV,
-                         settings.OutputFormat, settings.UseHPC, settings.UseRLE);
+            SeqFetchCLI::FetchFromBam(osPtr, osRlePtr, foundSeqs, inFile, remainingToFind,
+                                      settings.DummyQV, settings.OutputFormat, settings.UseHPC,
+                                      settings.UseRLE);
         }
 
         // Remove the found sequences from the remaining set.

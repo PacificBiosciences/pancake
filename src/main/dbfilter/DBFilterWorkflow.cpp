@@ -24,6 +24,8 @@
 namespace PacBio {
 namespace Pancake {
 
+namespace DBFilterCLI {
+
 std::unordered_set<std::string> ParseFilterList(const std::string& filterListPath)
 {
     std::unordered_set<std::string> filterList;
@@ -37,6 +39,8 @@ std::unordered_set<std::string> ParseFilterList(const std::string& filterListPat
     }
     return filterList;
 }
+
+}  // namespace DBFilterCLI
 
 int DBFilterWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 {
@@ -63,7 +67,7 @@ int DBFilterWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 
     std::unordered_set<std::string> filterList;
     if (settings.FilterListPath.empty() == false) {
-        filterList = ParseFilterList(settings.FilterListPath);
+        filterList = DBFilterCLI::ParseFilterList(settings.FilterListPath);
     }
     PBLOG_INFO << "Filter list size: " << filterList.size();
 

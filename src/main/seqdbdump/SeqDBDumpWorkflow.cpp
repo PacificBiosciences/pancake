@@ -18,6 +18,8 @@
 namespace PacBio {
 namespace Pancake {
 
+namespace SeqDBDumpCLI {
+
 void WriteSeq(FILE* fp, const char* name, const size_t nameLen, const char* seq,
               const size_t seqLen)
 {
@@ -27,6 +29,8 @@ void WriteSeq(FILE* fp, const char* name, const size_t nameLen, const char* seq,
     fwrite(seq, sizeof(char), seqLen, fp);
     fprintf(fp, "\n");
 }
+
+}  // namespace SeqDBDumpCLI
 
 int SeqDBDumpWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 {
@@ -72,10 +76,11 @@ int SeqDBDumpWorkflow::Runner(const PacBio::CLI_v2::Results& options)
         for (const auto& record : records) {
             if (settings.WriteIds) {
                 sprintf(nameIdBuffer, "%09d", record.Id());
-                WriteSeq(fpOut, nameIdBuffer, strlen(nameIdBuffer), record.c_str(), record.size());
+                SeqDBDumpCLI::WriteSeq(fpOut, nameIdBuffer, strlen(nameIdBuffer), record.c_str(),
+                                       record.size());
             } else {
-                WriteSeq(fpOut, record.Name().c_str(), record.Name().size(), record.c_str(),
-                         record.size());
+                SeqDBDumpCLI::WriteSeq(fpOut, record.Name().c_str(), record.Name().size(),
+                                       record.c_str(), record.size());
             }
         }
     }

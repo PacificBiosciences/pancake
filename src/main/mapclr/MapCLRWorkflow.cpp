@@ -21,6 +21,8 @@
 namespace PacBio {
 namespace Pancake {
 
+namespace MapCLRCLI {
+
 void Worker(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqDBReader,
             const PacBio::Pancake::SeedIndex& index,
             const PacBio::Pancake::SeqDBReaderCachedBlock& querySeqDBReader,
@@ -42,6 +44,7 @@ void Worker(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqDBReader,
                                                    querySeeds, i, freqCutoff);
     }
 }
+}  // namespace MapCLRCLI
 
 int MapCLRWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 {
@@ -194,7 +197,7 @@ int MapCLRWorkflow::Runner(const PacBio::CLI_v2::Results& options)
             TicToc ttQueryBlockMapping;
 
             // Compute jobs per thread.
-            const int32_t numRecords = static_cast<int32_t>(querySeqDBReader.records().size());
+            const int32_t numRecords = querySeqDBReader.records().size();
             const std::vector<std::pair<int32_t, int32_t>> jobsPerThread =
                 PacBio::Pancake::DistributeJobLoad<int32_t>(settings.NumThreads, numRecords);
 
@@ -204,7 +207,7 @@ int MapCLRWorkflow::Runner(const PacBio::CLI_v2::Results& options)
             for (size_t i = 0; i < jobsPerThread.size(); ++i) {
                 const int32_t jobStart = jobsPerThread[i].first;
                 const int32_t jobEnd = jobsPerThread[i].second;
-                faf.ProduceWith(Worker, std::cref(targetSeqDBReader), std::cref(index),
+                faf.ProduceWith(MapCLRCLI::Worker, std::cref(targetSeqDBReader), std::cref(index),
                                 std::cref(querySeqDBReader), std::cref(querySeedDBReader),
                                 mappers[i], freqCutoff, jobStart, jobEnd, std::ref(results));
             }
