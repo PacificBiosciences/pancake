@@ -419,7 +419,8 @@ OverlapPtr AlignmentSeeded(const OverlapPtr& ovl, const std::vector<AlignmentReg
         } catch (const std::exception& e) {
             PBLOG_DEBUG << "[Note: Exception when aligning!] " << e.what() << "\n";
             PBLOG_DEBUG << "Q: " << std::string_view(querySeqForValidation, ret->ASpan()) << "\n";
-            PBLOG_DEBUG << "T: " << targetSeq << "\n";
+            PBLOG_DEBUG << "T: " << std::string_view(targetSeq.data() + ret->Bstart, ret->BSpan())
+                        << "\n";
             return nullptr;
         }
     }
