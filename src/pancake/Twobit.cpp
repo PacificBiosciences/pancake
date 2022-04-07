@@ -199,6 +199,26 @@ void DecompressSequence(const std::span<uint8_t> twobit, int32_t numBases,
         throw std::runtime_error{errOss.str()};
     }
 
+    {  // Validate that the numBases value matches what has been specified with the sum of ranges.
+        int64_t computedNumBases = 0;
+        computedNumBases = ranges.front().start;  // Prefix N bases.
+        for (size_t i = 0; i < ranges.size(); ++i) {
+            const auto& r = ranges[i];
+            if (i > 0) {
+                computedNumBases += r.start - ranges[i - 1].end;
+            }
+            computedNumBases += r.Span();
+        }
+        computedNumBases += numBases - ranges.back().end;  // Suffix N bases.
+        if (computedNumBases != numBases) {
+            std::ostringstream oss;
+            oss << "[DecompressSequence] Client provided numBases does not match the "
+                   "computedNumBases. numBases = "
+                << numBases << ", computedNumBases = " << computedNumBases;
+            throw std::runtime_error(oss.str());
+        }
+    }
+
     // The total counter of the number of written bases, pointing to the
     // next base where to write.
     int64_t outBasesCount = 0;
