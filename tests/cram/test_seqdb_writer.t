@@ -241,3 +241,12 @@ Test filtered XML input.
   B	0	0	11	116004	464009
   test-input-xml.seqdb
   test-input-xml.seqdb.0.seq
+
+Test construction of the DB from a small test FASTA file. Store each sequence into a separate 2-bit compressed file.
+Test construction of compressed DB and uncompressed. Dumped sequence output should be the same.
+  $ rm -rf out; mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/test.uncompressed ${TEST_DATA_DIR}/seqdb-writer/test-12-compress.fasta --compression 0
+  > ${BIN_DIR}/pancake seqdb-dump out/test.uncompressed.seqdb out/test.uncompressed.seqdb.fasta
+  > ${BIN_DIR}/pancake seqdb out/test.compressed ${TEST_DATA_DIR}/seqdb-writer/test-12-compress.fasta --compression 1
+  > ${BIN_DIR}/pancake seqdb-dump out/test.compressed.seqdb out/test.compressed.seqdb.fasta
+  > diff out/test.uncompressed.seqdb.fasta out/test.compressed.seqdb.fasta
