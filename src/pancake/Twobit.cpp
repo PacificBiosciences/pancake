@@ -120,9 +120,9 @@ void DecompressSequence(const std::vector<uint8_t>& twobit, int32_t numBases,
         // is done by division, and identifying the bit position of the base
         // is just the remainder.
         const int32_t end2 = start2 + r.Span();
-        const int32_t rangeStartByte = start2 / 4.0f;
+        const int32_t rangeStartByte = start2 >> 2;
         const int32_t rangeStartOffset = start2 % 4;
-        const int32_t rangeEndByte = end2 / 4.0f;
+        const int32_t rangeEndByte = end2 >> 2;
         const int32_t rangeEndOffset = end2 % 4;
 
         if (rangeStartByte == rangeEndByte) {
@@ -229,14 +229,14 @@ void DecompressSequence(const std::span<uint8_t> twobit, int32_t numBases,
         // is done by division, and identifying the bit position of the base
         // is just the remainder.
         const int32_t end2 = start2 + r.Span();
-        const int32_t rangeStartByte = start2 / 4.0f;
+        const int32_t rangeStartByte = start2 >> 2;
         const int32_t rangeStartOffset = start2 % 4;
-        const int32_t rangeEndByte = end2 / 4.0f;
+        const int32_t rangeEndByte = end2 >> 2;
         const int32_t rangeEndOffset = end2 % 4;
 
         if (rangeStartByte == rangeEndByte) {
             // Special case when the range is small and starts and ends in the same byte.
-            std::string bases(ByteToBases[twobit[rangeStartByte]]);
+            const std::string bases(ByteToBases[twobit[rangeStartByte]]);
             for (int32_t val = 0; val < (rangeEndOffset - rangeStartOffset);
                  ++val, ++outBasesCount) {
                 outBases[outBasesCount] = bases[val];
@@ -246,7 +246,7 @@ void DecompressSequence(const std::span<uint8_t> twobit, int32_t numBases,
             // Take the bases from the range which are stored in the first byte.
             // The range can begin at any arbitrary pair position because we
             // packed it densely.
-            std::string frontBases(ByteToBases[twobit[rangeStartByte]]);
+            const std::string frontBases(ByteToBases[twobit[rangeStartByte]]);
             for (int32_t val = rangeStartOffset; val < static_cast<int32_t>(frontBases.size());
                  ++val, ++outBasesCount) {
                 outBases[outBasesCount] = frontBases[val];
@@ -255,7 +255,7 @@ void DecompressSequence(const std::span<uint8_t> twobit, int32_t numBases,
             // Internal bytes - simply tile the sequence.
             for (int32_t j = rangeStartByte + 1; j < rangeEndByte; ++j) {
                 // const char innerBases[5]{ByteToBases[twobit[j]]};
-                auto innerBases = ByteToBases[twobit[j]];
+                const auto innerBases = ByteToBases[twobit[j]];
                 for (int32_t val = 0; val < 4; ++val, ++outBasesCount) {
                     outBases[outBasesCount] = innerBases[val];
                 }
