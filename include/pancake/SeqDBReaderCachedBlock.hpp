@@ -60,7 +60,7 @@ public:
 private:
     std::shared_ptr<PacBio::Pancake::SeqDBIndexCache> seqDBIndexCache_;
     bool useHomopolymerCompression_;
-    std::vector<uint8_t> data_;
+    std::vector<char> data_;
     FastaSequenceCachedStore recordStore_;
 
     void LoadBlockUncompressed_(const std::vector<ContiguousFilePart>& parts);

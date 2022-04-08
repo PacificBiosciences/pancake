@@ -119,10 +119,10 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
         for (const auto& id : part.seqIds) {
             const auto& sl = seqDBIndexCache_->GetSeqLine(id);
             const int64_t firstByte = sl.fileOffset - startByteOffset;
-            DecompressSequence({&tempData[firstByte], static_cast<size_t>(sl.numBytes)},
-                               sl.numBases, sl.ranges, &data_[seqStart]);
-            recordStore_.AddRecord(FastaSequenceCached{
-                sl.header, reinterpret_cast<const char*>(&data_[seqStart]), sl.numBases, sl.seqId});
+            DecompressSequenceCStyle({&tempData[firstByte], static_cast<size_t>(sl.numBytes)},
+                                     sl.numBases, sl.ranges, &data_[seqStart]);
+            recordStore_.AddRecord(
+                FastaSequenceCached{sl.header, &data_[seqStart], sl.numBases, sl.seqId});
             seqStart += sl.numBases;
             ++currRecord;
         }
@@ -179,8 +179,8 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
         int64_t seqStart = currDataPos;
         for (const auto& id : part.seqIds) {
             const auto& sl = seqDBIndexCache_->GetSeqLine(id);
-            recordStore_.AddRecord(FastaSequenceCached{
-                sl.header, reinterpret_cast<const char*>(&data_[seqStart]), sl.numBases, sl.seqId});
+            recordStore_.AddRecord(
+                FastaSequenceCached{sl.header, &data_[seqStart], sl.numBases, sl.seqId});
             seqStart += sl.numBases;
             ++currRecord;
         }

@@ -56,9 +56,10 @@ void HelperRoundTrip_DecompressCStyle(const std::string& inBases, int32_t numBas
     // Run round trip, expected to see the same sequence or an exception.
     bool exceptionCaught = false;
     try {
-        std::vector<uint8_t> decompressedData(numBasesToAlloc);
-        PacBio::Pancake::DecompressSequence(twobit, numBases, ranges, decompressedData.data());
-        std::string roundResult(reinterpret_cast<char*>(decompressedData.data()), numBases);
+        std::string decompressedData(numBasesToAlloc, '\0');
+        PacBio::Pancake::DecompressSequenceCStyle({twobit.data(), twobit.size()}, numBases, ranges,
+                                                  decompressedData.data());
+        std::string roundResult(decompressedData.data(), numBases);
         EXPECT_EQ(inBases, roundResult);
     } catch (const std::runtime_error& e) {
         exceptionCaught = true;

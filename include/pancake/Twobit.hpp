@@ -74,8 +74,8 @@ void DecompressSequence(const std::vector<uint8_t>& twobit, int32_t numBases,
 ///        of std::string in cases when we actually want to store the data
 ///        into a preallocated vector of uint8_t.
 ///
-void DecompressSequence(std::span<uint8_t> twobit, int32_t numBases,
-                        const std::vector<PacBio::Pancake::Range>& ranges, uint8_t* outBases);
+void DecompressSequenceCStyle(std::span<const uint8_t> twobit, int32_t numBases,
+                              const std::vector<PacBio::Pancake::Range>& ranges, char* outBases);
 
 }  // namespace Pancake
 }  // namespace PacBio
