@@ -48,8 +48,16 @@ R"({
 const CLI_v2::Option SplitBlocks{
 R"({
     "names" : ["split-blocks"],
-    "description" : "Write seeds for each block into a separate file."
+    "description" : "Write seeds for each block into a separate file.",
+    "type" : "bool"
 })", SeqDBSettings::Defaults::SplitBlocks};
+
+const CLI_v2::Option KeepOriginalCase{
+R"({
+    "names" : ["keep-case"],
+    "description" : "Prevent conversion from lowercase to uppercase bases. Only valid for uncompressed DBs.",
+    "type" : "bool"
+})", SeqDBSettings::Defaults::KeepOriginalCase};
 
 // clang-format on
 
@@ -65,11 +73,18 @@ SeqDBSettings::SeqDBSettings(const PacBio::CLI_v2::Results& options)
     , BufferSize{options[SeqDBOptionNames::BufferSize]}
     , BlockSize{options[SeqDBOptionNames::BlockSize]}
     , SplitBlocks{options[SeqDBOptionNames::SplitBlocks]}
+    , KeepOriginalCase{options[SeqDBOptionNames::KeepOriginalCase]}
 {
+    if (KeepOriginalCase && CompressionLevel > 0) {
+        throw std::runtime_error("Original case can only be used with uncompressed DBs.");
+    }
+
     // Allow multiple positional input arguments.
     const auto& files = options.PositionalArguments();
-    if (files.size() < 2)
+    if (files.size() < 2) {
         throw std::runtime_error{"Not enough input files specified, at least one required."};
+    }
+
     OutputPrefix = files[0];
     InputFiles.clear();
     for (size_t i = 1; i < files.size(); ++i)
@@ -89,7 +104,7 @@ SeqDBSettings::SeqDBSettings(const PacBio::CLI_v2::Results& options)
 
 PacBio::CLI_v2::Interface SeqDBSettings::CreateCLI()
 {
-    PacBio::CLI_v2::Interface i{"pancake", "Convert FASTA/FASTQ sequences to SeqDB.",
+    PacBio::CLI_v2::Interface i{"pancake seqdb", "Convert FASTA/FASTQ sequences to SeqDB.",
                                 PacBio::Pancake::PancakeFormattedVersion()};
 
     // clang-format off
@@ -98,6 +113,7 @@ PacBio::CLI_v2::Interface SeqDBSettings::CreateCLI()
         SeqDBOptionNames::BufferSize,
         SeqDBOptionNames::BlockSize,
         SeqDBOptionNames::SplitBlocks,
+        SeqDBOptionNames::KeepOriginalCase,
     });
     i.AddPositionalArguments({
         SeqDBOptionNames::OutputPrefix,

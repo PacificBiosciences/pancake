@@ -20,6 +20,7 @@ struct SeqDBSettings
         static constexpr float BufferSize = 1000.0f;
         static constexpr float BlockSize = 1000.0f;
         static const bool SplitBlocks = false;
+        static const bool KeepOriginalCase = false;
     };
 
     std::string OutputPrefix;
@@ -29,6 +30,7 @@ struct SeqDBSettings
     float BufferSize = Defaults::BufferSize;
     float BlockSize = Defaults::BlockSize;
     bool SplitBlocks = Defaults::SplitBlocks;
+    bool KeepOriginalCase = Defaults::KeepOriginalCase;
 
     SeqDBSettings();
     SeqDBSettings(const PacBio::CLI_v2::Results& options);

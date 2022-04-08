@@ -24,9 +24,9 @@ int SeqDBWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 {
     SeqDBSettings settings{options};
 
-    auto writer = PacBio::Pancake::CreateSeqDBWriter(settings.OutputPrefix,
-                                                     settings.CompressionLevel, settings.BufferSize,
-                                                     settings.BlockSize, settings.SplitBlocks);
+    auto writer = PacBio::Pancake::CreateSeqDBWriter(
+        settings.OutputPrefix, settings.CompressionLevel, settings.BufferSize, settings.BlockSize,
+        settings.SplitBlocks, !settings.KeepOriginalCase);
 
     // Expand FOFNs and determine the formats of input files.
     std::vector<std::pair<SequenceFormat, std::string>> inputFiles =

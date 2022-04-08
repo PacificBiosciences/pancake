@@ -89,7 +89,7 @@ int DBFilterWorkflow::Runner(const PacBio::CLI_v2::Results& options)
         // Create a new writer, which uses the actual output prefix.
         auto writer = PacBio::Pancake::CreateSeqDBWriter(
             settings.OutputPrefix, settings.CompressionLevel, settings.BufferSize,
-            settings.BlockSize, settings.SplitBlocks);
+            settings.BlockSize, settings.SplitBlocks, false);
 
         // Fetch and copy all the sequences into the new DB.
         Pancake::FastaSequenceId record;

@@ -6,6 +6,7 @@
 #include <pancake/util/Util.hpp>
 
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 
@@ -13,19 +14,22 @@ namespace PacBio {
 namespace Pancake {
 
 std::unique_ptr<SeqDBWriter> CreateSeqDBWriter(const std::string& filenamePrefix,
-                                               bool useCompression, int64_t flushSize,
-                                               int64_t blockSize, bool splitBlocks)
+                                               const bool useCompression, const int64_t flushSize,
+                                               const int64_t blockSize, const bool splitBlocks,
+                                               const bool convertToUppercase)
 {
     return std::make_unique<SeqDBWriter>(filenamePrefix, useCompression, flushSize, blockSize,
-                                         splitBlocks);
+                                         splitBlocks, convertToUppercase);
 }
 
-SeqDBWriter::SeqDBWriter(const std::string& filenamePrefix, bool useCompression, int64_t flushSize,
-                         int64_t blockSize, bool splitBlocks)
+SeqDBWriter::SeqDBWriter(const std::string& filenamePrefix, const bool useCompression,
+                         const int64_t flushSize, const int64_t blockSize, const bool splitBlocks,
+                         const bool convertToUppercase)
     : filenamePrefix_(filenamePrefix)
     , flushSizeBytes_(flushSize)
     , blockSize_(blockSize)
     , splitBlocks_(splitBlocks)
+    , convertToUppercase_(convertToUppercase)
 {
     cache_.version = version_;
     cache_.compressionLevel = useCompression;
@@ -69,12 +73,14 @@ void SeqDBWriter::AddSequence(const std::string& header, const std::string& seq)
     // Add the bases (either compressed or uncompressed), and initialize the
     // byte and length values properly.
     if (cache_.compressionLevel) {
-        // Compress the sequence.
+        // Compress the sequence. All bases are converted to uppercase here, always.
         const PacBio::Pancake::CompressedSequence compressed =
             PacBio::Pancake::CompressedSequence(seq);
         const auto& bytes = compressed.GetTwobit();
         // Add the compressed bytes to the buffer.
-        seqBuffer_.insert(seqBuffer_.end(), bytes.begin(), bytes.end());
+        const size_t seqBufferLenBefore = seqBuffer_.size();
+        seqBuffer_.resize(seqBuffer_.size() + bytes.size());
+        memcpy(&seqBuffer_[seqBufferLenBefore], bytes.data(), bytes.size());
         // Set the numeric values used for the index.
         numBytes = static_cast<int32_t>(bytes.size());
         ranges = compressed.GetRanges();
@@ -82,10 +88,18 @@ void SeqDBWriter::AddSequence(const std::string& header, const std::string& seq)
         numCompressedBases = compressed.GetNumCompressedBases();
 
     } else {
-        // Convert the bytes to the internal type.
-        const uint8_t* bytes = reinterpret_cast<const uint8_t*>(seq.data());
+        const size_t seqBufferLenBefore = seqBuffer_.size();
+        seqBuffer_.resize(seqBuffer_.size() + seq.size());
         // Add the bytes to the buffer.
-        seqBuffer_.insert(seqBuffer_.end(), bytes, bytes + seq.size());
+        if (convertToUppercase_) {
+            for (size_t i = seqBufferLenBefore, j = 0; i < seqBuffer_.size(); ++i, ++j) {
+                seqBuffer_[i] = static_cast<uint8_t>(toupper(seq[j]));
+            }
+        } else {
+            // Convert the bytes to the internal type.
+            const uint8_t* bytes = reinterpret_cast<const uint8_t*>(seq.data());
+            memcpy(&seqBuffer_[seqBufferLenBefore], bytes, seq.size());
+        }
         // Set the numeric values used for the index.
         numBytes = static_cast<int32_t>(seq.size());
         ranges = {Range{0, static_cast<int32_t>(seq.size())}};
