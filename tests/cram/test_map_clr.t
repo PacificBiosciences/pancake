@@ -59,3 +59,33 @@ Write sequence IDs instead of names.
   > ${BIN_DIR}/pancake seeddb -k 19 -w 10 -s 0 out/ref.seqdb out/ref
   > ${BIN_DIR}/pancake map --num-threads 1 out/ref out/reads --target-block 0 --query-block-start 0 --query-block-end 0 --align --write-ids --out-fmt m4 --no-cigar
   000000000 000000000 12717 74.59 0 0 21382 22015 1 701 21992 22028 *
+
+################################
+### Lowercase bases in ref.  ###
+################################
+Perfect alignment between two seqences, uncompressed DB, except that the target has one base in lowercase. This should succeed.
+  $ rm -rf out && mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/reads ${PROJECT_DIR}/tests/data/mapper-clr/test-12-lowercase_base_in_target.query.fasta --compression 0
+  > ${BIN_DIR}/pancake seeddb -k 19 -w 10 -s 0 out/reads.seqdb out/reads
+  > ${BIN_DIR}/pancake seqdb out/ref ${PROJECT_DIR}/tests/data/mapper-clr/test-12-lowercase_base_in_target.target.fasta --compression 0
+  > ${BIN_DIR}/pancake seeddb -k 19 -w 10 -s 0 out/ref.seqdb out/ref
+  > ${BIN_DIR}/pancake map --num-threads 1 out/ref out/reads --write-ids --out-fmt m4 --align
+  000000000 000000000 37558 100.00 0 0 18779 18779 0 0 18779 18779 * 18779=
+
+Perfect alignment between two seqences, compressed DB, except that the target has one base in lowercase. This should succeed.
+  $ rm -rf out && mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/reads ${PROJECT_DIR}/tests/data/mapper-clr/test-12-lowercase_base_in_target.query.fasta --compression 1
+  > ${BIN_DIR}/pancake seeddb -k 19 -w 10 -s 0 out/reads.seqdb out/reads
+  > ${BIN_DIR}/pancake seqdb out/ref ${PROJECT_DIR}/tests/data/mapper-clr/test-12-lowercase_base_in_target.target.fasta --compression 1
+  > ${BIN_DIR}/pancake seeddb -k 19 -w 10 -s 0 out/ref.seqdb out/ref
+  > ${BIN_DIR}/pancake map --num-threads 1 out/ref out/reads --write-ids --out-fmt m4 --align
+  000000000 000000000 37558 100.00 0 0 18779 18779 0 0 18779 18779 * 18779=
+
+Compression cannot be combined with optional case, all bases are converted to uppercase.
+  $ rm -rf out && mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/reads ${PROJECT_DIR}/tests/data/mapper-clr/test-12-lowercase_base_in_target.query.fasta --compression 1 --keep-case 2>&1 | sed 's/.*pancake //g'
+  seqdb ERROR: Original case can only be used with uncompressed DBs.
+
+Keeping original case of the input bases can be done with uncompressed DBs.
+  $ rm -rf out && mkdir -p out
+  > ${BIN_DIR}/pancake seqdb out/reads ${PROJECT_DIR}/tests/data/mapper-clr/test-12-lowercase_base_in_target.query.fasta --compression 0 --keep-case 2>&1 | sed 's/.*pancake //g'
