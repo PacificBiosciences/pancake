@@ -96,6 +96,7 @@ public:
     // Alignment region extraction parameters.
     int32_t maxFlankExtensionDist = 10000;  // Maximum length of the query/target sequences to consider when aligning flanks.
     double flankExtensionFactor = 1.3;      // Take this much more of the longer flanking sequence for alignment, to allow for indel errors.
+    bool refineSeedHits = true;             // Performs seed hit refinement before alignment regions are extracted.
     int32_t minAlignmentSpan = 200;         // If two seeds are closer than this, take the next seed. (Unless there are only 2 seeds left.)
 
     // bool oneHitPerTarget = false;
@@ -161,6 +162,7 @@ inline std::ostream& operator<<(std::ostream& out, const MapperCLRMapSettings& a
 
         << "maxFlankExtensionDist = " << a.maxFlankExtensionDist << "\n"
         << "flankExtensionFactor = " << a.flankExtensionFactor << "\n"
+        << "refineSeedHits = " << a.refineSeedHits << "\n"
         << "minAlignmentSpan = " << a.minAlignmentSpan << "\n"
 
         << "skipSymmetricOverlaps = " << a.skipSymmetricOverlaps << "\n"

@@ -541,11 +541,17 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
         if (region->priority > 1) {
             continue;
         }
+
+        // Always refine seed hits near the ends to avoid edge cases in DP chaining.
         ChainedHits newChain =
             RefineBadEnds(region->chain, settings.align.alnParamsGlobal.alignBandwidth,
                           settings.map.minDPScore * 2);
-        newChain = RefineChainedHits(newChain, 10, 40, settings.map.seedJoinDist / 2, 10);
-        newChain = RefineChainedHits2(newChain, 30, settings.map.seedJoinDist / 2);
+
+        // Optionally refine internal seed hits.
+        if (settings.map.refineSeedHits) {
+            newChain = RefineChainedHits(newChain, 10, 40, settings.map.seedJoinDist / 2, 10);
+            newChain = RefineChainedHits2(newChain, 30, settings.map.seedJoinDist / 2);
+        }
 
         std::swap(region->chain, newChain);
 
