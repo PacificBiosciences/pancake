@@ -626,6 +626,9 @@ void StitchAlignmentsInParallel(std::vector<std::vector<MapperBaseResult>>& mapp
             }
             auto& aln = mapping->mapping;
 
+            // Reset the mocking status.
+            mapping->isMockedAlignment = false;
+
             // Do the stitching, and swap.
             OverlapPtr newAln = StitchSingleAlignment(aln, mapping->regionsForAln, internalAlns,
                                                       flankAlns, singleAlnInfo.parts);
@@ -722,6 +725,7 @@ void SetUnalignedAndMockedMappings(std::vector<std::vector<MapperBaseResult>>& m
 
                 if (mockPerfectAlignment && aln->Aid == aln->Bid) {
                     aln = CreateMockedAlignment(aln, matchScoreForMockAlignment);
+                    result[qId].mappings[mapId]->isMockedAlignment = true;
                 }
                 if (aln->Cigar.empty()) {
                     aln = nullptr;

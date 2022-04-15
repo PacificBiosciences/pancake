@@ -28,6 +28,8 @@ struct ChainedRegion
     // Priority 0 means primary alignment, 1 secondary, < 0 not set, and > 1 filtered.
     int32_t priority = 0;
     bool isSupplementary = false;
+    bool isMockedMapping = false;    // True if the mapping was mocked.
+    bool isMockedAlignment = false;  // True if the alignment was mocked.
 };
 
 inline bool operator==(const ChainedRegion& lhs, const ChainedRegion& rhs) noexcept

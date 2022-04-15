@@ -670,6 +670,8 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
             newChainedRegion->mapping = std::move(newOvl);
             newChainedRegion->priority = mappingResult.mappings[i]->priority;
             newChainedRegion->isSupplementary = mappingResult.mappings[i]->isSupplementary;
+            newChainedRegion->isMockedMapping = mappingResult.mappings[i]->isMockedMapping;
+            newChainedRegion->isMockedAlignment = true;
             alignedResult.mappings.emplace_back(std::move(newChainedRegion));
 
         } else {
@@ -686,6 +688,8 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
             newChainedRegion->mapping = std::move(newOvl);
             newChainedRegion->priority = mappingResult.mappings[i]->priority;
             newChainedRegion->isSupplementary = mappingResult.mappings[i]->isSupplementary;
+            newChainedRegion->isMockedMapping = mappingResult.mappings[i]->isMockedMapping;
+            newChainedRegion->isMockedAlignment = false;
             alignedResult.mappings.emplace_back(std::move(newChainedRegion));
         }
 
@@ -930,6 +934,8 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ReChainSeedHits_(
             auto chainedRegion = std::make_unique<ChainedRegion>();
             chainedRegion->chain = std::move(chain);
             chainedRegion->mapping = std::move(ovl);
+            chainedRegion->isMockedMapping = false;
+            chainedRegion->isMockedAlignment = false;
             newChainedRegions.emplace_back(std::move(chainedRegion));
         }
         LogTicTocAdd("map-L2-rechain-04-makeovl", ttPartial, retTimings);
@@ -1088,6 +1094,8 @@ std::vector<std::unique_ptr<ChainedRegion>> MapperCLR::ChainAndMakeOverlap_(
             auto chainedRegion = std::make_unique<ChainedRegion>();
             chainedRegion->chain = std::move(chain);
             chainedRegion->mapping = std::move(ovl);
+            chainedRegion->isMockedMapping = false;
+            chainedRegion->isMockedAlignment = false;
             allChainedRegions.emplace_back(std::move(chainedRegion));
         }
         LogTicTocAdd("map-L2-chain-04-makeovl", ttPartial, retTimings);
@@ -1164,6 +1172,9 @@ void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& ch
         last->mapping->Bend = curr->mapping->Bend;
         last->mapping->Score += curr->mapping->Score;
         last->mapping->NumSeeds += curr->mapping->NumSeeds;
+
+        last->isMockedMapping |= curr->isMockedMapping;
+        last->isMockedAlignment |= curr->isMockedAlignment;
 
         chainedRegions[currId] = nullptr;
 
@@ -1310,6 +1321,8 @@ std::unique_ptr<ChainedRegion> MapperCLR::CreateMockedMapping_(const int32_t que
     newChainedRegion->mapping = std::move(newOvl);
     newChainedRegion->priority = 0;
     newChainedRegion->isSupplementary = false;
+    newChainedRegion->isMockedMapping = true;
+    newChainedRegion->isMockedAlignment = false;
 
     return newChainedRegion;
 }
