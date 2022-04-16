@@ -235,6 +235,72 @@ std::vector<std::vector<std::string>> HelperFormatBatchMappingResults(
     return resultsStr;
 }
 
+std::tuple<std::vector<std::vector<std::string>>, std::vector<std::vector<std::string>>>
+HelperFormatBatchMappingResultsForMockingFlags(
+    const std::vector<std::vector<PacBio::Pancake::MapperBaseResult>>& results,
+    const std::vector<std::tuple<std::string, std::string, PacBio::Pancake::MapperCLRMapSettings>>&
+        batchData,
+    const PacBio::Pancake::MapperSelfHitPolicy alignSelfHitPolicy)
+{
+    std::vector<std::vector<std::string>> resultsStr;
+    std::vector<std::vector<std::string>> expectedStr;
+
+    // To be usesd as a label for the alignment policy.
+    const std::string mockAlignments =
+        (alignSelfHitPolicy == PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT)
+            ? "mocked"
+            : "computed";
+
+    for (size_t i = 0; i < results.size(); ++i) {
+        const auto& resultsForBatchElement = results[i];
+
+        // To be usesd as a label for the mapping policy. Chunk specific.
+        const std::string mockMappings = (std::get<2>(batchData[i]).selfHitPolicy ==
+                                          PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT)
+                                             ? "mocked"
+                                             : "computed";
+
+        // Results and expected alignments for a single batch.
+        std::vector<std::string> chunkResults;
+        std::vector<std::string> chunkExpected;
+
+        // Collect all the results/expected alignments for this batch and append labels for mocking.
+        for (size_t j = 0; j < resultsForBatchElement.size(); ++j) {
+            const auto& queryMappings = resultsForBatchElement[j];
+            for (const auto& mapping : queryMappings.mappings) {
+                const std::string resultOvl = PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(
+                    *mapping->mapping, "", "", true, false);
+
+                const bool isMockingCandidate = mapping->mapping->Aid == mapping->mapping->Bid &&
+                                                mapping->mapping->Astart == 0 &&
+                                                mapping->mapping->Aend == mapping->mapping->Alen &&
+                                                mapping->mapping->Bstart == 0 &&
+                                                mapping->mapping->Bend == mapping->mapping->Blen;
+
+                const std::string expectedOvlWithMocking =
+                    resultOvl + (isMockingCandidate ? (" " + mockMappings + " " + mockAlignments)
+                                                    : " computed computed");
+
+                const std::string resultOvlWithMocking =
+                    resultOvl + (mapping->isMockedMapping ? " mocked" : " computed") +
+                    (mapping->isMockedAlignment ? " mocked" : " computed");
+
+                chunkExpected.emplace_back(expectedOvlWithMocking);
+                chunkResults.emplace_back(resultOvlWithMocking);
+
+                // // Debug output.
+                // std::cerr << "[batch] expectedOvlWithMocking = " << expectedOvlWithMocking << "\n";
+                // std::cerr << "[batch] resultOvlWithMocking   = " << resultOvlWithMocking << "\n";
+                // std::cerr << "\n";
+            }
+        }
+
+        resultsStr.emplace_back(std::move(chunkResults));
+        expectedStr.emplace_back(std::move(chunkExpected));
+    }
+    return {expectedStr, resultsStr};
+}
+
 PacBio::Pancake::MapperCLRSettings HelperInitPancakeSettingsSubread()
 {
     PacBio::Pancake::MapperCLRSettings settings;

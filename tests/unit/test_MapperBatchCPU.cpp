@@ -384,6 +384,7 @@ TEST(MapperBatchCPU, CheckSelfHitPolicyAndSkippingSymmetrical)
     struct TestData
     {
         const std::string testName;
+        // Map settings are passed for each batch separately.
         const std::vector<
             std::tuple<std::string, std::string, PacBio::Pancake::MapperCLRMapSettings>>
             batchData;
@@ -660,6 +661,17 @@ TEST(MapperBatchCPU, CheckSelfHitPolicyAndSkippingSymmetrical)
 
         // Evaluate.
         EXPECT_EQ(expectedOverlaps, resultsStr);
+
+        // Test the mocking flags.
+        {
+            // Prepare the data.
+            const auto [expectedMocked, resultsMocked] =
+                PacBio::PancakeTests::HelperFormatBatchMappingResultsForMockingFlags(
+                    results, data.batchData, data.alignSettings.selfHitPolicy);
+
+            // Evaluate.
+            EXPECT_EQ(expectedMocked, resultsMocked);
+        }
     }
 }
 

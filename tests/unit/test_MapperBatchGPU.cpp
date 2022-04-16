@@ -672,5 +672,16 @@ TEST(MapperBatchGPU, CheckSelfHitPolicyAndSkippingSymmetrical)
 
         // Evaluate.
         EXPECT_EQ(expectedOverlaps, resultsStr);
+
+        // Test the mocking flags.
+        {
+            // Prepare the data.
+            const auto [expectedMocked, resultsMocked] =
+                PacBio::PancakeTests::HelperFormatBatchMappingResultsForMockingFlags(
+                    results, data.batchData, data.alignSettings.selfHitPolicy);
+
+            // Evaluate.
+            EXPECT_EQ(expectedMocked, resultsMocked);
+        }
     }
 }

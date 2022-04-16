@@ -853,7 +853,54 @@ TEST(MapperCLR, CheckSelfHitPolicyAndSkippingSymmetrical)
         //     std::cerr << ovlStr << "\n";
         // }
 
+        // Test overlaps.
         EXPECT_EQ(expected, resultsStr);
+
+        // Test the mocking flags.
+        {
+            const std::string mockMappings =
+                (data.settings.map.selfHitPolicy ==
+                 PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT)
+                    ? "mocked"
+                    : "computed";
+            const std::string mockAlignments =
+                (data.settings.align.selfHitPolicy ==
+                 PacBio::Pancake::MapperSelfHitPolicy::PERFECT_ALIGNMENT)
+                    ? "mocked"
+                    : "computed";
+            for (const auto& queryMappings : result) {
+                for (const auto& mapping : queryMappings.mappings) {
+                    // Construct the expected overlap with an additional field for mocking.
+                    // We could have just compared that the mocking is true, but this is better for debugging because we get the diff.
+                    const bool isMockingCandidate =
+                        mapping->mapping->Aid == mapping->mapping->Bid &&
+                        mapping->mapping->Astart == 0 &&
+                        mapping->mapping->Aend == mapping->mapping->Alen &&
+                        mapping->mapping->Bstart == 0 &&
+                        mapping->mapping->Bend == mapping->mapping->Blen;
+
+                    const std::string resultOvl =
+                        PacBio::Pancake::OverlapWriterBase::PrintOverlapAsM4(*mapping->mapping, "",
+                                                                             "", true, false);
+
+                    const std::string expectedOvlWithMocking =
+                        resultOvl + (isMockingCandidate
+                                         ? (" " + mockMappings + " " + mockAlignments)
+                                         : " computed computed");
+
+                    const std::string resultOvlWithMocking =
+                        resultOvl + (mapping->isMockedMapping ? " mocked" : " computed") +
+                        (mapping->isMockedAlignment ? " mocked" : " computed");
+
+                    // // Debug output.
+                    // std::cerr << "[expectedOvlWithMocking] " << expectedOvlWithMocking << "\n";
+                    // std::cerr << "[resultOvlWithMocking]   " << resultOvlWithMocking << "\n";
+
+                    // Test.
+                    EXPECT_EQ(expectedOvlWithMocking, resultOvlWithMocking);
+                }
+            }
+        }
     }
     // exit(1);
 }

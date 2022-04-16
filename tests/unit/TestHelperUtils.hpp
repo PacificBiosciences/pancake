@@ -43,6 +43,13 @@ void HelperLoadBatchData(
 std::vector<std::vector<std::string>> HelperFormatBatchMappingResults(
     const std::vector<std::vector<PacBio::Pancake::MapperBaseResult>>& results);
 
+std::tuple<std::vector<std::vector<std::string>>, std::vector<std::vector<std::string>>>
+HelperFormatBatchMappingResultsForMockingFlags(
+    const std::vector<std::vector<PacBio::Pancake::MapperBaseResult>>& results,
+    const std::vector<std::tuple<std::string, std::string, PacBio::Pancake::MapperCLRMapSettings>>&
+        batchData,
+    const PacBio::Pancake::MapperSelfHitPolicy alignSelfHitPolicy);
+
 PacBio::Pancake::MapperCLRSettings HelperInitPancakeSettingsSubread();
 
 }  // namespace PancakeTests
