@@ -273,6 +273,13 @@ R"({
     "description" : "Special treatment of self hits (when Aid == Bid): DEFAULT maps them as any other read pair, SKIP skips and does not align such cases, and PERFECT_ALIGNMENT mocks the alignment and reports a perfect alignment result for self hits."
 })", std::string("DEFAULT")};
 
+const CLI_v2::Option NoRefineSeedHits{
+R"({
+    "names" : ["no-refine-hits"],
+    "description" : "Do not refine seed hits during the mapping process.",
+    "type" : "bool"
+})", !MapCLRSettings::Defaults::RefineSeedHits};
+
 //////////////////////
 ///// Filtering. /////
 //////////////////////
@@ -641,6 +648,7 @@ MapCLRSettings::MapCLRSettings(const PacBio::CLI_v2::Results& options)
         std::string(options[MapCLROptionNames::SelfHitPolicyMapping]));
     MapperSettings.map.minQueryLen = options[MapCLROptionNames::MinQueryLen];
     MapperSettings.map.bestNSecondary = options[MapCLROptionNames::BestNSecondary];
+    MapperSettings.map.refineSeedHits = (!options[MapCLROptionNames::NoRefineSeedHits]);
     MapperSettings.map.maxFlankExtensionDist =
         options[MapCLROptionNames::MaxFlankExtensionDistance];
     MapperSettings.map.flankExtensionFactor = options[MapCLROptionNames::FlankExtensionFactor];
@@ -734,6 +742,7 @@ PacBio::CLI_v2::Interface MapCLRSettings::CreateCLI()
         MapCLROptionNames::SecondaryAllowedOverlapFractionTarget,
         MapCLROptionNames::SecondaryMinScoreFraction,
         MapCLROptionNames::NoLIS,
+        MapCLROptionNames::NoRefineSeedHits,
         MapCLROptionNames::FreqPercentile,
         MapCLROptionNames::SeedOccurrenceMin,
         MapCLROptionNames::SeedOccurrenceMax,

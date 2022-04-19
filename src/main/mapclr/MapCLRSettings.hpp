@@ -57,6 +57,7 @@ struct MapCLRSettings
         static constexpr double SecondaryMinScoreFraction = 0.80;
         static const bool NoLIS = false;
         static const bool Align = false;
+        static const bool RefineSeedHits = true;
         static const int32_t MaxFlankExtensionDistance = 10000;
         static constexpr double FlankExtensionFactor = 1.3;
         static const int32_t MinAlignmentSpan = 200;
