@@ -929,3 +929,55 @@ TEST(SeedIndex, ComputeSeedHitHistogram_ArrayOfTests)
         EXPECT_EQ(data.expected, results);
     }
 }
+
+TEST(SeedIndex, CollectSeedHitsFromSequences)
+{
+    // clang-format off
+    // Inputs.
+    // Note: first 15 bases of the query are reverse complemented.
+    const std::string target = "CATGGTGAGTCACCTCTGACTGAGAGTTTACTCACTTAGCCGCGTGTCCACTATTGCTGGGTAAGATCAGACCGTTATTCTCGACAGCGGAA";
+    const std::string query =   "GAGGTGACTCACCAT"      "AGTTTACTCACTTAG"                     "AAGATCAGACCGTTA";
+    const int32_t k = 15;
+    const int32_t w = 1;
+    const int32_t spacing = 0;
+    const bool useRC = true;
+    const bool useHomopolymerCompression = false;
+    const double seedFreqPercentile = 0.0;
+    const int64_t seedOccurrenceMin = 0;
+    const int64_t seedOccurrenceMax = 0;
+    const int64_t seedOccurrenceMaxMemory = 0;
+
+    const FastaSequenceCachedStore queryStore({FastaSequenceCached("query", query.c_str(), query.size(), 0)});
+    const FastaSequenceCachedStore targetStore({FastaSequenceCached("target", target.c_str(), target.size(), 0)});
+    // clang-format on
+
+    // Expected results.
+    // Target coordinate is always FWD, query coordinate is strand specific.
+    const std::vector<PacBio::Pancake::SeedHit> expected = {
+        {0, true, 1, 30, 15, 15, 0},
+        {0, false, 24, 15, 15, 15, 0},
+        {0, false, 62, 30, 15, 15, 0},
+    };
+
+    // Unit under test.
+    // The outter vector contains number of elements equal to the number of queries.
+    const std::vector<std::vector<SeedHit>> hits = CollectSeedHitsFromSequences(
+        queryStore, targetStore, k, w, spacing, useRC, useHomopolymerCompression,
+        seedFreqPercentile, seedOccurrenceMin, seedOccurrenceMax, seedOccurrenceMaxMemory);
+
+    // Debug print.
+    for (size_t queryId = 0; queryId < hits.size(); ++queryId) {
+        for (size_t j = 0; j < hits[queryId].size(); ++j) {
+            std::cerr << "[queryId = " << queryId << "]\n";
+            const auto& hit = hits[queryId][j];
+            std::cerr << "{targetId"
+                      << ", " << (hit.targetRev ? "true" : "false") << ", " << hit.targetPos << ", "
+                      << hit.queryPos << ", " << static_cast<int32_t>(hit.targetSpan) << ", "
+                      << static_cast<int32_t>(hit.querySpan) << ", " << hit.flags << "},\n";
+            std::cerr << "-----\n";
+        }
+    }
+
+    ASSERT_EQ(1, hits.size());
+    EXPECT_EQ(expected, hits[0]);
+}

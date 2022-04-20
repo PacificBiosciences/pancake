@@ -292,5 +292,55 @@ void CollectSeedHits(std::vector<SeedHit>& hits,
     }
 }
 
+std::vector<std::vector<SeedHit>> CollectSeedHitsFromSequences(
+    const FastaSequenceCachedStore& queryStore, const FastaSequenceCachedStore& targetStore,
+    const int32_t k, const int32_t w, const int32_t spacing, const bool useRC, const bool useHPC,
+    const double seedFreqPercentileCutoff, const int64_t seedOccurrenceMin,
+    const int64_t seedOccurrenceMax, const int64_t seedOccurrenceMaxMemory)
+{
+    // Construct the index.
+    std::vector<PacBio::Pancake::Int128t> targetSeeds;
+    GenerateMinimizers(targetSeeds, targetStore.records(), k, w, spacing, useRC, useHPC);
+    const std::unique_ptr<SeedIndex> index = std::make_unique<SeedIndex>(std::move(targetSeeds));
+
+    // Generate query minimizers.
+    std::vector<PacBio::Pancake::Int128t> querySeeds;
+    GenerateMinimizers(querySeeds, queryStore.records(), k, w, spacing, useRC, useHPC);
+
+    // Compute frequency statistics. Not needed if seedFreqPercentile provided to this functin is <= 0.0;
+    int64_t freqMax = 0;
+    double freqAvg = 0.0;
+    double freqMedian = 0.0;
+    int64_t seedOccurrenceUserSpecified = 0;
+    if (seedFreqPercentileCutoff > 0.0) {
+        index->ComputeFrequencyStats(seedFreqPercentileCutoff, freqMax, freqAvg, freqMedian,
+                                     seedOccurrenceUserSpecified);
+    }
+
+    // Compute the seed hit histogram, but only if needed.
+    std::vector<std::pair<int64_t, int64_t>> seedHitHistogram;
+    if (seedOccurrenceMaxMemory > 0) {
+        seedHitHistogram = PacBio::Pancake::ComputeSeedHitHistogram(
+            {querySeeds.data(), querySeeds.size()}, index->GetHash());
+    }
+
+    // The occurrence threshold is computed as:
+    //      cutoff = max(seedOccurrenceMin, min(seedOccurrenceMax, occThresholdMemMax, seedOccurrenceUserSpecified))
+    // where occThresholdMemMax is computed from the histogram if parameter seedOccurrenceMaxMemory > 0, and other parameters are user-provided.
+    const int64_t occThreshold =
+        ComputeOccurrenceThreshold(seedHitHistogram, seedOccurrenceMin, seedOccurrenceMax,
+                                   seedOccurrenceMaxMemory, seedOccurrenceUserSpecified, false);
+
+    // Collect hits. The freqCutoff can be set to 0 to pick up all seed hits.
+    std::vector<std::vector<SeedHit>> allHits;
+    for (const auto& query : queryStore.records()) {
+        std::vector<SeedHit> newHits;
+        index->CollectHits(&querySeeds[0], querySeeds.size(), query.size(), newHits, occThreshold);
+        allHits.emplace_back(std::move(newHits));
+    }
+
+    return allHits;
+}
+
 }  // namespace Pancake
 }  // namespace PacBio

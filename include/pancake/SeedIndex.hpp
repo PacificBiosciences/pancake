@@ -3,6 +3,7 @@
 #ifndef PANCAKE_SEED_INDEX_HPP
 #define PANCAKE_SEED_INDEX_HPP
 
+#include <pancake/FastaSequenceCachedStore.hpp>
 #include <pancake/Seed.hpp>
 #include <pancake/SeedDBIndexCache.hpp>
 #include <pancake/SeedHit.hpp>
@@ -93,10 +94,15 @@ void CollectSeedHits(std::vector<SeedHit>& hits,
                      const SeedHashType& hash,
                      std::span<const PacBio::Pancake::SeedRaw> targetSeeds, int64_t freqCutoff);
 
+std::vector<std::vector<SeedHit>> CollectSeedHitsFromSequences(
+    const FastaSequenceCachedStore& queryStore, const FastaSequenceCachedStore& targetStore,
+    int32_t k, int32_t w, int32_t spacing, bool useRC, bool useHPC, double seedFreqPercentileCutoff,
+    int64_t seedOccurrenceMin, int64_t seedOccurrenceMax, int64_t seedOccurrenceMaxMemory);
+
 class SeedIndex
 {
 public:
-    SeedIndex(std::vector<PacBio::Pancake::SeedRaw>&& seeds);
+    explicit SeedIndex(std::vector<PacBio::Pancake::SeedRaw>&& seeds);
     ~SeedIndex();
 
     void ComputeFrequencyStats(double percentileCutoff, int64_t& retFreqMax, double& retFreqAvg,
