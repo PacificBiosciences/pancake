@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <tuple>
@@ -42,7 +43,6 @@
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
 #include <pbcopper/utility/MemoryConsumption.h>
-#include <iomanip>
 #endif
 
 #ifdef PANCAKE_USE_SSE41
@@ -136,13 +136,10 @@ MapperBaseResult MapperCLR::Align(const FastaSequenceCachedStore& targetSeqs,
 }
 
 void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& allChainedRegions,
-#if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2) || \
-    defined(PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE)
-                             const std::string& descriptor, int32_t queryId, int32_t queryLen,
-#else
-                             const std::string& /*descriptor*/, int32_t /*queryId*/,
-                             int32_t /*queryLen*/,
-#endif
+                             [[maybe_unused]] const int32_t debugStepId,
+                             [[maybe_unused]] const std::string& descriptor,
+                             [[maybe_unused]] const int32_t queryId,
+                             [[maybe_unused]] const int32_t queryLen,
                              const bool debugVerboseChains = false)
 {
 
@@ -150,8 +147,9 @@ void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
     const double peakRssGb =
         PacBio::Utility::MemoryConsumption::PeakRss() / 1024.0 / 1024.0 / 1024.0;
-    PBLOG_DEBUG << "After: '" << descriptor << "'. Chains: " << allChainedRegions.size()
-                << ". Peak RSS: " << std::fixed << std::setprecision(3) << peakRssGb;
+    PBLOG_DEBUG << "After: step = " << debugStepId << ", '" << descriptor
+                << "'. Chains: " << allChainedRegions.size() << ". Peak RSS: " << std::fixed
+                << std::setprecision(3) << peakRssGb;
 #endif
 #ifdef PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
     // Write seed hits.
@@ -160,11 +158,16 @@ void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& 
         if (region->priority > 1) {
             continue;
         }
-        WriteSeedHits("temp-debug/hits-q" + std::to_string(queryId) + "-" + descriptor + ".csv",
-                      region->chain.hits, 0, region->chain.hits.size(), i,
-                      "query" + std::to_string(queryId), queryLen,
-                      "target" + std::to_string(region->mapping->Bid), region->mapping->Blen,
-                      (i > 0));
+        std::ostringstream ossStepId;
+        ossStepId << debugStepId;
+
+        std::ostringstream ossFileName;
+        ossFileName << "temp-debug/hits-q" << std::to_string(queryId) << "-" << std::setfill('0')
+                    << std::setw(2) << debugStepId << "-" << descriptor + ".csv",
+            WriteSeedHits(ossFileName.str(), region->chain.hits, 0, region->chain.hits.size(), i,
+                          "query" + std::to_string(queryId), queryLen,
+                          "target" + std::to_string(region->mapping->Bid), region->mapping->Blen,
+                          (i > 0));
     }
 #endif
 
@@ -308,9 +311,9 @@ MapperBaseResult MapperCLR::WrapMapAndAlign_(
     }
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_PRINT_CHAINED_REGIONS
-    DebugWriteChainedRegion(result.mappings, "9-result-final", queryId, queryLen, true);
+    DebugWriteChainedRegion(result.mappings, 99, "result-final", queryId, queryLen, true);
 #else
-    DebugWriteChainedRegion(result.mappings, "9-result-final", queryId, queryLen, false);
+    DebugWriteChainedRegion(result.mappings, 99, "result-final", queryId, queryLen, false);
 #endif
 
     return result;
@@ -474,7 +477,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
         settings.map.chainMaxPredecessors, settings.map.seedJoinDist, settings.map.chainBandwidth,
         settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore,
         settings.map.useLIS, ssChain, result.time);
-    DebugWriteChainedRegion(allChainedRegions, "1-chain-and-make-overlap", queryId, queryLen);
+    DebugWriteChainedRegion(allChainedRegions, 1, "chain-and-make-overlap", queryId, queryLen);
     LogTicToc("map-L1-07-chain", ttPartial, result.time);
 
     // Take the remaining regions, merge all seed hits, and rechain.
@@ -486,7 +489,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
         settings.map.chainMaxPredecessors, settings.map.seedJoinDist, settings.map.chainBandwidth,
         settings.map.minNumSeeds, settings.map.minCoveredBases, settings.map.minDPScore, ssChain,
         result.time);
-    DebugWriteChainedRegion(allChainedRegions, "2-rechain-hits", queryId, queryLen);
+    DebugWriteChainedRegion(allChainedRegions, 2, "rechain-hits", queryId, queryLen);
     LogTicToc("map-L1-08-rechain", ttPartial, result.time);
 
     // Sort all chains in descending order of the number of hits.
@@ -498,12 +501,12 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
     WrapFlagSecondaryAndSupplementary(
         allChainedRegions, settings.map.secondaryAllowedOverlapFractionQuery,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
-    DebugWriteChainedRegion(allChainedRegions, "3-wrap-flag-secondary-suppl-1", queryId, queryLen);
+    DebugWriteChainedRegion(allChainedRegions, 3, "wrap-flag-secondary-suppl-1", queryId, queryLen);
     LogTicToc("map-L1-10-secondary", ttPartial, result.time);
 
     // Merge long gaps.
     LongMergeChains_(allChainedRegions, settings.map.longMergeBandwidth);
-    DebugWriteChainedRegion(allChainedRegions, "4-long-merge-chains", queryId, queryLen);
+    DebugWriteChainedRegion(allChainedRegions, 4, "long-merge-chains", queryId, queryLen);
     LogTicToc("map-L1-11-longmerge", ttPartial, result.time);
 
     // Add an extra query alignment only if needed (i.e. if the MapperSelfHitPolicy == PERFECT_ALIGNMENT
@@ -521,7 +524,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
     WrapFlagSecondaryAndSupplementary(
         allChainedRegions, settings.map.secondaryAllowedOverlapFractionQuery,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
-    DebugWriteChainedRegion(allChainedRegions, "5-wrap-flag-secondary-suppl-2", queryId, queryLen);
+    DebugWriteChainedRegion(allChainedRegions, 5, "wrap-flag-secondary-suppl-2", queryId, queryLen);
     LogTicToc("map-L1-13-secondary", ttPartial, result.time);
 
     // Sort all chains by priority and then score.
@@ -566,7 +569,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
                             region->chain.hits.size(), 0, region->chain.hits.size() - 1);
         }
     }
-    DebugWriteChainedRegion(allChainedRegions, "6-refining-seed-hits", queryId, queryLen);
+    DebugWriteChainedRegion(allChainedRegions, 6, "refining-seed-hits", queryId, queryLen);
     LogTicToc("map-L1-15-refineseeds", ttPartial, result.time);
 
     // Filter out the mappings.
@@ -596,7 +599,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
             settings.map.flankExtensionFactor);
     }
 
-    DebugWriteChainedRegion(result.mappings, "7-result-mappings", queryId, queryLen);
+    DebugWriteChainedRegion(result.mappings, 7, "result-mappings", queryId, queryLen);
     LogTicToc("map-L1-18-collectalnregions", ttPartial, result.time);
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
@@ -720,7 +723,7 @@ MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,
         alignedResult.mappings, settings.map.secondaryAllowedOverlapFractionQuery,
         settings.map.secondaryAllowedOverlapFractionTarget, settings.map.secondaryMinScoreFraction);
 
-    DebugWriteChainedRegion(alignedResult.mappings, "8-result-after-align", queryId, queryLen);
+    DebugWriteChainedRegion(alignedResult.mappings, 100, "result-after-align", queryId, queryLen);
     LogTicToc("aln-L1-02-secondary", ttPartial, alignedResult.time);
 
     const int32_t numPrimary =
