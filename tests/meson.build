@@ -2,6 +2,7 @@ pancake_test_cpp_sources = files([
   'unit/test_AlignerBatchCPU.cpp',
   'unit/test_AlignmentSeeded.cpp',
   'unit/test_AlignmentTools.cpp',
+  'unit/test_BurstExcision.cpp',
   'unit/test_DPChain.cpp',
   'unit/test_FastaSequenceCachedStore.cpp',
   'unit/test_FileIO.cpp',

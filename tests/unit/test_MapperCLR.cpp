@@ -1,11 +1,14 @@
+#include <pancake/MapperCLR.hpp>
+
 #include <PancakeTestData.h>
+#include "TestHelperUtils.hpp"
+
 #include <gtest/gtest.h>
+#include <pancake/OverlapWriterBase.hpp>
+
 #include <iostream>
 #include <memory>
-#include <pancake/FastaSequenceCachedStore.hpp>
-#include <pancake/MapperCLR.hpp>
-#include <pancake/OverlapWriterBase.hpp>
-#include "TestHelperUtils.hpp"
+#include <string>
 
 TEST(MapperCLR, CheckMappping_LoadFromFile)
 {

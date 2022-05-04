@@ -1,4 +1,4 @@
 [wrap-git]
 directory=pbedelweiss
-url=ssh://git@bitbucket.nanofluidics.com:7999/sat/pbedelweiss.git
+url=http://bitbucket.pacificbiosciences.com:7990/scm/sat/pbedelweiss.git
 revision=develop

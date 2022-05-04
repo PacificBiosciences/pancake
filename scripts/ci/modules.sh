@@ -9,7 +9,8 @@ module load meson
 module load ninja
 
 module load boost
-module load cram
+module load cram/0.7-py3
+module load python3
 module load gtest
 
 module load htslib
