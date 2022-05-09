@@ -91,7 +91,7 @@ public:
     const FastaSequenceCached& GetSequence(const int32_t seqId) const
     {
         const auto it = seqIdToOrdinalId_.find(seqId);
-        if (it == seqIdToOrdinalId_.end()) {
+        if (it == std::cend(seqIdToOrdinalId_)) {
             std::ostringstream oss;
             oss << "(FastaSequenceCachedStore::GetSequence) Invalid seqId, not found in the "
                    "records. seqId = "
@@ -105,7 +105,7 @@ public:
     const FastaSequenceCached& GetSequence(const std::string& seqName) const
     {
         const auto it = headerToOrdinalId_.find(seqName);
-        if (it == headerToOrdinalId_.end()) {
+        if (it == std::cend(headerToOrdinalId_)) {
             std::ostringstream oss;
             oss << "(FastaSequenceCachedStore::GetSequence) Invalid seqName, not found in the "
                    "records. seqName = "
@@ -116,10 +116,30 @@ public:
         return records_[ordinalId];
     }
 
+    FastaSequenceCached* GetSequencePtr(const int32_t seqId)
+    {
+        const auto it = seqIdToOrdinalId_.find(seqId);
+        if (it == std::cend(seqIdToOrdinalId_)) {
+            return nullptr;
+        }
+        const int32_t ordinalId = it->second;
+        return &records_[ordinalId];
+    }
+
+    FastaSequenceCached* GetSequencePtr(const std::string& seqName)
+    {
+        const auto it = headerToOrdinalId_.find(seqName);
+        if (it == std::cend(headerToOrdinalId_)) {
+            return nullptr;
+        }
+        const int32_t ordinalId = it->second;
+        return &records_[ordinalId];
+    }
+
     bool GetSequence(FastaSequenceCached& record, const int32_t seqId) const
     {
         const auto it = seqIdToOrdinalId_.find(seqId);
-        if (it == seqIdToOrdinalId_.end()) {
+        if (it == std::cend(seqIdToOrdinalId_)) {
             return false;
         }
         const int32_t ordinalId = it->second;
@@ -130,7 +150,7 @@ public:
     bool GetSequence(FastaSequenceCached& record, const std::string& seqName) const
     {
         const auto it = headerToOrdinalId_.find(seqName);
-        if (it == headerToOrdinalId_.end()) {
+        if (it == std::cend(headerToOrdinalId_)) {
             return false;
         }
         const int32_t ordinalId = it->second;
