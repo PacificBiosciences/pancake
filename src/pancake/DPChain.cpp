@@ -487,9 +487,7 @@ ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
                               const int32_t maxForwardSeedCount)
 {
     /*
-     * \param minGap Minimum gap distsance between two seeds to mark it as a breakpoint.
-     * \param maxForwardSeedDist Stop the inner for loop if two seeds are more than this apart.
-     * \param maxForwardSeedCount Heuristic value to limit the number of succesive seeds to be checked in a for loop.
+     * Current implementation of this function is based on "mm_filter_bad_seeds" in Minimap2.
     */
 
     const int8_t FLAG_MASK_IGNORE = (1 << 0);
@@ -501,7 +499,8 @@ ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
     std::vector<int8_t> flags(hits.size(), 0);
 
     for (int32_t bpId = 0; bpId <= nBreakpoints; ++bpId) {
-        // Either filter out a maximum-gap span, or break.
+        // Flag all seed hits in the current [maxStart, maxEnd] range, if range is valid.
+        // This range represents likely low-quality seed hits.
         if (bpId == nBreakpoints || bpId >= maxEnd) {
             if (maxEnd > 0) {
                 for (int32_t j = breakpoints[maxStart]; j < breakpoints[maxEnd]; ++j) {
@@ -517,6 +516,7 @@ ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
         }
 
         const int32_t seedId = breakpoints[bpId];
+        // The `seedId - 1` is safe because `breakpoints` contains indices > 0.
         const int32_t gap = ComputeGap(hits[seedId - 1], hits[seedId]);
         int32_t nIns = (gap > 0) ? gap : 0;
         int32_t nDel = (gap > 0) ? 0 : -gap;
@@ -525,7 +525,9 @@ ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
         int32_t maxDiff = 0;
         int32_t maxDiffBpId = -1;
 
-        // Go through next breakpoints and check how concordant they are.
+        // Go through next breakpoints and compute the approximate number of insertions and deletions.
+        // Use that to estimate the gap distance between the two breakpoints (called `diff`).
+        // Track the maximum gap distance maxDiff and log the corresponding breakpoint as maxDiffBpId.
         for (int32_t nextBpId = (bpId + 1);
              nextBpId < nBreakpoints && nextBpId < (bpId + maxForwardSeedCount); ++nextBpId) {
             const int32_t nextSeedId = breakpoints[nextBpId];
@@ -540,13 +542,16 @@ ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
             } else {
                 nDel += (-nextGap);
             }
+            // TODO: This is equivalent to 2 * std::min(nIns, nDel). Factor of 2 can be ignored.
             const int32_t diff = nIns + nDel - std::abs(nIns - nDel);
-            // const int32_t diff = std::abs(nIns - nDel);
             if (diff > maxDiff) {
                 maxDiff = diff;
                 maxDiffBpId = nextBpId;
             }
         }
+        // Mark the range for removal if maxDiff is high enough.
+        // There can be multiple overlapping intervals (because bpId increments by only 1), but use
+        // maxVal to track the maximum of all the overlapping intervals.
         if (maxDiff > diffThreshold && maxDiff > maxVal) {
             maxVal = maxDiff;
             maxStart = bpId;
@@ -574,15 +579,6 @@ ChainedHits RefineChainedHits(const ChainedHits& chain, const int32_t minGap,
 ChainedHits RefineChainedHits2(const ChainedHits& chain, const int32_t minGap,
                                const int32_t maxForwardSeedDist)
 {
-    /*
-    * This filters more extreme outliers.
-    * For every breakpoint, we check the succeeding breakpoints and compute a value
-    * m (approximate number of matches computed as the min(target_dist, query_dist) between the two breakpoints,
-    * and the sum of gaps (gap1 which is the leading gap into the first breakpoint, and gap2 which is the
-    * gap preceding the next breakpoing).
-    * If the "number of matches" is lower than the sum of gaps, then this is a candidate for filtering.
-    */
-
     const int8_t FLAG_MASK_IGNORE = (1 << 0);
     const int8_t FLAG_MASK_LONG_JOIN = (1 << 1);
 
@@ -595,6 +591,7 @@ ChainedHits RefineChainedHits2(const ChainedHits& chain, const int32_t minGap,
 
     std::vector<int8_t> flags(hits.size(), 0);
     for (int32_t bpId = 0; bpId < nBreakpoints;) {
+        // Using `seedId - 1` is safe here because breakpoints can never point to index zero.
         const int32_t seedId = breakpoints[bpId];
         int32_t gap1 = std::abs(ComputeGap(hits[seedId - 1], hits[seedId]));
         int32_t qEnd1 = hits[seedId].queryPos + static_cast<int32_t>(hits[seedId].querySpan);
@@ -610,7 +607,7 @@ ChainedHits RefineChainedHits2(const ChainedHits& chain, const int32_t minGap,
             }
             // Compute the difference in (qspan-tspan).
             const int32_t gap2 = std::abs(ComputeGap(hits[nextSeedId - 1], hits[nextSeedId]));
-            // Start of the previous gap.
+            // Start of the last seed hit before the new gap.
             const int32_t qStart2 = hits[nextSeedId - 1].queryPos;
             const int32_t tStart2 = hits[nextSeedId - 1].targetPos;
             // Compute approximate number of matches from the first breakpoint to here.
@@ -652,14 +649,19 @@ ChainedHits RefineChainedHits2(const ChainedHits& chain, const int32_t minGap,
     return ret;
 }
 
-ChainedHits RefineBadEnds(const ChainedHits& chain, const int32_t bandwidth, const int32_t minMatch)
+ChainedHits RefineBadEnds(const ChainedHits& chain, const int32_t maxAllowedDist,
+                          const int32_t minMatch)
 {
     if (chain.hits.size() < 3) {
         return chain;
     }
-    // const int32_t minCoveredBases = std::min(chain.coveredBasesQuery, chain.coveredBasesTarget);
+
     const int32_t minCoveredBases = chain.coveredBasesQuery;
 
+    // Front end.
+    // Computes the sum of total estimated gaps from the first hit to any current hit, and
+    // computes an approximate total span between the two hits. If the total gap is larger than
+    // half of the total span, remove the preceding seed hits.
     int32_t start = 0;
     {
         int32_t numMatches = chain.hits[0].querySpan;
@@ -679,14 +681,16 @@ ChainedHits RefineBadEnds(const ChainedHits& chain, const int32_t bandwidth, con
             totalSpan += minDist;
             const int32_t qSpan = chain.hits[i].querySpan;
             numMatches += std::min(minDist, qSpan);
-            if (totalSpan >= (bandwidth << 1) ||
-                (numMatches >= minMatch && numMatches >= bandwidth) ||
+            if (totalSpan >= (maxAllowedDist << 1) ||
+                (numMatches >= minMatch && numMatches >= maxAllowedDist) ||
                 numMatches >= (minCoveredBases >> 1)) {
                 break;
             }
         }
     }
 
+    // Back end.
+    // Analogous to the front end.
     int32_t end = chain.hits.size();
     {
         int32_t numMatches = chain.hits.back().querySpan;
@@ -706,8 +710,8 @@ ChainedHits RefineBadEnds(const ChainedHits& chain, const int32_t bandwidth, con
             totalSpan += minDist;
             const int32_t qSpan = chain.hits[i + 1].querySpan;
             numMatches += std::min(minDist, qSpan);
-            if (totalSpan >= (bandwidth << 1) ||
-                (numMatches >= minMatch && numMatches >= bandwidth) ||
+            if (totalSpan >= (maxAllowedDist << 1) ||
+                (numMatches >= minMatch && numMatches >= maxAllowedDist) ||
                 numMatches >= (minCoveredBases >> 1)) {
                 break;
             }

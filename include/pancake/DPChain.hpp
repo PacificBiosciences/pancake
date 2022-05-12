@@ -153,13 +153,63 @@ std::vector<ChainedHits> ChainHitsSisd(std::span<const SeedHit> hits, int32_t ch
 
 double ComputeChainDivergence(const std::vector<SeedHit>& hits);
 
+/**
+ * @brief Removes stretches of chained hits which cover a region of a lot of local indel diffs.
+ *          It begins by determining a list of potential breakpoints - seed hits which follow
+ *          gaps longer than minGap.
+ *          For every breakpoint Bi, it looks at the next maxForwardSeedCount breakpoints Bj (or until
+ *          query or target distance between Bi and Bj is > maxForwardSeedDist) and computes
+ *          the estimated gap as the "diff" (min(numIns, numDel), where numIns and numDel are the sums of approx.
+ *          gaps from Bi to Bj). It tracks the maximum diff from Bi to any of Bj and logs j_max.
+ *          If maxDiff > diffThreshold, then stretch of hits between Bi and Bj_max are marked for removal.
+ *          In the next Bi iteration the i is simply incremented by 1, and it can overlap a previously flagged
+ *          stretch for removal. Of all the overlapping ranges, only the one with the highest diff will be removed.
+ *
+ * @param chain Input chained seed hits.
+ * @param minGap Minimum gap distaance between two seeds to mark the second one as a breakpoint.
+ * @param diffThreshold Maximum allowed approximate gap threshold used to mark a stretch of seed hits for removal.
+ * @param maxForwardSeedDist Stop looking at next seed hits if they are this much away in either query or target.
+ * @param maxForwardSeedCount Heuristic value to limit the number of succesive seeds.
+ * @return ChainedHits. Filtered seed hits, chained.
+ */
 ChainedHits RefineChainedHits(const ChainedHits& chain, int32_t minGap, int32_t diffThreshold,
                               int32_t maxForwardSeedDist, int32_t maxForwardSeedCount);
 
+/**
+ * @brief This filters more extreme outliers.
+ *          For every breakpoint B[i], we iterate through the remaining breakpoints B[j] (j > i) and compute:
+ *          (1) approximate number of matches `m` (computed as the min(target_dist, query_dist) between the two breakpoints B[j-1] and B[j]), and
+ *          (2) `gap1 + gap2` where gap1 is the gap preceding breakpoint B[j-1], and gap2 the gap preceding breakpoint B[j]).
+ *          The first `j` for which `m > (gap1 + gap2)` is satisfied (i.e. the diagonal slide is much longer than the gaps in between) is where iteration stops
+ *          (lets call this value of `j` as `last_j`).
+ *          All seed hits between `i` and `last_j` are filtered out because there are more indel gap jumps than actual matches/mismatches.
+ *
+ * @param chain Input chained seed hits
+ * @param minGap Threshold to select potential breakpoints.
+ * @param maxForwardSeedDist Stop looking at next seed hits if they are this much away in either query or target.
+ * @return ChainedHits. Filtered seed hits, chained.
+ */
 ChainedHits RefineChainedHits2(const ChainedHits& chain, int32_t minGap,
                                int32_t maxForwardSeedDist);
 
-ChainedHits RefineBadEnds(const ChainedHits& chain, int32_t bandwidth, int32_t minMatch);
+/**
+ * @brief Has two iterations: one from the left end and one from the right end. They are symmetrical.
+ *          In one iteration starting from the front end, if the gap between the current and the previous
+ *          seed hit is too large (>totalSpan/2), then all seed hits before the current one will be filtered out.
+ *          Here, gap = abs(queryDist - targetDist), and totalSpan = sum(min(queryDist-targetDist)) for all seed hits.
+ *          Iteration stops if:
+ *              1. totalSpan >= 2 * maxDist (i.e. we covered a large enough portion), or
+ *              2. numMatches >= minMatch && numMatches >= maxDist, where numMatches is the sum of bases covered by seed hits.
+ *                  (i.e. we covered more than enough match bases). Or,
+ *              3. numMatches >= chain.coveredBasesQuery / 2, where chain.coveredBasesQuery is the total number of covered bases
+ *                  by seed hits in the query sequence.
+ *
+ * @param chain Input chain of seed hits.
+ * @param maxDist Threshold for maximum distance from the first seed hit
+ * @param minMatch Used to break the iteration, but only if number of matches >= maxDist.
+ * @return ChainedHits. Filtered seed hits, chained.
+ */
+ChainedHits RefineBadEnds(const ChainedHits& chain, int32_t maxAllowedDist, int32_t minMatch);
 
 std::vector<Range> GroupByTargetAndStrand(const std::vector<SeedHit>& sortedHits);
 
