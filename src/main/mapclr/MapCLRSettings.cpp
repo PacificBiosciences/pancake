@@ -280,6 +280,27 @@ R"({
     "type" : "bool"
 })", !MapCLRSettings::Defaults::RefineSeedHits};
 
+const CLI_v2::Option RefineMinGap1{
+R"({
+    "names" : ["refine-min-gap-1"],
+    "description" : "Minimum gap length to select potential breakpoints in the first seed hit refinement heuristic.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::RefineMinGap1};
+
+const CLI_v2::Option RefineDiffThreshold{
+R"({
+    "names" : ["refine-diff-threshold"],
+    "description" : "Maxium indel diff to keep seed hits, in the first seed hit refinement heuristic.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::RefineDiffThreshold};
+
+const CLI_v2::Option RefineMinGap2{
+R"({
+    "names" : ["refine-min-gap-2"],
+    "description" : "Minimum gap length to select potential breakpoints in the second seed hit refinement heuristic.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::RefineMinGap2};
+
 //////////////////////
 ///// Filtering. /////
 //////////////////////
@@ -648,11 +669,16 @@ MapCLRSettings::MapCLRSettings(const PacBio::CLI_v2::Results& options)
         std::string(options[MapCLROptionNames::SelfHitPolicyMapping]));
     MapperSettings.map.minQueryLen = options[MapCLROptionNames::MinQueryLen];
     MapperSettings.map.bestNSecondary = options[MapCLROptionNames::BestNSecondary];
-    MapperSettings.map.refineSeedHits = (!options[MapCLROptionNames::NoRefineSeedHits]);
     MapperSettings.map.maxFlankExtensionDist =
         options[MapCLROptionNames::MaxFlankExtensionDistance];
     MapperSettings.map.flankExtensionFactor = options[MapCLROptionNames::FlankExtensionFactor];
     MapperSettings.map.minAlignmentSpan = options[MapCLROptionNames::MinAlignmentSpan];
+
+    // Refining seed hits.
+    MapperSettings.map.refineSeedHits = !options[MapCLROptionNames::NoRefineSeedHits];
+    MapperSettings.map.refineMinGap1 = options[MapCLROptionNames::RefineMinGap1];
+    MapperSettings.map.refineDiffThreshold = options[MapCLROptionNames::RefineDiffThreshold];
+    MapperSettings.map.refineMinGap2 = options[MapCLROptionNames::RefineMinGap2];
 
     // Initialize the MapperCLRAlignSettings.
     MapperSettings.align.align = options[MapCLROptionNames::Align];
@@ -742,12 +768,15 @@ PacBio::CLI_v2::Interface MapCLRSettings::CreateCLI()
         MapCLROptionNames::SecondaryAllowedOverlapFractionTarget,
         MapCLROptionNames::SecondaryMinScoreFraction,
         MapCLROptionNames::NoLIS,
-        MapCLROptionNames::NoRefineSeedHits,
         MapCLROptionNames::FreqPercentile,
         MapCLROptionNames::SeedOccurrenceMin,
         MapCLROptionNames::SeedOccurrenceMax,
         MapCLROptionNames::SeedOccurrenceMaxMemory,
         MapCLROptionNames::SelfHitPolicyMapping,
+        MapCLROptionNames::NoRefineSeedHits,
+        MapCLROptionNames::RefineMinGap1,
+        MapCLROptionNames::RefineDiffThreshold,
+        MapCLROptionNames::RefineMinGap2,
     });
     i.AddOptionGroup("Alignment Options", {
         MapCLROptionNames::Align,

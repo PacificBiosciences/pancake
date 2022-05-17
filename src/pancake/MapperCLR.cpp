@@ -549,8 +549,11 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
 
         // Optionally refine internal seed hits.
         if (settings.map.refineSeedHits) {
-            newChain = RefineChainedHits(newChain, 10, 40, settings.map.seedJoinDist / 2, 10);
-            newChain = RefineChainedHits2(newChain, 30, settings.map.seedJoinDist / 2);
+            newChain = RefineChainedHits(newChain, settings.map.refineMinGap1,
+                                         settings.map.refineDiffThreshold,
+                                         settings.map.seedJoinDist / 2, 10);
+            newChain = RefineChainedHits2(newChain, settings.map.refineMinGap2,
+                                          settings.map.seedJoinDist / 2);
         }
 
         std::swap(region->chain, newChain);

@@ -96,8 +96,13 @@ public:
     // Alignment region extraction parameters.
     int32_t maxFlankExtensionDist = 10000;  // Maximum length of the query/target sequences to consider when aligning flanks.
     double flankExtensionFactor = 1.3;      // Take this much more of the longer flanking sequence for alignment, to allow for indel errors.
-    bool refineSeedHits = true;             // Performs seed hit refinement before alignment regions are extracted.
     int32_t minAlignmentSpan = 200;         // If two seeds are closer than this, take the next seed. (Unless there are only 2 seeds left.)
+
+    // Refining seed hits.
+    bool refineSeedHits = true;             // Performs seed hit refinement before alignment regions are extracted.
+    int32_t refineMinGap1 = 10;             // The minGap parameter of RefineChainedHits.
+    int32_t refineDiffThreshold = 40;       // The diffThreshold of RefineChainedHits.
+    int32_t refineMinGap2 = 30;             // The minGap parameter of RefineChainedHits2.
 
     // bool oneHitPerTarget = false;
     // int32_t maxSeedDistance = 5000;
