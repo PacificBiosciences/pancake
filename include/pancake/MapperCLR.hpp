@@ -328,6 +328,37 @@ private:
                                  int64_t freqCutoff, std::shared_ptr<ChainingScratchSpace> ssChain,
                                  std::vector<SeedHit>& ssSeedHits);
 
+    /**
+     * @brief This is the core of the Map_ function. It takes a vector of collected seed hits and
+     *          performs various filterings and refinement to produce one or more chains of seed hits
+     *          which represent the final mappings. This function forms the mapping result which includes
+     *          the mapping locations, seed hits, timings, and other information.
+     *          NOTE: This function does NOT check the settings.selfHitPolicy. Instead it depends on:
+     *              1. Seed hits to have been pre-filtered from self-hits before calling this function, and
+     *              2. The addPerfectMapping to be true if a mocked mapping is supposed to be added.
+     *
+     * @param hits Input seed hits.
+     * @param ssChain Scratch space, to reuse the memory for chaining. Nullptr may be provided, and a new scratch space will be allocated internally.
+     * @param targetSeqs Target sequences used for mapping.
+     * @param queryLen Length of the query sequence.
+     * @param queryId ID of the query sequence.
+     * @param settings All settings used for mapping.
+     * @param addPerfectMapping If true, a mocked perfect mapping will be added to the vector of chained regions. Mocked seed hits
+     *                          (consisting of only 2 hits: first and last) will be created.
+     *                          NOTE: This function does not check the settings.selfHitPolicy. Instead it uses this parameter.
+     * @param timing Map which stores the timing information of various mapping stages that may have occurred before the call to this function. These
+     *               will be copied and stored in the returning MapperBaseResult object.
+     * @param debugStepId For debug purposes, this is a counter of different mapping steps, used to log information and store debug data. This is a reference
+     *                    to allow multiple runs of this function.
+     * @return MapperBaseResult All mapping results for this query.
+     */
+    static MapperBaseResult HitsToMappings_(
+        std::vector<SeedHit> hits, const std::shared_ptr<ChainingScratchSpace>& ssChain,
+        const FastaSequenceCachedStore& targetSeqs, const int32_t queryLen, const int32_t queryId,
+        const MapperCLRMapSettings& settings, const bool addPerfectMapping,
+        const int32_t maxAllowedDistForBadEndRefinement,
+        const std::unordered_map<std::string, double>& timing, int32_t& debugStepId);
+
     /*
      * \brief Aligns the query sequence to one or more target sequences, based on the mappings and
      * seed hits collected and refined during the mapping process (the Map_ function).

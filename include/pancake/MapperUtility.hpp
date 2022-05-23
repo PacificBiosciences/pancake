@@ -26,7 +26,8 @@ OverlapPtr MakeOverlap(const std::vector<SeedHit>& sortedHits, int32_t queryId, 
 /**
  * \brief Given several types of occurrence thresholds, computes the final occurrence threshold that can be used
  *          for collecting seed hits. Uses the following formula to compute the return value:
- *              cutoff = max(seedOccurrenceMin, min(seedOccurrenceMax, seedOccurrenceMemMax, percentileCutoff))
+ *              cutoff = max(seedOccurrenceMin, min(seedOccurrenceMax, occThresholdMemMax, seedOccurrenceUserSpecified))
+ *          where occThresholdMemMax is computed from the histogram if parameter seedOccurrenceMaxMemory > 0, and other parameters are user-provided via the API.
  * \param seedHitHistogram Histogram of seed hit occurrences, given as a vector of pairs: <seed occurrence, number of query seeds with this occurrence>.
  *                          Can be an empty vector. Used only when seedOccurrenceMaxMemory > 0. The vector should be sorted in the ascending order of seed occurrence.
  * \param seedOccurrenceMin Minimum value for the occurrence threshold. If the other cutoff values result in a smaller value than the minimum, then the return value is pinned to this.
