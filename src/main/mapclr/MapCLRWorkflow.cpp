@@ -146,7 +146,7 @@ int MapCLRWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     // Create the overlap writer.
     auto writer = PacBio::Pancake::OverlapWriterFactory(settings.OutFormat, stdout,
                                                         settings.WriteIds, settings.WriteCigar);
-    writer->WriteHeader(targetSeqDBReader);
+    writer->WriteHeader(targetSeqDBReader.recordStore());
 
     // Process all blocks.
     PacBio::Pancake::SeqDBReaderCachedBlock querySeqDBReader(querySeqDBCache, false);
@@ -218,7 +218,8 @@ int MapCLRWorkflow::Runner(const PacBio::CLI_v2::Results& options)
                 const auto& result = results[i];
                 const auto& querySeq = querySeqDBReader.records()[i];
                 for (const auto& chainedRegion : result.mappings) {
-                    writer->Write(*chainedRegion->mapping, targetSeqDBReader, querySeq);
+                    writer->Write(*chainedRegion->mapping, targetSeqDBReader.recordStore(),
+                                  querySeq);
                 }
             }
 

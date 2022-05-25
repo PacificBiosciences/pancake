@@ -22,16 +22,11 @@ class OverlapWriterBase
 public:
     virtual ~OverlapWriterBase() {}
 
-    virtual void Write(const Overlap& ovl, const PacBio::Pancake::SeqDBReaderCached& targetSeqs,
-                       const PacBio::Pancake::FastaSequenceId& querySeq) = 0;
-
     virtual void Write(const Overlap& ovl,
-                       const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs,
+                       const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs,
                        const PacBio::Pancake::FastaSequenceCached& querySeq) = 0;
 
-    virtual void WriteHeader(const PacBio::Pancake::SeqDBReaderCached& targetSeqs) = 0;
-
-    virtual void WriteHeader(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs) = 0;
+    virtual void WriteHeader(const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs) = 0;
 
     static void PrintOverlapAsIPAOvl(FILE* fpOut, const Overlap& ovl, const std::string& Aname,
                                      const std::string& Bname, bool writeIds, bool writeCigar);

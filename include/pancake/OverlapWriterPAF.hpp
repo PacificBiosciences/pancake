@@ -25,15 +25,10 @@ public:
 
     ~OverlapWriterPAF();
 
-    void WriteHeader(const PacBio::Pancake::SeqDBReaderCached& targetSeqs) override;
+    void Write(const Overlap& ovl, const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs,
+               const PacBio::Pancake::FastaSequenceCached& querySeq);
 
-    void WriteHeader(const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs) override;
-
-    void Write(const Overlap& ovl, const PacBio::Pancake::SeqDBReaderCached& targetSeqs,
-               const PacBio::Pancake::FastaSequenceId& querySeq) override;
-
-    void Write(const Overlap& ovl, const PacBio::Pancake::SeqDBReaderCachedBlock& targetSeqs,
-               const PacBio::Pancake::FastaSequenceCached& querySeq) override;
+    void WriteHeader(const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs);
 
 private:
     std::string outFile_;

@@ -147,7 +147,7 @@ int OverlapHifiWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     auto writer = PacBio::Pancake::OverlapWriterFactory(settings.OutFormat, stdout,
                                                         settings.WriteIds, settings.WriteCigar);
 
-    writer->WriteHeader(targetSeqDBReader);
+    writer->WriteHeader(targetSeqDBReader.recordStore());
 
     const int32_t endBlockId = (settings.QueryBlockEndId <= 0) ? querySeqDBCache->blockLines.size()
                                                                : settings.QueryBlockEndId;
@@ -226,7 +226,7 @@ int OverlapHifiWorkflow::Runner(const PacBio::CLI_v2::Results& options)
                 const auto& querySeq = querySeqDBReader.records()[i];
 
                 for (const auto& ovl : result.overlaps) {
-                    writer->Write(*ovl, targetSeqDBReader, querySeq);
+                    writer->Write(*ovl, targetSeqDBReader.recordStore(), querySeq);
                 }
             }
 
