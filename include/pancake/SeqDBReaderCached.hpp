@@ -3,6 +3,7 @@
 #ifndef PANCAKE_SEQ_DB_READER_CACHED_HPP
 #define PANCAKE_SEQ_DB_READER_CACHED_HPP
 
+#include <pancake/FastaSequenceCachedStore.hpp>
 #include <pancake/FastaSequenceId.hpp>
 #include <pancake/SeqDBIndexCache.hpp>
 #include <pancake/SeqDBReaderCached.hpp>
@@ -24,19 +25,15 @@ public:
                       const std::vector<std::string>& seqNames);
     ~SeqDBReaderCached();
 
-    const FastaSequenceId& GetSequence(int32_t seqId) const;
-    const FastaSequenceId& GetSequence(const std::string& seqName) const;
-    void GetSequence(FastaSequenceId& record, int32_t seqId);
-    void GetSequence(FastaSequenceId& record, const std::string& seqName);
-    const std::vector<PacBio::Pancake::FastaSequenceId>& records() const { return records_; }
+    const FastaSequenceCached& GetSequence(int32_t seqId) const;
+    const FastaSequenceCached& GetSequence(const std::string& seqName) const;
+    const std::vector<FastaSequenceCached>& records() const { return recordStore_.records(); }
+    const FastaSequenceCachedStore& recordStore() const { return recordStore_; }
 
 private:
     std::shared_ptr<PacBio::Pancake::SeqDBIndexCache> seqDBIndexCache_;
     std::vector<PacBio::Pancake::FastaSequenceId> records_;
-
-    // Info to allow random access.
-    std::unordered_map<std::string, int32_t> headerToOrdinalId_;
-    std::unordered_map<int32_t, int32_t> seqIdToOrdinalId_;
+    FastaSequenceCachedStore recordStore_;
 
     void LoadData_(int32_t blockId_);
     void LoadData_(const std::vector<int32_t>& seqIds);

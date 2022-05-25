@@ -23,13 +23,12 @@ void OverlapWriterSAM::WriteHeader(const PacBio::Pancake::SeqDBReaderCached& tar
         char buff[100];
         for (const auto& targetSeq : targetSeqs.records()) {
             sprintf(buff, "%09d", static_cast<int32_t>(targetSeq.Id()));
-            fprintf(fpOut_, "@SQ\tSN:%s\tLN:%d\n", buff,
-                    static_cast<int32_t>(targetSeq.Bases().size()));
+            fprintf(fpOut_, "@SQ\tSN:%s\tLN:%d\n", buff, static_cast<int32_t>(targetSeq.Size()));
         }
     } else {
         for (const auto& targetSeq : targetSeqs.records()) {
             fprintf(fpOut_, "@SQ\tSN:%s\tLN:%d\n", targetSeq.Name().c_str(),
-                    static_cast<int32_t>(targetSeq.Bases().size()));
+                    static_cast<int32_t>(targetSeq.Size()));
         }
     }
 }
@@ -62,8 +61,8 @@ void OverlapWriterSAM::Write(const Overlap& ovl,
         // Don't look for the actual headers unless required. Saves the cost of a search.
         const auto& qName = writeIds_ ? "" : targetSeq.Name();
         const auto& tName = writeIds_ ? "" : querySeq.Name();
-        PrintOverlapAsSAM(fpOut_, ovl, targetSeq.Bases().c_str(), targetSeq.Bases().size(), qName,
-                          tName, writeIds_, writeCigar_);
+        PrintOverlapAsSAM(fpOut_, ovl, targetSeq.Bases(), targetSeq.Size(), qName, tName, writeIds_,
+                          writeCigar_);
     } else {
         // Don't look for the actual headers unless required. Saves the cost of a search.
         const auto& qName = writeIds_ ? "" : querySeq.Name();

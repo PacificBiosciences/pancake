@@ -43,10 +43,9 @@ void SeqDBReaderCached::LoadData_(int32_t blockId)
     // Fetch the block of data.
     reader.GetBlock(records_, blockId);
 
-    for (int32_t i = 0; i < static_cast<int32_t>(records_.size()); ++i) {
-        headerToOrdinalId_[records_[i].Name()] = i;
-        seqIdToOrdinalId_[records_[i].Id()] = i;
-    }
+    // Initialize the record store with lookups.
+    recordStore_.Clear();
+    recordStore_.AddRecords(records_);
 }
 
 void SeqDBReaderCached::LoadData_(const std::vector<int32_t>& seqIds)
@@ -58,16 +57,14 @@ void SeqDBReaderCached::LoadData_(const std::vector<int32_t>& seqIds)
 
     // Load sequences one by one.
     for (const auto& seqId : seqIds) {
-        int32_t numRecords = static_cast<int32_t>(records_.size());
         // Get the records.
         PacBio::Pancake::FastaSequenceId record;
         reader.GetSequence(record, seqId);
-        // Add it to the lookups.
-        headerToOrdinalId_[record.Name()] = numRecords;
-        seqIdToOrdinalId_[record.Id()] = numRecords;
         // Store the record.
         records_.emplace_back(std::move(record));
     }
+    recordStore_.Clear();
+    recordStore_.AddRecords(records_);
 }
 
 void SeqDBReaderCached::LoadData_(const std::vector<std::string>& seqNames)
@@ -79,64 +76,26 @@ void SeqDBReaderCached::LoadData_(const std::vector<std::string>& seqNames)
 
     // Load sequences one by one.
     for (const auto& seqName : seqNames) {
-        int32_t numRecords = static_cast<int32_t>(records_.size());
         // Get the records.
         PacBio::Pancake::FastaSequenceId record;
         reader.GetSequence(record, seqName);
-        // Add it to the lookups.
-        headerToOrdinalId_[record.Name()] = numRecords;
-        seqIdToOrdinalId_[record.Id()] = numRecords;
         // Store the record.
         records_.emplace_back(std::move(record));
     }
+    recordStore_.Clear();
+    recordStore_.AddRecords(records_);
 }
 
-const FastaSequenceId& SeqDBReaderCached::GetSequence(int32_t seqId) const
+const FastaSequenceCached& SeqDBReaderCached::GetSequence(int32_t seqId) const
 {
-    auto it = seqIdToOrdinalId_.find(seqId);
-    if (it == seqIdToOrdinalId_.end()) {
-        std::ostringstream oss;
-        oss << "(SeqDBReaderCached) Invalid seqId = " << seqId << ".";
-        throw std::runtime_error(oss.str());
-    }
-    int32_t ordinalId = it->second;
-    return records_[ordinalId];
+    // The following line throws if the identified is not present in the store.
+    return recordStore_.GetSequence(seqId);
 }
 
-void SeqDBReaderCached::GetSequence(FastaSequenceId& record, int32_t seqId)
+const FastaSequenceCached& SeqDBReaderCached::GetSequence(const std::string& seqName) const
 {
-    auto it = seqIdToOrdinalId_.find(seqId);
-    if (it == seqIdToOrdinalId_.end()) {
-        std::ostringstream oss;
-        oss << "(SeqDBReaderCached) Invalid seqId = " << seqId << ".";
-        throw std::runtime_error(oss.str());
-    }
-    int32_t ordinalId = it->second;
-    record = records_[ordinalId];
-}
-
-const FastaSequenceId& SeqDBReaderCached::GetSequence(const std::string& seqName) const
-{
-    auto it = headerToOrdinalId_.find(seqName);
-    if (it == headerToOrdinalId_.end()) {
-        std::ostringstream oss;
-        oss << "(SeqDBReaderCached) Invalid seqName: '" << seqName << "'";
-        throw std::runtime_error(oss.str());
-    }
-    int32_t ordinalId = it->second;
-    return records_[ordinalId];
-}
-
-void SeqDBReaderCached::GetSequence(FastaSequenceId& record, const std::string& seqName)
-{
-    auto it = headerToOrdinalId_.find(seqName);
-    if (it == headerToOrdinalId_.end()) {
-        std::ostringstream oss;
-        oss << "(SeqDBReaderCached) Invalid seqName: '" << seqName << "'";
-        throw std::runtime_error(oss.str());
-    }
-    int32_t ordinalId = it->second;
-    record = records_[ordinalId];
+    // The following line throws if the identified is not present in the store.
+    return recordStore_.GetSequence(seqName);
 }
 
 }  // namespace Pancake
