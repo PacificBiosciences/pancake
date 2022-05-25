@@ -58,6 +58,27 @@ std::vector<std::pair<int64_t, int64_t>> ComputeSeedHitHistogram(
     const std::span<const PacBio::Pancake::SeedRaw> querySeeds, const SeedHashType& hash);
 
 /**
+ * \brief Given several types of occurrence thresholds, computes the final occurrence threshold that can be used
+ *          for collecting seed hits. Uses the following formula to compute the return value:
+ *              cutoff = max(seedOccurrenceMin, min(seedOccurrenceMax, occThresholdMemMax, seedOccurrenceUserSpecified))
+ *          where occThresholdMemMax is computed from the histogram if parameter seedOccurrenceMaxMemory > 0, and other parameters are user-provided via the API.
+ * \param seedHitHistogram Histogram of seed hit occurrences, given as a vector of pairs: <seed occurrence, number of query seeds with this occurrence>.
+ *                          Can be an empty vector. Used only when seedOccurrenceMaxMemory > 0. The vector should be sorted in the ascending order of seed occurrence.
+ * \param seedOccurrenceMin Minimum value for the occurrence threshold. If the other cutoff values result in a smaller value than the minimum, then the return value is pinned to this.
+ * \param seedOccurrenceMax Maximum allowed occurrence of a seed to keep for mapping. Value <= 0 turns off this threshold.
+ * \param seedOccurrenceMaxMemory Maximum allowed memory to be consumed by collected seed hits. This is used to dynamically compute the maximum
+ *                                  occurrence cutoff based on the seed hit histogram. Seeds are chosen in the sorted order by their occurrence
+ *                                  until the memory threshold is reached. Value <= 0 turns off this threshold.
+ * \param seedOccurrenceUserSpecified User-provided cutoff threshold, computed, for example, from the frequency percentile threshold
+ *                                          (e.g. top 0.002% of most abundant seeds in the index should be skipped.).
+ * \return Single value that consolidates the occurrence cutoff. If the cutoff is not applied (e.g. all or some provided values are zero), it returns std::numeric_limits<int64_t>::max().
+*/
+int64_t ComputeOccurrenceThreshold(const std::vector<std::pair<int64_t, int64_t>>& seedHitHistogram,
+                                   int64_t seedOccurrenceMin, int64_t seedOccurrenceMax,
+                                   int64_t seedOccurrenceMaxMemory,
+                                   int64_t seedOccurrenceUserSpecified, bool debugVerbose);
+
+/**
  * @brief Given a vector of query seeds and a set of hashed target seeds, finds all seed hits and
  *          returns them.
  * @param hits Return value, all collected hits. Collected hits are returned via parameter to allow memory reuse.
