@@ -383,10 +383,10 @@ private:
      * @return MapperBaseResult All mapping results for this query.
      */
     static MapperBaseResult HitsToMappings_(
-        std::vector<SeedHit> hits, const std::shared_ptr<ChainingScratchSpace>& ssChain,
-        const FastaSequenceCachedStore& targetSeqs, const int32_t queryLen, const int32_t queryId,
-        const MapperCLRMapSettings& settings, const bool addPerfectMapping,
-        const int32_t maxAllowedDistForBadEndRefinement,
+        const std::vector<SeedHit>& hits, const std::shared_ptr<ChainingScratchSpace>& ssChain,
+        const FastaSequenceCachedStore& targetSeqs, int32_t queryLen, int32_t queryId,
+        const MapperCLRMapSettings& settings, bool addPerfectMapping,
+        int32_t maxAllowedDistForBadEndRefinement,
         const std::unordered_map<std::string, double>& timing, int32_t& debugStepId);
 
     static std::vector<SeedHit> ReseedAlignmentRegions_(

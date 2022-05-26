@@ -36,7 +36,7 @@
 // #define PANCAKE_MAP_CLR_DEBUG_2
 // #define PANCAKE_MAP_CLR_DEBUG_ALIGN
 // #define PANCAKE_MAP_CLR_DEBUG_PRINT_CHAINED_REGIONS
-// #define PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
+#define PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
 #include <pbcopper/utility/MemoryConsumption.h>
@@ -499,7 +499,7 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
 }
 
 MapperBaseResult MapperCLR::HitsToMappings_(
-    std::vector<SeedHit> hits, const std::shared_ptr<ChainingScratchSpace>& ssChain,
+    const std::vector<SeedHit>& inputHits, const std::shared_ptr<ChainingScratchSpace>& ssChain,
     const FastaSequenceCachedStore& targetSeqs, const int32_t queryLen, const int32_t queryId,
     const MapperCLRMapSettings& settings, const bool addPerfectMapping,
     const int32_t maxAllowedDistForBadEndRefinement,
@@ -509,6 +509,8 @@ MapperBaseResult MapperCLR::HitsToMappings_(
 
     MapperBaseResult result;
     result.time = timings;
+
+    std::vector<SeedHit> sortedHits;
 
     // Sort the seed hits.
     {
@@ -520,9 +522,9 @@ MapperBaseResult MapperCLR::HitsToMappings_(
         //  - First of the pair is the targetID + targetRev.
         //  - Second of the pair stores the diagonal first, then packs the ID of the current seed hit. This way
         //      the diagonal's sign can validly be compared.
-        std::vector<std::pair<int32_t, int64_t>> seedHitsPacked(hits.size());
-        for (size_t i = 0; i < hits.size(); ++i) {
-            const auto& sh = hits[i];
+        std::vector<std::pair<int32_t, int64_t>> seedHitsPacked(inputHits.size());
+        for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
+            const auto& sh = inputHits[i];
             seedHitsPacked[i] = std::make_pair(
                 ((sh.targetId << 1) | sh.targetRev),
                 (static_cast<uint64_t>(sh.targetPos - sh.queryPos) << 32 | (i & 0x0FFFFFFFF)));
@@ -533,18 +535,17 @@ MapperBaseResult MapperCLR::HitsToMappings_(
 
         pdqsort(seedHitsPacked.begin(), seedHitsPacked.end());
 
-        std::vector<PacBio::Pancake::SeedHit> sortedHits(hits.size());
+        sortedHits.resize(inputHits.size());
         for (size_t i = 0; i < seedHitsPacked.size(); ++i) {
-            sortedHits[i] = hits[seedHitsPacked[i].second & 0x0FFFFFFFF];
+            sortedHits[i] = inputHits[seedHitsPacked[i].second & 0x0FFFFFFFF];
         }
-        std::swap(hits, sortedHits);
         const double timeSort = ttPartial.GetMicrosecs(true);
         LogTicTocAdd("map-L3-total-sort", timeSort, result.time);
         LogTicToc("map-L1-05-sort", ttPartial, result.time);
     }
 
     // Group seed hits by diagonal.
-    auto groups = DiagonalGroup(hits, settings.chainBandwidth, true);
+    auto groups = DiagonalGroup(sortedHits, settings.chainBandwidth, true);
     LogTicToc("map-L1-06-diaggroup", ttPartial, result.time);
 
 #if defined(PANCAKE_MAP_CLR_DEBUG) || defined(PANCAKE_MAP_CLR_DEBUG_2)
@@ -558,7 +559,7 @@ MapperBaseResult MapperCLR::HitsToMappings_(
 
     // Process each diagonal bin to get the chains.
     std::vector<std::unique_ptr<ChainedRegion>> allChainedRegions = ChainAndMakeOverlap_(
-        targetSeqs, hits, groups, queryId, queryLen, settings.chainMaxSkip,
+        targetSeqs, sortedHits, groups, queryId, queryLen, settings.chainMaxSkip,
         settings.chainMaxPredecessors, settings.seedJoinDist, settings.chainBandwidth,
         settings.minNumSeeds, settings.minCoveredBases, settings.minDPScore, settings.useLIS,
         ssChain, result.time);
@@ -698,11 +699,11 @@ MapperBaseResult MapperCLR::HitsToMappings_(
     ++debugStepId;
 
 #ifdef PANCAKE_MAP_CLR_DEBUG_2
-    std::cerr << "All hits: hits.size() = " << hits.size() << "\n";
+    std::cerr << "All hits: sortedHits.size() = " << sortedHits.size() << "\n";
     std::cerr << "Diagonal groups: groups.size() = " << groups.size() << "\n";
     for (size_t i = 0; i < groups.size(); ++i) {
-        const int32_t firstDiag = hits[groups[i].start].Diagonal();
-        const int32_t lastDiag = hits[groups[i].end - 1].Diagonal();
+        const int32_t firstDiag = sortedHits[groups[i].start].Diagonal();
+        const int32_t lastDiag = sortedHits[groups[i].end - 1].Diagonal();
         std::cerr << "[queryId = " << queryId << ", group " << i << "] start = " << groups[i].start
                   << ", end = " << groups[i].end << ", diagStart = " << firstDiag
                   << ", diagEnd = " << lastDiag << "\n";
@@ -711,7 +712,7 @@ MapperBaseResult MapperCLR::HitsToMappings_(
     // Write ALL seed hits.
     for (size_t i = 0; i < groups.size(); ++i) {
         const auto& g = groups[i];
-        const int32_t targetId = hits[g.start].targetId;
+        const int32_t targetId = sortedHits[g.start].targetId;
         const int32_t targetLen = targetSeqs.GetSequence(targetId).size();
         WriteSeedHits(
             "temp-debug/hits-q" + std::to_string(queryId) + "-0-all-hits-diagonal-groupped.csv",
