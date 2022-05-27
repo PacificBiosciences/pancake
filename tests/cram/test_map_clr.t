@@ -42,7 +42,6 @@ Map one read to another (reverse) without aligning.
 
 Map one read to another (reverse) and align.
   $ rm -rf out && mkdir -p out
-  > ${BIN_DIR}/pancake seqdb reads ${PROJECT_DIR}/tests/data/mapper-clr/test-5-revcmp-aln-query.fasta
   > ${BIN_DIR}/pancake seqdb out/reads ${PROJECT_DIR}/tests/data/mapper-clr/test-5-revcmp-aln-query.fasta
   > ${BIN_DIR}/pancake seeddb -k 19 -w 10 -s 0 out/reads.seqdb out/reads
   > ${BIN_DIR}/pancake seqdb out/ref ${PROJECT_DIR}/tests/data/mapper-clr/test-5-revcmp-aln-target.fasta
@@ -52,7 +51,6 @@ Map one read to another (reverse) and align.
 
 Write sequence IDs instead of names.
   $ rm -rf out && mkdir -p out
-  > ${BIN_DIR}/pancake seqdb reads ${PROJECT_DIR}/tests/data/mapper-clr/test-5-revcmp-aln-query.fasta
   > ${BIN_DIR}/pancake seqdb out/reads ${PROJECT_DIR}/tests/data/mapper-clr/test-5-revcmp-aln-query.fasta
   > ${BIN_DIR}/pancake seeddb -k 19 -w 10 -s 0 out/reads.seqdb out/reads
   > ${BIN_DIR}/pancake seqdb out/ref ${PROJECT_DIR}/tests/data/mapper-clr/test-5-revcmp-aln-target.fasta
@@ -89,3 +87,19 @@ Compression cannot be combined with optional case, all bases are converted to up
 Keeping original case of the input bases can be done with uncompressed DBs.
   $ rm -rf out && mkdir -p out
   > ${BIN_DIR}/pancake seqdb out/reads ${PROJECT_DIR}/tests/data/mapper-clr/test-12-lowercase_base_in_target.query.fasta --compression 0 --keep-case 2>&1 | sed 's/.*pancake //g'
+
+################################
+### Reseeding.               ###
+################################
+Run WITH and WITHOUT reseeding, to show that the number of seed hits increased significantly (NS tag), but that the results changed only slightly.
+  $ rm -rf out && mkdir -p out
+  > in_fasta_query=${PROJECT_DIR}/tests/data/mapper-clr/reseeding/region.in.332.query.fasta
+  > in_fasta_target=${PROJECT_DIR}/tests/data/mapper-clr/reseeding/region.in.332.target.fasta
+  > ${BIN_DIR}/pancake seqdb out/reads ${in_fasta_query}
+  > ${BIN_DIR}/pancake seeddb -k 15 -w 5 -s 0 --use-hpc-seeds-only out/reads.seqdb out/reads
+  > ${BIN_DIR}/pancake seqdb out/ref ${in_fasta_target}
+  > ${BIN_DIR}/pancake seeddb -k 15 -w 5 -s 0 --use-hpc-seeds-only out/ref.seqdb out/ref
+  > ${BIN_DIR}/pancake map --num-threads 1 out/ref out/reads --target-block 0 --query-block-start 0 --query-block-end 0 --align --write-ids --out-fmt paf --no-cigar --refine-min-gap-1 50
+  > ${BIN_DIR}/pancake map --num-threads 1 out/ref out/reads --target-block 0 --query-block-start 0 --query-block-end 0 --align --write-ids --out-fmt paf --no-cigar --refine-min-gap-1 50 --reseed
+  000000000	10121	0	10121	-	000000000	10041	0	10038	10121	10038	60	tp:A:P	NS:i:50	NM:i:2625	IT:f:74.0638	SC:i:5147	AT:Z:*	BT:Z:*	VQ:Z:*	VT:Z:*
+  000000000	10121	0	10121	-	000000000	10041	0	10038	10121	10038	60	tp:A:P	NS:i:173	NM:i:2612	IT:f:74.1923	SC:i:5163	AT:Z:*	BT:Z:*	VQ:Z:*	VT:Z:*

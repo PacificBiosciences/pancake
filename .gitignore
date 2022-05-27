@@ -11,3 +11,4 @@ temp/
 tests/*/*.t.err
 *.png
 separated-*/
+!tests/data/mapper-clr/reseeding/*.png
