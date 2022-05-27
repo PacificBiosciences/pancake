@@ -475,8 +475,8 @@ PAF output format - with traceback.
   $ ${BIN_DIR}/pancake seqdb reads ${TEST_DATA_DIR}/hifi-ovl/reads.pile12-simple_errors_2-reads.fasta
   > ${BIN_DIR}/pancake seeddb -k 15 -w 10 -s 0 reads.seqdb reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 reads reads 0 0 0 --traceback --write-cigar --min-map-len 0 --min-anchor-span 20 --aln-bw 0.10 --aln-diff-rate 0.10 --out-fmt paf
-  read1-fwd	180	0	180	-	read4-rev	180	0	180	180	180	60	tp:A:P	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:152=1X27=	VQ:Z:T	VT:Z:G
-  read4-rev	180	0	180	-	read1-fwd	180	0	180	180	180	60	tp:A:P	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:27=1X152=	VQ:Z:G	VT:Z:T
+  read1-fwd	180	0	180	-	read4-rev	180	0	180	180	180	60	tp:A:P	NS:i:34	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:152=1X27=	VQ:Z:T	VT:Z:G
+  read4-rev	180	0	180	-	read1-fwd	180	0	180	180	180	60	tp:A:P	NS:i:34	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:27=1X152=	VQ:Z:G	VT:Z:T
 
 
 
@@ -508,8 +508,8 @@ PAF output format - no traceback.
   $ ${BIN_DIR}/pancake seqdb reads ${TEST_DATA_DIR}/hifi-ovl/reads.pile12-simple_errors_2-reads.fasta
   > ${BIN_DIR}/pancake seeddb -k 15 -w 10 -s 0 reads.seqdb reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 reads reads 0 0 0 --min-map-len 0 --min-anchor-span 20 --aln-bw 0.10 --aln-diff-rate 0.10 --out-fmt paf
-  read1-fwd	180	0	180	-	read4-rev	180	0	180	180	180	60	tp:A:P	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	VQ:Z:*	VT:Z:*
-  read4-rev	180	0	180	-	read1-fwd	180	0	180	180	180	60	tp:A:P	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	VQ:Z:*	VT:Z:*
+  read1-fwd	180	0	180	-	read4-rev	180	0	180	180	180	60	tp:A:P	NS:i:34	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	VQ:Z:*	VT:Z:*
+  read4-rev	180	0	180	-	read1-fwd	180	0	180	180	180	60	tp:A:P	NS:i:34	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	VQ:Z:*	VT:Z:*
 
 
 M4 output format - with traceback. Writing IDs.
@@ -540,15 +540,15 @@ PAF output format - with traceback. Writing IDs.
   $ ${BIN_DIR}/pancake seqdb reads ${TEST_DATA_DIR}/hifi-ovl/reads.pile12-simple_errors_2-reads.fasta
   > ${BIN_DIR}/pancake seeddb -k 15 -w 10 -s 0 reads.seqdb reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 reads reads 0 0 0 --write-ids --traceback --write-cigar --min-map-len 0 --min-anchor-span 20 --aln-bw 0.10 --aln-diff-rate 0.10 --out-fmt paf
-  000000000	180	0	180	-	000000001	180	0	180	180	180	60	tp:A:P	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:152=1X27=	VQ:Z:T	VT:Z:G
-  000000001	180	0	180	-	000000000	180	0	180	180	180	60	tp:A:P	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:27=1X152=	VQ:Z:G	VT:Z:T
+  000000000	180	0	180	-	000000001	180	0	180	180	180	60	tp:A:P	NS:i:34	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:152=1X27=	VQ:Z:T	VT:Z:G
+  000000001	180	0	180	-	000000000	180	0	180	180	180	60	tp:A:P	NS:i:34	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:27=1X152=	VQ:Z:G	VT:Z:T
 
 PAF output format, generating symetric overlaps - with traceback. Writing IDs.
   $ ${BIN_DIR}/pancake seqdb reads ${TEST_DATA_DIR}/hifi-ovl/reads.pile12-simple_errors_2-reads.fasta
   > ${BIN_DIR}/pancake seeddb -k 15 -w 10 -s 0 reads.seqdb reads
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 reads reads 0 0 0 --write-ids --traceback --write-cigar --min-map-len 0 --min-anchor-span 20 --aln-bw 0.10 --aln-diff-rate 0.10 --out-fmt paf --skip-sym --write-rev
-  000000001	180	0	180	-	000000000	180	0	180	180	180	60	tp:A:P	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:27=1X152=	VQ:Z:G	VT:Z:T
-  000000000	180	0	180	-	000000001	180	0	180	180	180	60	tp:A:P	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:152=1X27=	VQ:Z:T	VT:Z:G
+  000000001	180	0	180	-	000000000	180	0	180	180	180	60	tp:A:P	NS:i:34	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:27=1X152=	VQ:Z:G	VT:Z:T
+  000000000	180	0	180	-	000000001	180	0	180	180	180	60	tp:A:P	NS:i:34	NM:i:1	IT:f:99.4444	SC:i:-179	AT:Z:c	BT:Z:c	cg:Z:152=1X27=	VQ:Z:T	VT:Z:G
 
 ##########################################
 ### Testing masking of variant strings ###

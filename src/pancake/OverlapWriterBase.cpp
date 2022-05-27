@@ -167,6 +167,7 @@ void OverlapWriterBase::PrintOverlapAsPAF(FILE* fpOut, const Overlap& ovl, const
 
     fprintf(fpOut, "\ttp:A:%c", (ovl.IsSecondary ? 'S' : 'P'));
 
+    fprintf(fpOut, "\tNS:i:%d", ovl.NumSeeds);
     fprintf(fpOut, "\tNM:i:%d\tIT:f:%.4lf\tSC:i:%d", ovl.EditDistance, 100.0 * identity,
             static_cast<int32_t>(ovl.Score));
     fprintf(fpOut, "\tAT:Z:%s\tBT:Z:%s", AtypeStr.c_str(), BtypeStr.c_str());

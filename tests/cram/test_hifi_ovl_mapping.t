@@ -9,7 +9,7 @@ is not flagged as secondary.
   > ${BIN_DIR}/pancake seqdb ref ${TEST_DATA_DIR}/mapping/test-1-no-secondary-aln.ref.fasta
   > ${BIN_DIR}/pancake seeddb -k 15 -w 10 -s 0 ref.seqdb ref
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 ref reads 0 0 0 --out-fmt paf --mark-secondary
-  hap1/186/0_12695	12695	0	12695	+	ctg.000000F:114000-128000	14001	602	13301	12695	12699	60	tp:A:P	NM:i:25	IT:f:99.8031	SC:i:-12670	AT:Z:c	BT:Z:C	VQ:Z:*	VT:Z:*
+  hap1/186/0_12695	12695	0	12695	+	ctg.000000F:114000-128000	14001	602	13301	12695	12699	60	tp:A:P	NS:i:2304	NM:i:25	IT:f:99.8031	SC:i:-12670	AT:Z:c	BT:Z:C	VQ:Z:*	VT:Z:*
 
 The read maps to ctg.000000F fully, and only partially to ctg.000000F. The partial mapping is too short and
 is not flagged as secondary.
@@ -18,8 +18,8 @@ is not flagged as secondary.
   > ${BIN_DIR}/pancake seqdb ref ${TEST_DATA_DIR}/mapping/test-2-secondary-aln.ref.fasta
   > ${BIN_DIR}/pancake seeddb -k 15 -w 10 -s 0 ref.seqdb ref
   > ${BIN_DIR}/pancake ovl-hifi --num-threads 1 ref reads 0 0 0 --out-fmt paf --mark-secondary
-  hap1/1/0_11225	11225	0	11225	-	ctg.000000F:124200-136500	12301	697	11922	11225	11225	60	tp:A:P	NM:i:18	IT:f:99.8396	SC:i:-11207	AT:Z:c	BT:Z:C	VQ:Z:*	VT:Z:*
-  hap1/1/0_11225	11225	0	11225	+	ctg.000001F:66000-77700	11701	213	11435	11225	11222	60	tp:A:S	NM:i:64	IT:f:99.4298	SC:i:-11158	AT:Z:c	BT:Z:C	VQ:Z:*	VT:Z:*
+  hap1/1/0_11225	11225	0	11225	-	ctg.000000F:124200-136500	12301	697	11922	11225	11225	60	tp:A:P	NS:i:2066	NM:i:18	IT:f:99.8396	SC:i:-11207	AT:Z:c	BT:Z:C	VQ:Z:*	VT:Z:*
+  hap1/1/0_11225	11225	0	11225	+	ctg.000001F:66000-77700	11701	213	11435	11225	11222	60	tp:A:S	NS:i:1950	NM:i:64	IT:f:99.4298	SC:i:-11158	AT:Z:c	BT:Z:C	VQ:Z:*	VT:Z:*
 
 #######################################
 ### Test trimming of CIGAR strings. ###
