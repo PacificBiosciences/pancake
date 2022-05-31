@@ -66,6 +66,18 @@ struct MapCLRSettings
         static const int32_t RefineDiffThreshold = 40;
         static const int32_t RefineMinGap2 = 30;
 
+        static const bool ReseedGaps = false;
+        static const int32_t ReseedGapMinLength = 500;
+        static const int32_t ReseedGapMaxLength = -1;
+        static constexpr double ReseedFreqPercentile = 0.0002;
+        static const int64_t ReseedOccurrenceMin = 5;
+        static const int64_t ReseedOccurrenceMax = 100;
+        static const int64_t ReseedOccurrenceMaxMemory = 100'000'000;
+        static const int32_t ReseedKmerSize = 10;
+        static const int32_t ReseedMinimizerWindow = 5;
+        static const int32_t ReseedSpacing = 0;
+        static const bool ReseedUseHomopolymerCompression = true;
+
         static const int32_t MinQueryLen = 50;
         static const int32_t BestNSecondary = 0;
         static const bool SkipSymmetricOverlaps = false;

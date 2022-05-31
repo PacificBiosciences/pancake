@@ -118,11 +118,12 @@ MapperBaseResult MapperCLR::MapAndAlignSingleQuery(const FastaSequenceCachedStor
 
 MapperBaseResult MapperCLR::Map(const FastaSequenceCachedStore& targetSeqs,
                                 const PacBio::Pancake::SeedIndex& index,
+                                const FastaSequenceCached& querySeq,
                                 const SequenceSeedsCached& querySeeds, const int32_t queryLen,
                                 const int32_t queryId, int64_t freqCutoff)
 {
-    return Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings_, freqCutoff, ssChain_,
-                ssSeedHits_);
+    return Map_(targetSeqs, index, querySeq, querySeeds, queryLen, queryId, settings_, freqCutoff,
+                ssChain_, ssSeedHits_);
 }
 
 MapperBaseResult MapperCLR::Align(const FastaSequenceCachedStore& targetSeqs,
@@ -130,6 +131,21 @@ MapperBaseResult MapperCLR::Align(const FastaSequenceCachedStore& targetSeqs,
                                   const MapperBaseResult& mappingResult)
 {
     return Align_(targetSeqs, querySeq, mappingResult, settings_, alignerGlobal_, alignerExt_);
+}
+
+void DebugWriteSeedHits([[maybe_unused]] const std::vector<SeedHit>& hits,
+                        [[maybe_unused]] const int32_t debugStepId,
+                        [[maybe_unused]] const std::string& descriptor,
+                        [[maybe_unused]] int32_t queryId, [[maybe_unused]] int32_t queryLen)
+{
+#ifdef PANCAKE_MAP_CLR_DEBUG_WRITE_SEED_HITS_TO_FILE
+    std::ostringstream ossFileName;
+    ossFileName << "temp-debug/hits-q" << std::to_string(queryId) << "-" << std::setfill('0')
+                << std::setw(2) << debugStepId << "-" << descriptor + ".csv";
+
+    WriteSeedHits(ossFileName.str(), hits, 0, hits.size(), 0, "query" + std::to_string(queryId),
+                  queryLen, "all_targets", 0, false);
+#endif
 }
 
 void DebugWriteChainedRegion(const std::vector<std::unique_ptr<ChainedRegion>>& allChainedRegions,
@@ -296,8 +312,8 @@ MapperBaseResult MapperCLR::WrapMapAndAlign_(
     const int32_t queryLen = querySeq.size();
 
     // Map the query.
-    auto result = Map_(targetSeqs, index, querySeeds, queryLen, queryId, settings, freqCutoff,
-                       ssChain, ssSeedHits);
+    auto result = Map_(targetSeqs, index, querySeq, querySeeds, queryLen, queryId, settings,
+                       freqCutoff, ssChain, ssSeedHits);
 
     // Align if needed.
     if (settings.align.align) {
@@ -314,6 +330,7 @@ MapperBaseResult MapperCLR::WrapMapAndAlign_(
 }
 
 MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, const SeedIndex& index,
+                                 const FastaSequenceCached& querySeq,
                                  const SequenceSeedsCached& querySeeds, const int32_t queryLen,
                                  const int32_t queryId, const MapperCLRSettings& settings,
                                  int64_t freqCutoff, std::shared_ptr<ChainingScratchSpace> ssChain,
@@ -440,9 +457,41 @@ MapperBaseResult MapperCLR::Map_(const FastaSequenceCachedStore& targetSeqs, con
     /////////////////////////////////////
     // Filter and refine seed hits, and construct mappings.
     int32_t debugStepId = 1;
-    auto result = HitsToMappings_(hits, ssChain, targetSeqs, queryLen, queryId, settings.map,
-                                  addPerfectMapping, settings.align.alnParamsGlobal.alignBandwidth,
-                                  timings, debugStepId);
+    MapperBaseResult result = HitsToMappings_(
+        hits, ssChain, targetSeqs, queryLen, queryId, settings.map, addPerfectMapping,
+        settings.align.alnParamsGlobal.alignBandwidth, timings, debugStepId);
+
+    if (addPerfectMapping) {
+        return result;
+    }
+
+    /////////////////////////////////////
+    /// Reseeding.                    ///
+    /////////////////////////////////////
+
+    if (settings.map.reseedGaps) {
+        std::vector<SeedHit> newHits = ReseedAlignmentRegions_(
+            result, targetSeqs, querySeq, settings.map.reseedGapMinLength,
+            settings.map.reseedGapMaxLength, settings.map.reseedSeedParams,
+            settings.map.reseedFreqPercentile, settings.map.reseedOccurrenceMin,
+            settings.map.reseedOccurrenceMax, settings.map.reseedOccurrenceMaxMemory);
+
+        DebugWriteSeedHits(newHits, debugStepId, "reseeded", querySeq.Id(), querySeq.size());
+        ++debugStepId;
+
+        newHits.reserve(hits.size() + newHits.size());
+
+        for (const auto& cr : result.mappings) {
+            if (cr == nullptr) {
+                continue;
+            }
+            newHits.insert(newHits.end(), cr->chain.hits.begin(), cr->chain.hits.end());
+        }
+
+        result = HitsToMappings_(newHits, ssChain, targetSeqs, queryLen, queryId, settings.map,
+                                 addPerfectMapping, settings.align.alnParamsGlobal.alignBandwidth,
+                                 timings, debugStepId);
+    }
 
     LogTicToc("map-all", ttMapAll, timings);
 
@@ -672,6 +721,89 @@ MapperBaseResult MapperCLR::HitsToMappings_(
 #endif
 
     return result;
+}
+
+std::vector<SeedHit> MapperCLR::ReseedAlignmentRegions_(
+    const MapperBaseResult& result, const FastaSequenceCachedStore& targetSeqs,
+    const FastaSequenceCached& querySeq, const int32_t reseedGapMinLength,
+    const int32_t reseedGapMaxLength, const PacBio::Pancake::SeedDBParameters& seedParams,
+    const double reseedFreqPercentile, const int64_t reseedOccurrenceMin,
+    const int64_t reseedOccurrenceMax, const int64_t reseedOccurrenceMaxMemory)
+{
+
+    auto ContainsLargeRegions = [](const MapperBaseResult& inData, const int32_t maxAllowedSpan) {
+        for (const auto& cr : inData.mappings) {
+            if (cr == nullptr) {
+                continue;
+            }
+            for (const auto& ar : cr->regionsForAln) {
+                if (ar.qSpan > maxAllowedSpan || ar.tSpan > maxAllowedSpan) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    std::vector<SeedHit> newHits;
+
+    if (ContainsLargeRegions(result, reseedGapMinLength) == false) {
+        return newHits;
+    }
+
+    for (const auto& cr : result.mappings) {
+        if (cr == nullptr) {
+            continue;
+        }
+        for (size_t regionId = 0; regionId < cr->regionsForAln.size(); ++regionId) {
+            const auto& ar = cr->regionsForAln[regionId];
+
+            // Skip short gaps.
+            if (ar.qSpan <= reseedGapMinLength && ar.tSpan <= reseedGapMinLength) {
+                continue;
+            }
+
+            // Optionally skip large gaps.
+            if (reseedGapMaxLength > 0 &&
+                (ar.qSpan > reseedGapMaxLength || ar.tSpan > reseedGapMaxLength)) {
+                continue;
+            }
+
+            // We can index query in fwd because indexing will be bidirectional.
+            // This is actually preferred, to be in line with other seed hits (computed in the same way).
+            const int32_t qStartFwd =
+                (ar.queryRev) ? (querySeq.size() - (ar.qStart + ar.qSpan)) : ar.qStart;
+
+            const FastaSequenceCachedStore localQueryStore(
+                {FastaSequenceCached("q", querySeq.c_str() + qStartFwd, ar.qSpan, querySeq.Id())});
+
+            // Create the local target sequence.
+            const FastaSequenceCached& targetSeq = targetSeqs.GetSequence(cr->mapping->Bid);
+            const FastaSequenceCachedStore localTargetStore({FastaSequenceCached(
+                "t", targetSeq.c_str() + ar.tStart, ar.tSpan, targetSeq.Id())});
+
+            // Not const because queryPos and targetPos values will be updated below.
+            std::vector<std::vector<SeedHit>> localHits = CollectSeedHitsFromSequences(
+                localQueryStore, localTargetStore, seedParams.KmerSize, seedParams.MinimizerWindow,
+                seedParams.Spacing, seedParams.UseRC, seedParams.UseHPCForSeedsOnly,
+                reseedFreqPercentile, reseedOccurrenceMin, reseedOccurrenceMax,
+                reseedOccurrenceMaxMemory);
+
+            for (size_t qId = 0; qId < localHits.size(); ++qId) {
+                newHits.reserve(newHits.size() + localHits[qId].size());
+                for (size_t hitId = 0; hitId < localHits[qId].size(); ++hitId) {
+                    auto& hit = localHits[qId][hitId];
+                    // Collected seed hits are in the strand of the query, while target is always fwd.
+                    // The ar.qStart is also always in the strand of the alignment, so just adding it should line up perfectly.
+                    hit.queryPos += ar.qStart;
+                    hit.targetPos += ar.tStart;
+                    newHits.emplace_back(hit);
+                }
+            }
+        }
+    }
+
+    return newHits;
 }
 
 MapperBaseResult MapperCLR::Align_(const FastaSequenceCachedStore& targetSeqs,

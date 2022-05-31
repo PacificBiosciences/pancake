@@ -367,6 +367,97 @@ R"({
     "type" : "int"
 })", MapCLRSettings::Defaults::MinAlignmentSpan};
 
+
+/////////////////////////////
+/// Reseeding parameters. ///
+/////////////////////////////
+const CLI_v2::Option ReseedGaps{
+R"({
+    "names" : ["reseed"],
+    "description" : "Align the mappings.",
+    "type" : "bool"
+})", MapCLRSettings::Defaults::ReseedGaps};
+
+const CLI_v2::Option ReseedGapMinLength{
+R"({
+    "names" : ["reseed-gap-min"],
+    "description" : "Reseeds alignment regions longer than this value;",
+    "type" : "int"
+})", MapCLRSettings::Defaults::ReseedGapMinLength};
+
+const CLI_v2::Option ReseedGapMaxLength{
+R"({
+    "names" : ["reseed-gap-max"],
+    "description" : "Reseeds alignment regions shorter than this value. Value <= 0 deactivates the upper limit.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::ReseedGapMaxLength};
+
+const CLI_v2::Option ReseedFreqPercentile{
+R"({
+    "names" : ["reseed-freq-perc"],
+    "description" : "Seed occurrence percentile cutoff.",
+    "type" : "double"
+})", MapCLRSettings::Defaults::ReseedFreqPercentile};
+
+const CLI_v2::Option ReseedOccurrenceMin{
+R"({
+    "names" : ["reseed-occ-min"],
+    "description" : "Minimum value for the occurrence threshold to keep a seed for mapping during reseeding. If the frequency percentile is smaller than this, the threshold is pinned to this value.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::ReseedOccurrenceMin};
+
+const CLI_v2::Option ReseedOccurrenceMax{
+R"({
+    "names" : ["reseed-occ-max"],
+    "description" : "Maximum allowed occurrence of a seed to keep for mapping during reseeding. Value <= 0 turns off this threshold.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::ReseedOccurrenceMax};
+
+const CLI_v2::Option ReseedOccurrenceMaxMemory{
+R"({
+    "names" : ["reseed-occ-max-mem"],
+    "description" : "Maximum allowed memory to be consumed by collected seed hits in reseeding. This is used to dynamically compute the maximum occurrence cutoff based on the seed hit histogram. Seeds are chosen in the sorted order by their occurrence until the memory threshold is reached. Value <= 0 turns off this threshold.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::ReseedOccurrenceMaxMemory};
+
+const CLI_v2::Option ReseedKmerSize{
+R"({
+    "names" : ["reseed-k"],
+    "description" : "Kmer size for the reseeding parameters.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::ReseedKmerSize};
+
+const CLI_v2::Option ReseedMinimizerWindow{
+R"({
+    "names" : ["reseed-w"],
+    "description" : "Minimizer window size for the reseeding parameters.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::ReseedMinimizerWindow};
+
+const CLI_v2::Option ReseedSpacing{
+R"({
+    "names" : ["reseed-s"],
+    "description" : "Spacing for spaced seeds, for the reseeding parameters.",
+    "type" : "int"
+})", MapCLRSettings::Defaults::ReseedSpacing};
+
+const CLI_v2::Option ReseedUseHomopolymerCompression{
+R"({
+    "names" : ["reseed-hpc"],
+    "description" : "Use homopolymer compression for seed formation, reseeding parameters.",
+    "type" : "bool"
+})", MapCLRSettings::Defaults::ReseedUseHomopolymerCompression};
+
+// const CLI_v2::Option ReseedUseReverseComplement{
+// R"({
+//     "names" : ["reseed-revcmp"],
+//     "description" : "Use reverse complement target sequences for indexing, reseeding parameters.",
+//     "type" : "bool"
+// })", MapCLRSettings::Defaults::ReseedUseReverseComplement};
+/////////////////////////////
+
+
+
 const CLI_v2::Option AlignerTypeGlobal{
 R"({
     "names" : ["aligner-global"],
@@ -680,6 +771,24 @@ MapCLRSettings::MapCLRSettings(const PacBio::CLI_v2::Results& options)
     MapperSettings.map.refineDiffThreshold = options[MapCLROptionNames::RefineDiffThreshold];
     MapperSettings.map.refineMinGap2 = options[MapCLROptionNames::RefineMinGap2];
 
+    // Reseeding long alignment regions with smaller seeds.
+    MapperSettings.map.reseedGaps = options[MapCLROptionNames::ReseedGaps];
+    MapperSettings.map.reseedGapMinLength = options[MapCLROptionNames::ReseedGapMinLength];
+    MapperSettings.map.reseedGapMaxLength = options[MapCLROptionNames::ReseedGapMaxLength];
+    MapperSettings.map.reseedFreqPercentile = options[MapCLROptionNames::ReseedFreqPercentile];
+    MapperSettings.map.reseedOccurrenceMin = options[MapCLROptionNames::ReseedOccurrenceMin];
+    MapperSettings.map.reseedOccurrenceMax = options[MapCLROptionNames::ReseedOccurrenceMax];
+    MapperSettings.map.reseedOccurrenceMaxMemory =
+        options[MapCLROptionNames::ReseedOccurrenceMaxMemory];
+    MapperSettings.map.reseedSeedParams.KmerSize = options[MapCLROptionNames::ReseedKmerSize];
+    MapperSettings.map.reseedSeedParams.MinimizerWindow =
+        options[MapCLROptionNames::ReseedMinimizerWindow];
+    MapperSettings.map.reseedSeedParams.Spacing = options[MapCLROptionNames::ReseedSpacing];
+    MapperSettings.map.reseedSeedParams.UseHPCForSeedsOnly =
+        options[MapCLROptionNames::ReseedUseHomopolymerCompression];
+    MapperSettings.map.reseedSeedParams.UseRC = true;
+    // MapperSettings.map.reseedSeedParams.UseRC = options[MapCLROptionNames::ReseedUseReverseComplement];
+
     // Initialize the MapperCLRAlignSettings.
     MapperSettings.align.align = options[MapCLROptionNames::Align];
     MapperSettings.align.selfHitPolicy = MapperSelfHitPolicyFromString(
@@ -753,6 +862,10 @@ PacBio::CLI_v2::Interface MapCLRSettings::CreateCLI()
         MapCLROptionNames::FallbackSpacing,
         MapCLROptionNames::FallbackUseHomopolymerCompression,
         MapCLROptionNames::FallbackUseReverseComplement,
+        MapCLROptionNames::ReseedKmerSize,
+        MapCLROptionNames::ReseedMinimizerWindow,
+        MapCLROptionNames::ReseedSpacing,
+        MapCLROptionNames::ReseedUseHomopolymerCompression,
     });
 
     i.AddOptionGroup("Mapping Options", {
@@ -777,6 +890,14 @@ PacBio::CLI_v2::Interface MapCLRSettings::CreateCLI()
         MapCLROptionNames::RefineMinGap1,
         MapCLROptionNames::RefineDiffThreshold,
         MapCLROptionNames::RefineMinGap2,
+
+        MapCLROptionNames::ReseedGaps,
+        MapCLROptionNames::ReseedGapMinLength,
+        MapCLROptionNames::ReseedGapMaxLength,
+        MapCLROptionNames::ReseedFreqPercentile,
+        MapCLROptionNames::ReseedOccurrenceMin,
+        MapCLROptionNames::ReseedOccurrenceMax,
+        MapCLROptionNames::ReseedOccurrenceMaxMemory,
     });
     i.AddOptionGroup("Alignment Options", {
         MapCLROptionNames::Align,

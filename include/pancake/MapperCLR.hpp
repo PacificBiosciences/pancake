@@ -104,6 +104,16 @@ public:
     int32_t refineDiffThreshold = 40;       // The diffThreshold of RefineChainedHits.
     int32_t refineMinGap2 = 30;             // The minGap parameter of RefineChainedHits2.
 
+    // Reseeding long alignment regions with smaller seeds.
+    bool reseedGaps = false;
+    int32_t reseedGapMinLength = 500;
+    int32_t reseedGapMaxLength = -1;            // Reseeding is applied only on gaps shorter than this value. Value <= 0 deactivates the upper limit.
+    PacBio::Pancake::SeedDBParameters reseedSeedParams{10, 5, 0, false, true, true};
+    double reseedFreqPercentile = 0.0002;     // Analogous to freqPercentile, but for local reseeded regions.
+    int64_t reseedOccurrenceMin = 5;          // Analogous to seedOccurrenceMin, but for local reseeded regions.
+    int64_t reseedOccurrenceMax = 100;        // Analogous to seedOccurrenceMax, but for local reseeded regions.
+    int64_t reseedOccurrenceMaxMemory = 100'000'000;    // Analogous to seedOccurrenceMaxMemory, but for local reseeded regions.
+
     // bool oneHitPerTarget = false;
     // int32_t maxSeedDistance = 5000;
     // int32_t minMappedLength = 1000;
@@ -169,6 +179,25 @@ inline std::ostream& operator<<(std::ostream& out, const MapperCLRMapSettings& a
         << "flankExtensionFactor = " << a.flankExtensionFactor << "\n"
         << "refineSeedHits = " << a.refineSeedHits << "\n"
         << "minAlignmentSpan = " << a.minAlignmentSpan << "\n"
+
+        << "refineSeedHits = " << a.refineSeedHits << "\n"
+        << "refineMinGap1 = " << a.refineMinGap1 << "\n"
+        << "refineDiffThreshold = " << a.refineDiffThreshold << "\n"
+        << "refineMinGap2 = " << a.refineMinGap2 << "\n"
+
+        << "reseedGaps = " << a.reseedGaps << "\n"
+        << "reseedGapMinLength = " << a.reseedGapMinLength << "\n"
+        << "reseedGapMaxLength = " << a.reseedGapMaxLength << "\n"
+        << "reseedFreqPercentile = " << a.reseedFreqPercentile << "\n"
+        << "reseedOccurrenceMin = " << a.reseedOccurrenceMin << "\n"
+        << "reseedOccurrenceMax = " << a.reseedOccurrenceMax << "\n"
+        << "reseedOccurrenceMaxMemory = " << a.reseedOccurrenceMaxMemory << "\n"
+        << "reseedSeedParams.KmerSize = " << a.reseedSeedParams.KmerSize << "\n"
+        << "reseedSeedParams.MinimizerWindow = " << a.reseedSeedParams.MinimizerWindow << "\n"
+        << "reseedSeedParams.Spacing = " << a.reseedSeedParams.Spacing << "\n"
+        << "reseedSeedParams.UseHPC = " << a.reseedSeedParams.UseHPC << "\n"
+        << "reseedSeedParams.UseHPCForSeedsOnly = " << a.reseedSeedParams.UseHPCForSeedsOnly << "\n"
+        << "reseedSeedParams.UseRC = " << a.reseedSeedParams.UseRC << "\n"
 
         << "skipSymmetricOverlaps = " << a.skipSymmetricOverlaps << "\n"
         << "minQueryLen = " << a.minQueryLen << "\n"
@@ -273,8 +302,8 @@ public:
      * \brief Maps the query sequence to the targets, where targets are provided by the SeedIndex.
     */
     MapperBaseResult Map(const FastaSequenceCachedStore& targetSeqs, const SeedIndex& index,
-                         const SequenceSeedsCached& querySeeds, int32_t queryLen, int32_t queryId,
-                         int64_t freqCutoff);
+                         const FastaSequenceCached& querySeq, const SequenceSeedsCached& querySeeds,
+                         int32_t queryLen, int32_t queryId, int64_t freqCutoff);
 
     /*
      * \brief Aligns a precomputed mapping result.
@@ -323,6 +352,7 @@ private:
     */
     static MapperBaseResult Map_(const FastaSequenceCachedStore& targetSeqs,
                                  const PacBio::Pancake::SeedIndex& index,
+                                 const FastaSequenceCached& querySeq,
                                  const SequenceSeedsCached& querySeeds, int32_t queryLen,
                                  int32_t queryId, const MapperCLRSettings& settings,
                                  int64_t freqCutoff, std::shared_ptr<ChainingScratchSpace> ssChain,
@@ -358,6 +388,13 @@ private:
         const MapperCLRMapSettings& settings, const bool addPerfectMapping,
         const int32_t maxAllowedDistForBadEndRefinement,
         const std::unordered_map<std::string, double>& timing, int32_t& debugStepId);
+
+    static std::vector<SeedHit> ReseedAlignmentRegions_(
+        const MapperBaseResult& result, const FastaSequenceCachedStore& targetSeqs,
+        const FastaSequenceCached& querySeq, int32_t reseedGapMinLength, int32_t reseedGapMaxLength,
+        const PacBio::Pancake::SeedDBParameters& seedParams, double reseedFreqPercentile,
+        int64_t reseedOccurrenceMin, int64_t reseedOccurrenceMax,
+        int64_t reseedOccurrenceMaxMemory);
 
     /*
      * \brief Aligns the query sequence to one or more target sequences, based on the mappings and

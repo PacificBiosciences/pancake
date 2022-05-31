@@ -13,7 +13,8 @@ void WriteSeedHits(const std::string& outPath, const std::vector<SeedHit>& hits,
                    int64_t queryLength, const std::string& targetName, int64_t targetLength,
                    bool append)
 {
-    if (hitsStart >= hits.size() || hitsEnd > hits.size() || hitsStart > hitsEnd) {
+    if ((hitsStart > 0 || hitsEnd > 0 || hits.size() > 0) &&
+        (hitsStart >= hits.size() || hitsEnd > hits.size() || hitsStart > hitsEnd)) {
         std::ostringstream oss;
         oss << "Invalid hitsStart and/or hitsEnd! hitsStart = " << hitsStart
             << ", hitsEnd = " << hitsEnd << ", hits.size() = " << hits.size();
