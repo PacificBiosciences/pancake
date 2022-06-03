@@ -62,6 +62,7 @@ pancake_cpp_sources = files([
     'pancake/AlignerFactory.cpp',
     'pancake/AlignmentSeeded.cpp',
     'pancake/BurstExcision.cpp',
+    'pancake/CCSAlignmentResult.cpp',
     'pancake/CompressedSequence.cpp',
     'pancake/DPChain.cpp',
     'pancake/FastaSequenceId.cpp',

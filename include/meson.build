@@ -19,6 +19,7 @@ if not meson.is_subproject()
       'pancake/AlignmentResult.hpp',
       'pancake/AlignmentSeeded.hpp',
       'pancake/BurstExcision.hpp',
+      'pancake/CCSAlignmentResult.hpp',
       'pancake/CompressedSequence.hpp',
       'pancake/ContiguousFilePart.hpp',
       'pancake/DiffCounts.hpp',
