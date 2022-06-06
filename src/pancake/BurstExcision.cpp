@@ -55,10 +55,11 @@ struct Burst
 }  // namespace
 
 std::vector<std::vector<std::pair<int32_t, int32_t>>> BurstExcision(
-    const FastaSequenceCachedStore& zmw, const MapperCLRSettings& mapperSettings,
-    const int32_t minBurstSize, const double maxHitDistanceRatio,
-    const double lowerInterPulseDistanceRatio, const double upperInterPulseDistanceRatio,
-    const double lowerPulseWidthRatio, const double upperPulseWidthRatio)
+    const FastaSequenceCachedStore& zmw, const int32_t backboneIdx,
+    const MapperCLRSettings& mapperSettings, const int32_t minBurstSize,
+    const double maxHitDistanceRatio, const double lowerInterPulseDistanceRatio,
+    const double upperInterPulseDistanceRatio, const double lowerPulseWidthRatio,
+    const double upperPulseWidthRatio)
 {
     std::vector<std::vector<std::pair<int32_t, int32_t>>> dst(zmw.Size());
 
@@ -66,9 +67,17 @@ std::vector<std::vector<std::pair<int32_t, int32_t>>> BurstExcision(
         PBLOG_DEBUG << "Empty input subread store";
         return dst;
     }
+    if ((backboneIdx < 0) || (backboneIdx >= Utility::Ssize(zmw.records()))) {
+        PBLOG_DEBUG << "Invalid backbone idx";
+        return dst;
+    }
     for (const auto& it : zmw.records()) {
         if ((it.IPD() == nullptr) || (it.PW() == nullptr)) {
             PBLOG_DEBUG << "Subread " << it.Name() << " has missing kinetics";
+            return dst;
+        }
+        if (std::size(*it.IPD()) != std::size(*it.PW())) {
+            PBLOG_DEBUG << "Subread " << it.Name() << " has kinetics of unequal lengths";
             return dst;
         }
     }
@@ -80,14 +89,55 @@ std::vector<std::vector<std::pair<int32_t, int32_t>>> BurstExcision(
     PacBio::Pancake::MapperCLR mapper{settings};
 
     FastaSequenceCachedStore backbone;
-    backbone.AddRecord(zmw.records()[0]);
+    backbone.AddRecord(zmw.records()[backboneIdx]);
 
-    const auto mappingResult = mapper.MapAndAlign(backbone, zmw);
+    const auto mapperResult = mapper.MapAndAlign(backbone, zmw);
+
+    return BurstExcision(zmw, backboneIdx, mapperResult, minBurstSize, maxHitDistanceRatio,
+                         lowerInterPulseDistanceRatio, upperInterPulseDistanceRatio,
+                         lowerPulseWidthRatio, upperPulseWidthRatio);
+}
+
+std::vector<std::vector<std::pair<int32_t, int32_t>>> BurstExcision(
+    const FastaSequenceCachedStore& zmw, const int32_t backboneIdx,
+    const std::vector<MapperBaseResult>& mapperResult, const int32_t minBurstSize,
+    const double maxHitDistanceRatio, const double lowerInterPulseDistanceRatio,
+    const double upperInterPulseDistanceRatio, const double lowerPulseWidthRatio,
+    const double upperPulseWidthRatio)
+{
+    std::vector<std::vector<std::pair<int32_t, int32_t>>> dst(zmw.Size());
+
+    if (zmw.Size() < 2) {
+        PBLOG_DEBUG << "Empty input subread store";
+        return dst;
+    }
+    if ((backboneIdx < 0) || (backboneIdx >= Utility::Ssize(zmw.records()))) {
+        PBLOG_DEBUG << "Invalid backbone idx";
+        return dst;
+    }
+    if (mapperResult.empty()) {
+        PBLOG_DEBUG << "Empty mapping result";
+        return dst;
+    }
+    for (const auto& it : zmw.records()) {
+        if ((it.IPD() == nullptr) || (it.PW() == nullptr)) {
+            PBLOG_DEBUG << "Subread " << it.Name() << " has missing kinetics";
+            return dst;
+        }
+        if (std::size(*it.IPD()) != std::size(*it.PW())) {
+            PBLOG_DEBUG << "Subread " << it.Name() << " has kinetics of unequal lengths";
+            return dst;
+        }
+    }
 
     // find candidate regions
     std::vector<Burst> bursts;
-    for (int32_t i = 1; i < Utility::Ssize(mappingResult); ++i) {
-        const auto& subreadResult = mappingResult[i];
+    for (int32_t i = 0; i < Utility::Ssize(mapperResult); ++i) {
+        if (i == backboneIdx) {
+            continue;
+        }
+
+        const auto& subreadResult = mapperResult[i];
         for (const auto& mapping : subreadResult.mappings) {
             if ((mapping->priority > 1) || mapping->chain.hits.empty()) {
                 continue;
@@ -146,7 +196,7 @@ std::vector<std::vector<std::pair<int32_t, int32_t>>> BurstExcision(
                 if (numOcc > majorityThreshold) {
                     std::swap(bursts[i].QueryBegin, bursts[i].TargetBegin);
                     std::swap(bursts[i].QueryEnd, bursts[i].TargetEnd);
-                    burstsPerSubread[0].emplace_back(bursts[i]);
+                    burstsPerSubread[backboneIdx].emplace_back(bursts[i]);
                     ++numCandidates;
                 }
 

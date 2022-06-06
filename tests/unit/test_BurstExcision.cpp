@@ -66,7 +66,7 @@ PacBio::Pancake::FastaSequenceCachedStore CreateSubreadViews(const std::vector<S
 
 TEST(BurstExcision, EmptyZmw)
 {
-    EXPECT_TRUE(PacBio::Pancake::BurstExcision(PacBio::Pancake::FastaSequenceCachedStore{},
+    EXPECT_TRUE(PacBio::Pancake::BurstExcision(PacBio::Pancake::FastaSequenceCachedStore{}, 0,
                                                PacBio::Pancake::MapperCLRSettings{})
                     .empty());
 }
@@ -83,7 +83,7 @@ TEST(BurstExcision, ZmwWithMissingKinetics)
 
     const PacBio::Pancake::MapperCLRSettings settings{};
 
-    const auto burstRegionsPerSubread = PacBio::Pancake::BurstExcision(zmwView, settings);
+    const auto burstRegionsPerSubread = PacBio::Pancake::BurstExcision(zmwView, 0, settings);
 
     EXPECT_EQ(std::size(zmw), std::size(burstRegionsPerSubread));
 
@@ -104,7 +104,7 @@ TEST(BurstExcision, ZmwWithoutBursts)
     const PacBio::Pancake::MapperCLRSettings settings{};
 
     const auto burstRegionsPerSubread =
-        PacBio::Pancake::BurstExcision(zmwView, settings, 32, 0.666, 0.666, 0.666, 0.666, 0.666);
+        PacBio::Pancake::BurstExcision(zmwView, 0, settings, 32, 0.666, 0.666, 0.666, 0.666, 0.666);
 
     EXPECT_EQ(std::size(zmw), std::size(burstRegionsPerSubread));
 
@@ -118,8 +118,7 @@ TEST(BurstExcision, ZmwWithTwoBursts)
     const std::string testData = PacBio::PancakeTestsConfig::Data_Dir +
                                  "/bursts/test-2-zmw-with-one-subread-having-two-bursts.bam";
 
-    std::vector<Subread> zmw = ParseSubreads(testData);
-    std::swap(zmw[0], zmw[2]);  // mimic CCS draft stage
+    const std::vector<Subread> zmw = ParseSubreads(testData);
 
     const PacBio::Pancake::FastaSequenceCachedStore zmwView = CreateSubreadViews(zmw);
 
@@ -137,13 +136,15 @@ TEST(BurstExcision, ZmwWithTwoBursts)
     }
 
     const auto burstRegionsPerSubread =
-        PacBio::Pancake::BurstExcision(zmwView, settings, 32, 0.666, 0.666, 0.666, 0.666, 0.666);
+        PacBio::Pancake::BurstExcision(zmwView, 2, settings, 32, 0.666, 0.666, 0.666, 0.666, 0.666);
 
     EXPECT_EQ(std::size(zmw), std::size(burstRegionsPerSubread));
 
-    for (int32_t i = 0; i < 7; ++i) {
+    for (int32_t i = 0; i < 6; ++i) {
         EXPECT_TRUE(burstRegionsPerSubread[i].empty());
     }
+
+    EXPECT_EQ(1ULL, std::size(burstRegionsPerSubread[6]));  // due to boost median
 
     EXPECT_EQ(2ULL, std::size(burstRegionsPerSubread[7]));
     EXPECT_EQ(std::make_pair(666, 944), burstRegionsPerSubread[7][0]);
