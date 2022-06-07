@@ -8,26 +8,6 @@
 namespace PacBio {
 namespace Pancake {
 
-CCSAlignmentResult::CCSAlignmentResult(const ChainedRegion& chainedRegion)
-    : CCSAlignmentResult{chainedRegion.mapping->Bid,
-                         chainedRegion.mapping->Brev,
-                         chainedRegion.mapping->BstartFwd(),
-                         chainedRegion.mapping->BendFwd(),
-                         chainedRegion.mapping->Astart,
-                         chainedRegion.mapping->Aend,
-                         chainedRegion.mapping->Alen,
-                         std::move(chainedRegion.mapping->Cigar),
-                         60,
-                         static_cast<int32_t>(chainedRegion.mapping->Score),
-                         true,
-                         chainedRegion.isSupplementary,
-                         chainedRegion.priority > 0}
-{
-    if (IsReversed) {
-        std::reverse(Cigar.begin(), Cigar.end());
-    }
-}
-
 CCSAlignmentResult::CCSAlignmentResult(int32_t rId, bool isReversed, int64_t rStart, int64_t rEnd,
                                        int64_t qStart, int64_t qEnd, int64_t qLen,
                                        Data::Cigar cigar, uint8_t mapq, int32_t score,
