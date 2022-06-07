@@ -91,7 +91,7 @@ public:
     bool skipSymmetricOverlaps = false;
     MapperSelfHitPolicy selfHitPolicy = MapperSelfHitPolicy::DEFAULT;
     int32_t minQueryLen = 50;
-    int32_t bestNSecondary = 0;
+    int32_t bestNSecondary = 0;             // Value < 0 will keep all secondary alignments. Value >= 0 will filter everything but the top N alignments.
 
     // Alignment region extraction parameters.
     int32_t maxFlankExtensionDist = 10000;  // Maximum length of the query/target sequences to consider when aligning flanks.
