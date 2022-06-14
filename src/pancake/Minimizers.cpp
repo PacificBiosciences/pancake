@@ -124,7 +124,7 @@ int GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& minimizers,
     #endif
 
     // Mask the number of required bits for the kmer.
-    const minkey_t mask = (kmerSize < 32) ? ((((uint64_t)1) << (2 * kmerSize)) - 1) : 0xFFFFFFFFFFFFFFFF;
+    const minkey_t mask = ComputeKmerMask(kmerSize);
 
     SpacedBuffer bufferWD;
     const int32_t minSeedSpanSize = kmerSize * (spacing + 1) - spacing; // Equivalent to: `k + (k - 1) * s`

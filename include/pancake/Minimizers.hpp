@@ -22,7 +22,7 @@ namespace Pancake {
 static inline uint64_t ComputeKmerMask(const int32_t kmerSize)
 {
     const uint64_t mask =
-        (kmerSize < 32) ? ((((uint64_t)1) << (2 * kmerSize)) - 1)
+        (kmerSize < 32) ? ((static_cast<uint64_t>(1) << (2 * kmerSize)) - 1)
                         : 0xFFFFFFFFFFFFFFFF;  // Mask the number of required bits for the kmer.
     return mask;
 }
