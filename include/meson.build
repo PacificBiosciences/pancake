@@ -6,6 +6,7 @@ if not meson.is_subproject()
   # pancake
   install_headers(
     files([
+      'pancake/AdapterFinder.hpp',
       'pancake/AlignmentTools.hpp',
       'pancake/AlignerBase.hpp',
       'pancake/AlignerBatchBase.hpp',

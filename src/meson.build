@@ -52,6 +52,7 @@ pancake_cpp_sources = files([
     'main/seqdbinfo/SeqDBInfoWorkflow.cpp',
     'main/seqfetch/SeqFetchSettings.cpp',
     'main/seqfetch/SeqFetchWorkflow.cpp',
+    'pancake/AdapterFinder.cpp',
     'pancake/AlignmentTools.cpp',
     'pancake/AlignerBase.cpp',
     'pancake/AlignerBatchCPU.cpp',
