@@ -12,3 +12,4 @@ tests/*/*.t.err
 *.png
 separated-*/
 !tests/data/mapper-clr/reseeding/*.png
+!tests/data/adapter-finder/*/*.png
