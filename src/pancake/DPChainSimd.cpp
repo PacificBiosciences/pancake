@@ -23,6 +23,8 @@
 #include <sstream>
 
 // #define PANCAKE_DPCHAIN_SIMD_DEBUG
+// #define PANCAKE_DPCHAIN_SIMD_DEBUG_COMPARE_WITH_SISD
+// #define PANCAKE_DPCHAIN_SIMD_DEBUG_DP_VERBOSE
 
 #define PANCAKE_DPCHAIN_SIMD_SKIP_NONMONOTONIC_COORDS
 
@@ -54,6 +56,8 @@ void DebugVerboseInnerLoop(const int32_t i, const int32_t j, const int32_t minJ4
                            const __m128 linPartFloat, const __m128i tidi,
                            const int32_t numSkippedPredecessors, const int32_t currChainMaxSkip)
 {
+    constexpr int32_t NUM_ELEMENTS = 4;
+
     std::cerr << "    [i = " << i << ", i&0x03 = " << (i & 0x03) << ", minJ4 = " << minJ4
               << ", maxJ4 = " << maxJ4 << ", j = " << j << "]\n";
 
@@ -84,8 +88,8 @@ void DebugVerboseInnerLoop(const int32_t i, const int32_t j, const int32_t minJ4
     PrintVectorInt32(std::cerr, distQuery);
     std::cerr << "], distTarget = [";
     PrintVectorInt32(std::cerr, distTarget);
-    std::cerr << "], qs[j] = [";
-    PrintVectorInt32(std::cerr, qs[j]);
+    // std::cerr << "], qs[j] = [";
+    // PrintVectorInt32(std::cerr, qs[j]);
     std::cerr << "]\n";
     std::cerr << "        distDiagFloat = [";
     PrintVectorFloat(std::cerr, distDiagFloat);
@@ -122,6 +126,7 @@ inline __attribute__((always_inline)) void SimdDPBlock(
     distDiag = _mm_abs_epi32(_mm_sub_epi32(distTarget, distQuery));
 
     /* Check any of the boundary criteria. If not valid, c == 0xFFFFFFFF for that element. */
+    /* There is no LTE comparison, so subtract 1 from qpPtr[i] (precomputed as qpiMinusOne). */
     const __m128i c0 = _mm_cmplt_epi32(qpiMinusOne, qpPtr[j]);
     const __m128i c2 = _mm_cmplt_epi32(diagMarginVecMinusOne, distDiag);
     const __m128i c3 = _mm_cmplt_epi32(seedJoinDistVecMinusOne, distQuery);
@@ -138,8 +143,9 @@ inline __attribute__((always_inline)) void SimdDPBlock(
     /* Compute the linear part of the score. */
     const __m128 distDiagFloat = _mm_cvtepi32_ps(distDiag);
     const __m128 linPartFloat = _mm_mul_ps(linFactorVec, distDiagFloat);
-    /* IMPORTANT: _mm_cvtps_epi32 rounds to the closest int, and not down. */
+    /* IMPORTANT: _mm_cvtps_epi32 rounds to the closest int, and not down. That's why we need _mm_floor_ps. */
     const __m128i linPart = _mm_cvtps_epi32(_mm_floor_ps(linPartFloat));
+
     /* Compute the log part of the score. Not using SIMD because there are no */
     /* SSE alternatives to the __builtin_clz. */
     /* Note: _mm_srl_epi32 applies the same count to all elements of the vector. */
@@ -166,6 +172,9 @@ inline __attribute__((always_inline)) void SimdDPBlock(
     /* would not be counted in numSkippedPredecessors: */
     skipDiff = _mm_andnot_si128(c, skipDiff);
 #endif
+
+    /* NOTE: Difference compared to the SISD version. SISD checks if numSkippedPredecessors > currChainMaxSkip */
+    /*       for every cell update, while here we compare it only after every 4 updates (for SSE4.1). */
     numSkippedPredecessors += skipDiffPtr[0];
     numSkippedPredecessors += skipDiffPtr[1];
     numSkippedPredecessors += skipDiffPtr[2];
@@ -461,18 +470,12 @@ std::vector<ChainedHits> ChainHitsSimd(
         ss = std::make_shared<ChainingScratchSpace>();
     }
 
-#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG
-    {
-        std::vector<int32_t> dp1;
-        std::vector<int32_t> pred1;
-        std::vector<int32_t> chainId1;
-
-        std::cerr << "========= TEST NON-SIMD ==========\n";
-        const int32_t numChains =
-            ChainHitsForwardFastSisd({hits, hitsSize}, chainMaxSkip, chainMaxPredecessors,
-                                     seedJoinDist, diagMargin, dp1, pred1, chainId1);
-        std::cerr << "==================================\n";
-    }
+#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG_COMPARE_WITH_SISD
+    std::vector<int32_t> dp1;
+    std::vector<int32_t> pred1;
+    std::vector<int32_t> chainId1;
+    ChainHitsForwardFastSisd(hits, chainMaxSkip, chainMaxPredecessors, seedJoinDist, diagMargin,
+                             dp1, pred1, chainId1);
 #endif
 
     std::vector<__m128i>& dp = ss->dpSimd;
@@ -499,11 +502,38 @@ std::vector<ChainedHits> ChainHitsSimd(
         ChainHitsBacktrack(hits, {dpInt32, dp.size() * 4}, {predInt32, pred.size() * 4}, chainId,
                            numChains, minNumSeeds, minCovBases, minDPScore);
 
-#ifdef DEBUG_DP_VERBOSE_
-    printf("The DP:\n");
-    for (int32_t i = 0; i < dp.size(); i++) {
-        printf("[%d] dp[i] = %d, pred[i] = %d\n", i, dp[i], pred[i]);
+#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG_DP_VERBOSE
+    std::cerr << "========= DP SIMD ==========\n";
+    std::cerr << "The DP:\n";
+    std::cerr << "The DP:\n";
+    for (int32_t i = 0; i < hits.size(); i++) {
+        std::cerr << "[" << i << "] dp[i] = " << dpInt32[i] << ", pred[i] = " << predInt32[i]
+                  << ", hit = {" << hits[i] << "}\n";
     }
+
+#ifdef PANCAKE_DPCHAIN_SIMD_DEBUG_COMPARE_WITH_SISD
+    std::cerr << "========= DP SISD ==========\n";
+    std::cerr << "The DP:\n";
+    for (int32_t i = 0; i < dp1.size(); i++) {
+        std::cerr << "[" << i << "] dp[i] = " << dp1[i] << ", pred[i] = " << pred1[i] << ", hit = {"
+                  << hits[i] << "}\n";
+    }
+
+    std::cerr << "========= COMPARISON ==========\n";
+    bool allEqual = true;
+    for (size_t i = 0; i < hits.size(); ++i) {
+        if (dpInt32[i] != dp1[i] || predInt32[i] != pred1[i]) {
+            std::cerr << "Diff: [i = " << i << "] SISD_dp = " << dp1[i]
+                      << ", SISD_pred = " << pred1[i] << "; SIMD_dp = " << dpInt32[i]
+                      << ", SIMD_pred = " << predInt32[i] << "; hit = " << hits[i] << "\n";
+            allEqual = false;
+        }
+    }
+    std::cerr << "All equal.\n";
+    std::cerr << "============================\n";
+
+#endif
+
 #endif
 
 #ifdef PANCAKE_ENABLE_TIMINGS

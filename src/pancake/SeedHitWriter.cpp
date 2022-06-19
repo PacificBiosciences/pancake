@@ -38,7 +38,11 @@ void WriteSeedHits(const std::string& outPath, const std::vector<SeedHit>& hits,
             << targetLength << "\n";
     }
     for (size_t j = hitsStart; j < hitsEnd; ++j) {
-        ofs << hits[j].queryPos << "\t" << hits[j].targetPos << "\t" << hitsId << "\n";
+        ofs << hits[j].queryPos << "\t" << hits[j].targetPos << "\t" << hitsId << "\t"
+            << hits[j].targetId << "\t" << hits[j].targetRev << "\t" << hits[j].targetPos << "\t"
+            << hits[j].queryPos << "\t" << static_cast<int32_t>(hits[j].targetSpan) << "\t"
+            << static_cast<int32_t>(hits[j].querySpan) << "\t"
+            << static_cast<int32_t>(hits[j].flags) << "\n";
     }
 }
 }  // namespace Pancake
