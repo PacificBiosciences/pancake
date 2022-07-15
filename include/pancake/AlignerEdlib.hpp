@@ -28,6 +28,8 @@ public:
     AlignmentResult Global(std::string_view qseq, std::string_view tseq) override;
     AlignmentResult Extend(std::string_view qseq, std::string_view tseq) override;
 
+    AlignmentResult Infix(std::string_view qseq, std::string_view tseq) const;
+
 private:
     AlignmentParameters opt_;
 };
