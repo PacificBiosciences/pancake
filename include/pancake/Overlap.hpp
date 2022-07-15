@@ -45,7 +45,7 @@ public:
     int32_t Blen = 0;
 
     float Score = 0.0f;
-    float Identity = 0.0f;
+    float Identity = 0.0f;  // Range [0.0, 1.0].
     int32_t EditDistance = -1;
     int32_t NumSeeds = -1;
 
