@@ -8,6 +8,8 @@
 #include <pancake/Overlap.hpp>
 #include <pancake/Seed.hpp>
 
+#include <pbcopper/data/Cigar.h>
+
 #include <cstdint>
 #include <memory>
 #include <vector>

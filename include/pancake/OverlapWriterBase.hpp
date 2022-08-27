@@ -9,6 +9,8 @@
 #include <pancake/SeqDBReaderCachedBlock.hpp>
 #include <pancake/util/Util.hpp>
 
+#include <pbcopper/data/CigarOperation.h>
+
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
@@ -42,7 +44,7 @@ public:
     static std::string PrintOverlapAsM4(const Overlap& ovl, bool writeCigar = false);
 };
 
-constexpr char ConstexprTypeToChar(const PacBio::BAM::CigarOperationType type)
+constexpr char ConstexprTypeToChar(const Data::CigarOperationType type)
 {
     constexpr char lookup[11] = "MIDNSHP=XB";
     const int32_t x = static_cast<int>(type);

@@ -5,8 +5,8 @@
 
 #include <pancake/DiffCounts.hpp>
 
-#include <pbbam/Cigar.h>
-#include <pbbam/CigarOperation.h>
+#include <pbcopper/data/Cigar.h>
+#include <pbcopper/data/CigarOperation.h>
 
 #include <cstdint>
 #include <span>
@@ -30,13 +30,13 @@ inline bool operator==(const TrimmingInfo& lhs, const TrimmingInfo& rhs)
 }
 
 /**
- * @brief Converts the Edlib-style alignment to a PacBio::Cigar type.
+ * @brief Converts the Edlib-style alignment to a PacBio::Data::Cigar type.
  *
  * @param aln Input Edlib alignment.
  * @param retDiffs Return parameter, counts of CIGAR operations.
- * @return PacBio::BAM::Cigar The CIGAR version of the input alignment.
+ * @return PacBio::Data::Cigar The CIGAR version of the input alignment.
  */
-PacBio::BAM::Cigar EdlibAlignmentToCigar(std::span<const unsigned char> aln, DiffCounts& retDiffs);
+Data::Cigar EdlibAlignmentToCigar(std::span<const unsigned char> aln, DiffCounts& retDiffs);
 
 /**
  * @brief Computes the diff counts (matches, mismatches, insertions and deletions) from a given
@@ -53,7 +53,7 @@ DiffCounts EdlibAlignmentDiffCounts(std::span<const unsigned char> aln);
  * @param cigar Input CIGAR.
  * @return DiffCounts Counts of Cigar operations.
  */
-DiffCounts CigarDiffCounts(const PacBio::BAM::Cigar& cigar);
+DiffCounts CigarDiffCounts(const Data::Cigar& cigar);
 
 /**
  * @brief Adds a single CIGAR operation to an existing Cigar object. Takes care to check if
@@ -64,8 +64,7 @@ DiffCounts CigarDiffCounts(const PacBio::BAM::Cigar& cigar);
  * @param newOp Cigar operation to add.
  * @param newLen Length of the cigar operation to add.
  */
-void AppendToCigar(PacBio::BAM::Cigar& cigar, PacBio::BAM::CigarOperationType newOp,
-                   int32_t newLen);
+void AppendToCigar(Data::Cigar& cigar, Data::CigarOperationType newOp, int32_t newLen);
 
 /**
  * @brief Finds successive INS/DEL operations in the CIGAR, and converts them to a combination of
@@ -73,10 +72,10 @@ void AppendToCigar(PacBio::BAM::Cigar& cigar, PacBio::BAM::CigarOperationType ne
  * @param query Query sequence in alignment.
  * @param target Target sequence in alignment.
  * @param cigar. Alignment.
- * @return PacBio::BAM::Cigar New CIGAR with resolved neighboring INS/DEL operations.
+ * @return PacBio::Data::Cigar New CIGAR with resolved neighboring INS/DEL operations.
  */
-PacBio::BAM::Cigar ExpandMismatches(std::string_view query, std::string_view target,
-                                    const PacBio::BAM::Cigar& cigar);
+Data::Cigar ExpandMismatches(std::string_view query, std::string_view target,
+                             const Data::Cigar& cigar);
 
 /**
  * @brief Validates the correctness of the CIGAR with respect to the query/target pair. THROWS.
@@ -95,7 +94,7 @@ PacBio::BAM::Cigar ExpandMismatches(std::string_view query, std::string_view tar
  * @param cigar Alignment between the query and target to validate.
  * @param label Label for the exception message, for debug purposes.
  */
-void ValidateCigar(std::string_view query, std::string_view target, const PacBio::BAM::Cigar& cigar,
+void ValidateCigar(std::string_view query, std::string_view target, const Data::Cigar& cigar,
                    std::string_view label);
 
 /**
@@ -126,9 +125,8 @@ void ValidateCigar(std::string_view query, std::string_view target, const PacBio
  * @param retDiffsPerBase Return count of CIGAR operation differences, per base.
  * @param retDiffsPerEvent Return count of CIGAR operation differences, indels are computed per event (mismatches per base).
  */
-void ExtractVariantString(std::string_view query, std::string_view target,
-                          const PacBio::BAM::Cigar& cigar, bool maskHomopolymers,
-                          bool maskSimpleRepeats, bool maskHomopolymerSNPs,
+void ExtractVariantString(std::string_view query, std::string_view target, const Data::Cigar& cigar,
+                          bool maskHomopolymers, bool maskSimpleRepeats, bool maskHomopolymerSNPs,
                           bool maskHomopolymersArbitrary, std::string& retQueryVariants,
                           std::string& retTargetVariants, DiffCounts& retDiffsPerBase,
                           DiffCounts& retDiffsPerEvent);
@@ -142,7 +140,7 @@ void ExtractVariantString(std::string_view query, std::string_view target,
  * @param throwOnPartiallyMaskedIndels Throws if an indel event has a mix of masked/unmasked bases.
  * @return DiffCounts Counts of differences, sans masked bases.
  */
-DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar, std::string_view queryVariants,
+DiffCounts ComputeMaskedDiffCounts(const Data::Cigar& cigar, std::string_view queryVariants,
                                    std::string_view targetVariants,
                                    bool throwOnPartiallyMaskedIndels);
 
@@ -154,7 +152,7 @@ DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar, std::string_
  * @param queryPos Query position to search for.
  * @return int32_t
  */
-int32_t FindTargetPosFromCigar(const BAM::Cigar& cigar, int32_t queryPos);
+int32_t FindTargetPosFromCigar(const Data::Cigar& cigar, int32_t queryPos);
 
 /**
  * @brief This function normalizes gaps by pushing them towards the ends of the
@@ -225,9 +223,8 @@ Data::Cigar NormalizeCigar(std::string_view query, std::string_view target,
  * @param retTrimming Return value, structure with the number of bases that were clipped from the target/query front/back.
  * @return True if everything went fine.
  */
-bool TrimCigar(const PacBio::BAM::Cigar& cigar, int32_t windowSize, int32_t minMatches,
-               bool clipOnFirstMatch, PacBio::BAM::Cigar& retTrimmedCigar,
-               TrimmingInfo& retTrimming);
+bool TrimCigar(const Data::Cigar& cigar, int32_t windowSize, int32_t minMatches,
+               bool clipOnFirstMatch, Data::Cigar& retTrimmedCigar, TrimmingInfo& retTrimming);
 
 /**
  * @brief Computes the alignment score from a given CIGAR vector.
@@ -239,7 +236,7 @@ bool TrimCigar(const PacBio::BAM::Cigar& cigar, int32_t windowSize, int32_t minM
  * @param gapExt Gap extend score (positive value).
  * @return int32_t Alignment score.
  */
-int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, int32_t match, int32_t mismatch,
+int32_t ScoreCigarAlignment(const Data::Cigar& cigar, int32_t match, int32_t mismatch,
                             int32_t gapOpen, int32_t gapExt);
 
 /**
@@ -255,8 +252,8 @@ int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, int32_t match, int3
  * @return std::pair<int32_t, PacBio::Pancake::DiffCounts> Pair: (alignment score, diff counts).
  */
 std::pair<int32_t, PacBio::Pancake::DiffCounts> ScoreCigarAlignment(
-    const PacBio::BAM::Cigar& cigar, int32_t match, int32_t mismatch, int32_t gapOpen1,
-    int32_t gapExt1, int32_t gapOpen2, int32_t gapExt2);
+    const Data::Cigar& cigar, int32_t match, int32_t mismatch, int32_t gapOpen1, int32_t gapExt1,
+    int32_t gapOpen2, int32_t gapExt2);
 
 /**
  * @brief Merges the src CIGAR vector into the existing dest vector.
@@ -264,7 +261,7 @@ std::pair<int32_t, PacBio::Pancake::DiffCounts> ScoreCigarAlignment(
  * @param dest Destination of the merge. Operations from src will be appended to the back of dst.
  * @param src Source for merging.
  */
-void MergeCigars(PacBio::Data::Cigar& dest, const PacBio::Data::Cigar& src);
+void MergeCigars(Data::Cigar& dest, const Data::Cigar& src);
 
 /**
  * @brief Computes a vector of the length of the input sequence, where each position has an
@@ -291,7 +288,7 @@ std::vector<uint8_t> ComputeSimpleRepeatMask(std::string_view seq, int32_t maxWi
  * @param bandwidth Maximum allowed bandwidth in alignment.
  * @return true if the alignment path touches or exceeds the diagonal defined by bandwidth, otherwise false.
  */
-bool CheckAlignmentOutOfBand(const PacBio::Data::Cigar& cigar, int32_t bandwidth);
+bool CheckAlignmentOutOfBand(const Data::Cigar& cigar, int32_t bandwidth);
 
 }  // namespace Pancake
 }  // namespace PacBio

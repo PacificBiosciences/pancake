@@ -124,7 +124,7 @@ void FetchFromFastq(std::shared_ptr<std::ostream>& osPtr, std::shared_ptr<std::o
     for (const auto& seqName : remainingToFind) {
         if (!reader.HasSequence(seqName)) continue;
         int32_t seqLen = reader.SequenceLength(seqName);
-        std::pair<std::string, PacBio::BAM::QualityValues> seqQualPair =
+        std::pair<std::string, Data::QualityValues> seqQualPair =
             reader.Subsequence(seqName, 0, seqLen);
         const auto& seq = std::get<0>(seqQualPair);
         std::string qual = std::get<1>(seqQualPair).Fastq();

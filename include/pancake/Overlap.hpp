@@ -5,7 +5,7 @@
 
 #include <pancake/util/Util.hpp>
 
-#include <pbbam/Cigar.h>
+#include <pbcopper/data/Cigar.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -52,7 +52,7 @@ public:
     OverlapType Atype = OverlapType::Unknown;
     OverlapType Btype = OverlapType::Unknown;
 
-    PacBio::BAM::Cigar Cigar;
+    Data::Cigar Cigar;
     std::string Avars;
     std::string Bvars;
 
@@ -70,7 +70,7 @@ public:
     Overlap(int32_t _Aid, int32_t _Bid, float _Score, float _Identity, bool _Arev, int32_t _Astart,
             int32_t _Aend, int32_t _Alen, bool _Brev, int32_t _Bstart, int32_t _Bend, int32_t _Blen,
             int32_t _EditDistance, int32_t _NumSeeds, OverlapType _Atype, OverlapType _Btype,
-            const PacBio::BAM::Cigar& _Cigar, std::string_view _Avars, std::string_view _Bvars,
+            const Data::Cigar& _Cigar, std::string_view _Avars, std::string_view _Bvars,
             bool _IsFlipped, bool _IsSupplementary, bool _IsSecondary);
 
     Overlap(int32_t _Aid, int32_t _Bid, float _Score, float _Identity, bool _Arev, int32_t _Astart,
@@ -104,7 +104,7 @@ std::unique_ptr<Overlap> CreateOverlap(int32_t Aid, int32_t Bid, float score, fl
                                        bool Arev, int32_t Astart, int32_t Aend, int32_t Alen,
                                        bool Brev, int32_t Bstart, int32_t Bend, int32_t Blen,
                                        int32_t EditDistance, int32_t NumSeeds, OverlapType Atype,
-                                       OverlapType Btype, const PacBio::BAM::Cigar& Cigar,
+                                       OverlapType Btype, const Data::Cigar& Cigar,
                                        std::string_view Avars, std::string_view Bvars,
                                        bool IsFlipped, bool IsSupplementary, bool IsSecondary);
 

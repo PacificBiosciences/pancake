@@ -5,7 +5,7 @@
 
 #include <pancake/DiffCounts.hpp>
 
-#include <pbbam/Cigar.h>
+#include <pbcopper/data/Cigar.h>
 
 #include <ostream>
 
@@ -15,7 +15,7 @@ namespace Pancake {
 class AlignmentResult
 {
 public:
-    PacBio::BAM::Cigar cigar;
+    Data::Cigar cigar;
     int32_t lastQueryPos = 0;
     int32_t lastTargetPos = 0;
     int32_t maxQueryPos = 0;

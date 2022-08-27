@@ -26,7 +26,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_SimpleSeqWithAllDiffs)
     */
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::SesResults expected(9, 9, 4, 7, 0, 2, 2, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(9, 9, 4, 7, 0, 2, 2, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -60,7 +60,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_AnotherSimpleSeqWithAllDiffs)
     */
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::SesResults expected(10, 10, 3, 8, 1, 1, 1, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(10, 10, 3, 8, 1, 1, 1, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -88,7 +88,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_CIGAR_5D_in_suffix)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 5, 4, 0, 0, 5, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -116,7 +116,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_CIGAR_5I_in_suffix)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 5, 4, 0, 5, 0, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -144,7 +144,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_CIGAR_5D_in_prefix)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 5, 4, 0, 0, 5, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -172,7 +172,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_CIGAR_5I_in_prefix)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 5, 4, 0, 5, 0, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -200,7 +200,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_SingleMatch)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 0, 1, 0, 0, 0, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -228,7 +228,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_MultipleExactMatches)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 0, 4, 0, 0, 0, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -256,7 +256,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_SingleMismatch)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 1, 0, 1, 0, 0, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -284,7 +284,7 @@ TEST(SESAlignBanded_Global, NormalSmallCase_MultipleMismatches)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 4, 0, 4, 0, 0, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -322,7 +322,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_SimpleSeqWithAllDiffs)
     */
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::SesResults expected(9, 9, 4, 7, 0, 2, 2, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(9, 9, 4, 7, 0, 2, 2, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -356,7 +356,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_AnotherSimpleSeqWithAllDiffs)
     */
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, minK, maxK, valid
-    PacBio::Pancake::SesResults expected(10, 10, 3, 8, 1, 1, 1, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(10, 10, 3, 8, 1, 1, 1, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -383,7 +383,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_CIGAR_5D_in_suffix)
     std::string cigar = "4=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::SesResults expected(4, 4, 0, 4, 0, 0, 0, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(4, 4, 0, 4, 0, 0, 0, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -410,7 +410,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_CIGAR_5I_in_suffix)
     std::string cigar = "4=";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::SesResults expected(4, 4, 0, 4, 0, 0, 0, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(4, 4, 0, 4, 0, 0, 0, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -448,7 +448,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_CIGAR_5D_in_prefix)
     std::string cigar = "1I1=2I";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::SesResults expected(4, 1, 3, 1, 0, 3, 0, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(4, 1, 3, 1, 0, 3, 0, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -475,7 +475,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_CIGAR_5I_in_prefix)
     std::string cigar = "1D1=2D";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::SesResults expected(1, 4, 3, 1, 0, 0, 3, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(1, 4, 3, 1, 0, 0, 3, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -503,7 +503,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_SingleMatch)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 0, 1, 0, 0, 0, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -531,7 +531,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_MultipleExactMatches)
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
     PacBio::Pancake::SesResults expected(query.size(), target.size(), 0, 4, 0, 0, 0, true,
-                                         PacBio::BAM::Cigar(cigar));
+                                         PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -558,7 +558,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_SingleMismatch)
     std::string cigar = "1D";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::SesResults expected(0, 1, 1, 0, 0, 0, 1, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(0, 1, 1, 0, 0, 0, 1, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =
@@ -585,7 +585,7 @@ TEST(SESAlignBanded_Semiglobal, NormalSmallCase_MultipleMismatches)
     std::string cigar = "4D";
 
     // Order of elements in SesResult: lastQueryPos, lastTargetPos, diffs, numEq, numX, numI, numD, valid, cigar
-    PacBio::Pancake::SesResults expected(0, 4, 4, 0, 0, 0, 4, true, PacBio::BAM::Cigar(cigar));
+    PacBio::Pancake::SesResults expected(0, 4, 4, 0, 0, 0, 4, true, PacBio::Data::Cigar(cigar));
 
     // Run.
     PacBio::Pancake::SesResults result =

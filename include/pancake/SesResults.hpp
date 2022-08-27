@@ -5,8 +5,8 @@
 
 #include <pancake/DiffCounts.hpp>
 
-#include <pbbam/Cigar.h>
-#include <pbbam/CigarOperation.h>
+#include <pbcopper/data/Cigar.h>
+#include <pbcopper/data/CigarOperation.h>
 
 #include <cstdint>
 #include <limits>
@@ -56,7 +56,7 @@ public:
     DiffCounts diffCounts;
     int32_t numDiffs = 0;
     bool valid = false;
-    PacBio::BAM::Cigar cigar;
+    Data::Cigar cigar;
 
     SesResults() = default;
     SesResults(const int32_t _lastQueryPos, const int32_t _lastTargetPos, const int32_t _diffs,
@@ -68,7 +68,7 @@ public:
     {}
     SesResults(const int32_t _lastQueryPos, const int32_t _lastTargetPos, const int32_t _diffs,
                const int32_t _numEq, const int32_t _numX, const int32_t _numI, const int32_t _numD,
-               const bool _valid, const PacBio::BAM::Cigar& _cigar)
+               const bool _valid, const Data::Cigar& _cigar)
         : lastQueryPos(_lastQueryPos)
         , lastTargetPos(_lastTargetPos)
         , diffCounts(DiffCounts(_numEq, _numX, _numI, _numD))
@@ -77,7 +77,7 @@ public:
         , cigar(_cigar)
     {}
     SesResults(const int32_t _lastQueryPos, const int32_t _lastTargetPos,
-               const DiffCounts _diffCounts, const bool _valid, const PacBio::BAM::Cigar& _cigar)
+               const DiffCounts _diffCounts, const bool _valid, const Data::Cigar& _cigar)
         : lastQueryPos(_lastQueryPos)
         , lastTargetPos(_lastTargetPos)
         , diffCounts(_diffCounts)

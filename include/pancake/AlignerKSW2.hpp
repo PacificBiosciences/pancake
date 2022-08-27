@@ -10,6 +10,7 @@
 #pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <pbcopper/third-party/ksw2/ksw2.h>
 #pragma GCC diagnostic pop
+#include <pbcopper/data/Cigar.h>
 
 #include <cstdint>
 #include <memory>

@@ -7,8 +7,8 @@
 #include <pancake/SesOptions.hpp>
 #include <pancake/SesResults.hpp>
 
-#include <pbbam/Cigar.h>
-#include <pbbam/CigarOperation.h>
+#include <pbcopper/data/Cigar.h>
+#include <pbcopper/data/CigarOperation.h>
 
 #include <cstdint>
 #include <iostream>
@@ -218,17 +218,17 @@ SesResults SESAlignBanded(std::string_view query, std::string_view target, const
         // Convert the trace to CIGAR.
         ret.cigar.reserve(numPoints / 2);
         ret.diffCounts.Clear();
-        PacBio::BAM::CigarOperationType op = PacBio::BAM::CigarOperationType::UNKNOWN_OP;
-        PacBio::BAM::CigarOperationType prevOp = PacBio::BAM::CigarOperationType::UNKNOWN_OP;
+        Data::CigarOperationType op = Data::CigarOperationType::UNKNOWN_OP;
+        Data::CigarOperationType prevOp = Data::CigarOperationType::UNKNOWN_OP;
         uint32_t count = 0;
         uint32_t prevCount = 0;
 
         auto ConvertMismatchesAndAppend = [&]() {
             if (ret.cigar.size() > 0 &&
-                ((prevOp == PacBio::BAM::CigarOperationType::DELETION &&
-                    ret.cigar.back().Type() == PacBio::BAM::CigarOperationType::INSERTION) ||
-                    (prevOp == PacBio::BAM::CigarOperationType::INSERTION &&
-                    ret.cigar.back().Type() == PacBio::BAM::CigarOperationType::DELETION))) {
+                ((prevOp == Data::CigarOperationType::DELETION &&
+                    ret.cigar.back().Type() == Data::CigarOperationType::INSERTION) ||
+                    (prevOp == Data::CigarOperationType::INSERTION &&
+                    ret.cigar.back().Type() == Data::CigarOperationType::DELETION))) {
 
                 auto& last = ret.cigar.back();
                 uint32_t lastCount = last.Length();
@@ -236,12 +236,12 @@ SesResults SESAlignBanded(std::string_view query, std::string_view target, const
                 int32_t leftHang = static_cast<int32_t>(lastCount) - minLen;   // Remaining indels to the left.
                 int32_t rightHang = static_cast<int32_t>(prevCount) - minLen;  // Remaining indels to the right.
                 if (leftHang == 0) {
-                    last = PacBio::BAM::CigarOperation(
-                        PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH, minLen);
+                    last = Data::CigarOperation(
+                        Data::CigarOperationType::SEQUENCE_MISMATCH, minLen);
                 } else {
                     last.Length(leftHang);
-                    ret.cigar.emplace_back(PacBio::BAM::CigarOperation(
-                        PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH, minLen));
+                    ret.cigar.emplace_back(Data::CigarOperation(
+                        Data::CigarOperationType::SEQUENCE_MISMATCH, minLen));
                 }
                 prevCount = rightHang;
                 ret.diffCounts.numX += minLen;
@@ -249,7 +249,7 @@ SesResults SESAlignBanded(std::string_view query, std::string_view target, const
                 ret.diffCounts.numI -= minLen;
             }
             if (prevCount > 0) {
-                ret.cigar.emplace_back(PacBio::BAM::CigarOperation(prevOp, prevCount));
+                ret.cigar.emplace_back(Data::CigarOperation(prevOp, prevCount));
             }
         };
 
@@ -260,22 +260,22 @@ SesResults SESAlignBanded(std::string_view query, std::string_view target, const
                 continue;
             }
             // Determine the CIGAR op.
-            op = PacBio::BAM::CigarOperationType::UNKNOWN_OP;
+            op = Data::CigarOperationType::UNKNOWN_OP;
             count = 0;
             if (prevMove.x == alnMove.x && prevMove.y != alnMove.y) {
-                op = PacBio::BAM::CigarOperationType::DELETION;
+                op = Data::CigarOperationType::DELETION;
                 count = abs(alnMove.y - prevMove.y);
                 ret.diffCounts.numD += count;
             } else if (prevMove.x != alnMove.x && prevMove.y == alnMove.y) {
-                op = PacBio::BAM::CigarOperationType::INSERTION;
+                op = Data::CigarOperationType::INSERTION;
                 count = abs(alnMove.x - prevMove.x);
                 ret.diffCounts.numI += count;
             } else {
-                op = PacBio::BAM::CigarOperationType::SEQUENCE_MATCH;
+                op = Data::CigarOperationType::SEQUENCE_MATCH;
                 count = abs(alnMove.x - prevMove.x);
                 ret.diffCounts.numEq += count;
             }
-            if (op != prevOp && prevOp != PacBio::BAM::CigarOperationType::UNKNOWN_OP) {
+            if (op != prevOp && prevOp != Data::CigarOperationType::UNKNOWN_OP) {
                 ConvertMismatchesAndAppend();
                 prevCount = 0;
             }

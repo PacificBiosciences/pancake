@@ -7,8 +7,6 @@
 #include <pancake/AlignmentParameters.hpp>
 #include <pancake/SesResults.hpp>
 
-#include <pbbam/Cigar.h>
-
 #include <array>
 #include <cstdint>
 #include <memory>

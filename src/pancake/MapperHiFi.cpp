@@ -1009,7 +1009,7 @@ OverlapPtr Mapper::AlignOverlap_(const PacBio::Pancake::FastaSequenceCached& tar
     }
 
     if (trimAlignment && ret->Cigar.size() > 0) {
-        PacBio::BAM::Cigar newCigar;
+        Data::Cigar newCigar;
         TrimmingInfo trimInfo;
         TrimCigar(ret->Cigar, trimWindowSize, std::max(1.0, trimWindowSize * trimMatchFraction),
                   trimToFirstMatch, newCigar, trimInfo);

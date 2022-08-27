@@ -34,10 +34,10 @@ TEST(AlignerBatchCPU, ArrayOfTests_Small)
             4,
             // Expected results.
             {
-                PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("4=1X5="), 10, 10, 10, 10, true, 14, 14, false, DiffCounts(9, 1, 0, 0)},
-                PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("4="), 4, 4, 4, 4, true, 8, 8, false, DiffCounts(4, 0, 0, 0)},
-                PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, DiffCounts(0, 1, 0, 0)},
-                PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("20="), 20, 20, 19, 19, true, 40, 40, true, DiffCounts(20, 0, 0, 0)},
+                PacBio::Pancake::AlignmentResult{PacBio::Data::Cigar("4=1X5="), 10, 10, 10, 10, true, 14, 14, false, DiffCounts(9, 1, 0, 0)},
+                PacBio::Pancake::AlignmentResult{PacBio::Data::Cigar("4="), 4, 4, 4, 4, true, 8, 8, false, DiffCounts(4, 0, 0, 0)},
+                PacBio::Pancake::AlignmentResult{PacBio::Data::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, DiffCounts(0, 1, 0, 0)},
+                PacBio::Pancake::AlignmentResult{PacBio::Data::Cigar("20="), 20, 20, 19, 19, true, 40, 40, true, DiffCounts(20, 0, 0, 0)},
             },
         },
         {
@@ -61,10 +61,10 @@ TEST(AlignerBatchCPU, ArrayOfTests_Small)
             4,
             // Expected results.
             {
-                PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar(""), 0, 0, 0, 0, true, 0, 0, false, DiffCounts(0, 0, 0, 0)},
-                PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1I"), 1, 0, 1, 0, true, -4, -4, false, DiffCounts(0, 0, 1, 0)},
-                PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1D"), 0, 1, 0, 1, true, -4, -4, false, DiffCounts(0, 0, 0, 1)},
-                PacBio::Pancake::AlignmentResult{PacBio::BAM::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, DiffCounts(0, 1, 0, 0)},
+                PacBio::Pancake::AlignmentResult{PacBio::Data::Cigar(""), 0, 0, 0, 0, true, 0, 0, false, DiffCounts(0, 0, 0, 0)},
+                PacBio::Pancake::AlignmentResult{PacBio::Data::Cigar("1I"), 1, 0, 1, 0, true, -4, -4, false, DiffCounts(0, 0, 1, 0)},
+                PacBio::Pancake::AlignmentResult{PacBio::Data::Cigar("1D"), 0, 1, 0, 1, true, -4, -4, false, DiffCounts(0, 0, 0, 1)},
+                PacBio::Pancake::AlignmentResult{PacBio::Data::Cigar("1X"), 1, 1, 1, 1, true, -4, -4, false, DiffCounts(0, 1, 0, 0)},
             },
         },
     };

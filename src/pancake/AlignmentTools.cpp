@@ -17,8 +17,7 @@
 namespace PacBio {
 namespace Pancake {
 
-PacBio::BAM::Cigar EdlibAlignmentToCigar(const std::span<const unsigned char> aln,
-                                         DiffCounts& retDiffs)
+Data::Cigar EdlibAlignmentToCigar(const std::span<const unsigned char> aln, DiffCounts& retDiffs)
 {
     retDiffs.Clear();
 
@@ -28,22 +27,21 @@ PacBio::BAM::Cigar EdlibAlignmentToCigar(const std::span<const unsigned char> al
     }
 
     // Edlib move codes: 0: '=', 1: 'I', 2: 'D', 3: 'X'
-    const std::array<PacBio::BAM::CigarOperationType, 4> opToCigar = {
-        PacBio::BAM::CigarOperationType::SEQUENCE_MATCH, PacBio::BAM::CigarOperationType::INSERTION,
-        PacBio::BAM::CigarOperationType::DELETION,
-        PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH};
+    const std::array<Data::CigarOperationType, 4> opToCigar = {
+        Data::CigarOperationType::SEQUENCE_MATCH, Data::CigarOperationType::INSERTION,
+        Data::CigarOperationType::DELETION, Data::CigarOperationType::SEQUENCE_MISMATCH};
 
     std::array<int32_t, 4> counts{0, 0, 0, 0};
 
-    PacBio::BAM::CigarOperationType prevOp = PacBio::BAM::CigarOperationType::UNKNOWN_OP;
+    Data::CigarOperationType prevOp = Data::CigarOperationType::UNKNOWN_OP;
     unsigned char prevOpRaw = 0;
     int32_t count = 0;
-    PacBio::BAM::Cigar ret;
+    Data::Cigar ret;
 
     for (int32_t i = 0; i <= alnLen; i++) {
-        if (i == alnLen || (opToCigar[aln[i]] != prevOp &&
-                            prevOp != PacBio::BAM::CigarOperationType::UNKNOWN_OP)) {
-            ret.emplace_back(PacBio::BAM::CigarOperation(prevOp, count));
+        if (i == alnLen ||
+            (opToCigar[aln[i]] != prevOp && prevOp != Data::CigarOperationType::UNKNOWN_OP)) {
+            ret.emplace_back(Data::CigarOperation(prevOp, count));
             counts[prevOpRaw] += count;
             count = 0;
         }
@@ -92,38 +90,37 @@ DiffCounts EdlibAlignmentDiffCounts(const std::span<const unsigned char> aln)
     return ret;
 }
 
-DiffCounts CigarDiffCounts(const PacBio::BAM::Cigar& cigar)
+DiffCounts CigarDiffCounts(const Data::Cigar& cigar)
 {
     DiffCounts ret;
     for (const auto& op : cigar) {
-        if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
+        if (op.Type() == Data::CigarOperationType::SEQUENCE_MATCH) {
             ret.numEq += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH) {
+        } else if (op.Type() == Data::CigarOperationType::SEQUENCE_MISMATCH) {
             ret.numX += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION) {
+        } else if (op.Type() == Data::CigarOperationType::INSERTION) {
             ret.numI += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::DELETION) {
+        } else if (op.Type() == Data::CigarOperationType::DELETION) {
             ret.numD += op.Length();
         }
     }
     return ret;
 }
 
-void AppendToCigar(PacBio::BAM::Cigar& cigar, const PacBio::BAM::CigarOperationType newOp,
-                   const int32_t newLen)
+void AppendToCigar(Data::Cigar& cigar, const Data::CigarOperationType newOp, const int32_t newLen)
 {
     if (newLen == 0) {
         return;
     }
     if (cigar.empty() || newOp != cigar.back().Type()) {
-        cigar.emplace_back(PacBio::BAM::CigarOperation(newOp, newLen));
+        cigar.emplace_back(Data::CigarOperation(newOp, newLen));
     } else {
         cigar.back().Length(cigar.back().Length() + newLen);
     }
 }
 
-PacBio::BAM::Cigar ExpandMismatches(const std::string_view query, const std::string_view target,
-                                    const PacBio::BAM::Cigar& cigar)
+Data::Cigar ExpandMismatches(const std::string_view query, const std::string_view target,
+                             const Data::Cigar& cigar)
 {
     if (cigar.size() <= 1) {
         return cigar;
@@ -136,7 +133,7 @@ PacBio::BAM::Cigar ExpandMismatches(const std::string_view query, const std::str
     int64_t targetPos = 0;
     int32_t lastAddedOp = -1;
     int32_t numCigarOps = cigar.size();
-    PacBio::BAM::Cigar ret;
+    Data::Cigar ret;
 
     for (int32_t i = 1; i < numCigarOps; ++i) {
         const auto& prevOp = cigar[i - 1];
@@ -152,17 +149,17 @@ PacBio::BAM::Cigar ExpandMismatches(const std::string_view query, const std::str
         // Check if we have an INS+DEL or DEL+INS pair. If so, we'll convert them
         // into a single diagonal set of MATCH/MISMATCH operations, plus the left
         // hang and right hang indel operations.
-        if ((prevOp.Type() == PacBio::BAM::CigarOperationType::INSERTION &&
-             currOp.Type() == PacBio::BAM::CigarOperationType::DELETION) ||
-            (prevOp.Type() == PacBio::BAM::CigarOperationType::DELETION &&
-             currOp.Type() == PacBio::BAM::CigarOperationType::INSERTION)) {
+        if ((prevOp.Type() == Data::CigarOperationType::INSERTION &&
+             currOp.Type() == Data::CigarOperationType::DELETION) ||
+            (prevOp.Type() == Data::CigarOperationType::DELETION &&
+             currOp.Type() == Data::CigarOperationType::INSERTION)) {
 
             const int32_t minLen = std::min(prevOp.Length(), currOp.Length());
             const int32_t leftHang = static_cast<int32_t>(prevOp.Length()) - minLen;
             const int32_t rightHang = static_cast<int32_t>(currOp.Length()) - minLen;
 
             AppendToCigar(ret, prevOp.Type(), leftHang);
-            if (prevOp.Type() == PacBio::BAM::CigarOperationType::DELETION) {
+            if (prevOp.Type() == Data::CigarOperationType::DELETION) {
                 targetPos += leftHang;
             } else {
                 queryPos += leftHang;
@@ -170,16 +167,16 @@ PacBio::BAM::Cigar ExpandMismatches(const std::string_view query, const std::str
 
             for (int32_t pos = 0; pos < minLen; ++pos) {
                 if (query[queryPos] == target[targetPos]) {
-                    AppendToCigar(ret, PacBio::BAM::CigarOperationType::SEQUENCE_MATCH, 1);
+                    AppendToCigar(ret, Data::CigarOperationType::SEQUENCE_MATCH, 1);
                 } else {
-                    AppendToCigar(ret, PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH, 1);
+                    AppendToCigar(ret, Data::CigarOperationType::SEQUENCE_MISMATCH, 1);
                 }
                 ++queryPos;
                 ++targetPos;
             }
 
             AppendToCigar(ret, currOp.Type(), rightHang);
-            if (currOp.Type() == PacBio::BAM::CigarOperationType::DELETION) {
+            if (currOp.Type() == Data::CigarOperationType::DELETION) {
                 targetPos += rightHang;
             } else {
                 queryPos += rightHang;
@@ -190,10 +187,10 @@ PacBio::BAM::Cigar ExpandMismatches(const std::string_view query, const std::str
         } else {
             AppendToCigar(ret, prevOp.Type(), prevOp.Length());
             lastAddedOp = i - 1;
-            if (prevOp.Type() != PacBio::BAM::CigarOperationType::DELETION) {
+            if (prevOp.Type() != Data::CigarOperationType::DELETION) {
                 queryPos += prevOp.Length();
             }
-            if (prevOp.Type() != PacBio::BAM::CigarOperationType::INSERTION) {
+            if (prevOp.Type() != Data::CigarOperationType::INSERTION) {
                 targetPos += prevOp.Length();
             }
         }
@@ -206,7 +203,7 @@ PacBio::BAM::Cigar ExpandMismatches(const std::string_view query, const std::str
 }
 
 void ValidateCigar(const std::string_view query, const std::string_view target,
-                   const PacBio::BAM::Cigar& cigar, const std::string_view label)
+                   const Data::Cigar& cigar, const std::string_view label)
 {
     const int64_t queryLen = query.size();
     const int64_t targetLen = target.size();
@@ -230,7 +227,7 @@ void ValidateCigar(const std::string_view query, const std::string_view target,
             throw std::runtime_error(oss.str());
         }
 
-        if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
+        if (op.Type() == Data::CigarOperationType::SEQUENCE_MATCH) {
             if ((queryPos + op.Length()) > queryLen || (targetPos + op.Length()) > targetLen) {
                 std::ostringstream oss;
                 oss << "Invalid CIGAR string (SEQUENCE_MATCH): "
@@ -254,7 +251,7 @@ void ValidateCigar(const std::string_view query, const std::string_view target,
             }
             queryPos += op.Length();
             targetPos += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH) {
+        } else if (op.Type() == Data::CigarOperationType::SEQUENCE_MISMATCH) {
             if ((queryPos + op.Length()) > queryLen || (targetPos + op.Length()) > targetLen) {
                 std::ostringstream oss;
                 oss << "Invalid CIGAR string (SEQUENCE_MISMATCH): "
@@ -281,8 +278,8 @@ void ValidateCigar(const std::string_view query, const std::string_view target,
             }
             queryPos += op.Length();
             targetPos += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION ||
-                   op.Type() == PacBio::BAM::CigarOperationType::SOFT_CLIP) {
+        } else if (op.Type() == Data::CigarOperationType::INSERTION ||
+                   op.Type() == Data::CigarOperationType::SOFT_CLIP) {
             if ((queryPos + op.Length()) > queryLen) {
                 std::ostringstream oss;
                 oss << "Invalid CIGAR string (INSERTION): "
@@ -294,8 +291,8 @@ void ValidateCigar(const std::string_view query, const std::string_view target,
                 throw std::runtime_error(oss.str());
             }
             queryPos += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::DELETION ||
-                   op.Type() == PacBio::BAM::CigarOperationType::REFERENCE_SKIP) {
+        } else if (op.Type() == Data::CigarOperationType::DELETION ||
+                   op.Type() == Data::CigarOperationType::REFERENCE_SKIP) {
             if ((targetPos + op.Length()) > targetLen) {
                 std::ostringstream oss;
                 oss << "Invalid CIGAR string (DELETION): "
@@ -307,7 +304,7 @@ void ValidateCigar(const std::string_view query, const std::string_view target,
                 throw std::runtime_error(oss.str());
             }
             targetPos += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::HARD_CLIP) {
+        } else if (op.Type() == Data::CigarOperationType::HARD_CLIP) {
             // Do nothing.
         } else {
             std::ostringstream oss;
@@ -333,7 +330,7 @@ void ValidateCigar(const std::string_view query, const std::string_view target,
 }
 
 void ExtractVariantString(const std::string_view query, const std::string_view target,
-                          const PacBio::BAM::Cigar& cigar, const bool maskHomopolymers,
+                          const Data::Cigar& cigar, const bool maskHomopolymers,
                           const bool maskSimpleRepeats, const bool maskHomopolymerSNPs,
                           const bool maskHomopolymersArbitrary, std::string& retQueryVariants,
                           std::string& retTargetVariants, DiffCounts& retDiffsPerBase,
@@ -351,12 +348,12 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
     int32_t varStrTargetSize = 0;
     for (int32_t i = 0; i < numCigarOps; ++i) {
         const auto& op = cigar[i];
-        if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH) {
+        if (op.Type() == Data::CigarOperationType::SEQUENCE_MISMATCH) {
             varStrQuerySize += op.Length();
             varStrTargetSize += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION) {
+        } else if (op.Type() == Data::CigarOperationType::INSERTION) {
             varStrQuerySize += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::DELETION) {
+        } else if (op.Type() == Data::CigarOperationType::DELETION) {
             varStrTargetSize += op.Length();
         }
     }
@@ -383,7 +380,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
             throw std::runtime_error(oss.str());
         }
 
-        if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
+        if (op.Type() == Data::CigarOperationType::SEQUENCE_MATCH) {
             // If it's a match, just move down the sequences.
             // Sanity check.
             if ((queryPos + op.Length()) > queryLen || (targetPos + op.Length()) > targetLen) {
@@ -402,7 +399,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
             // Move down.
             queryPos += op.Length();
             targetPos += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH) {
+        } else if (op.Type() == Data::CigarOperationType::SEQUENCE_MISMATCH) {
             // For a mismatch, include both alleles.
             // Sanity check.
             if ((queryPos + op.Length()) > queryLen || (targetPos + op.Length()) > targetLen) {
@@ -475,7 +472,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
             // Move down.
             queryPos += op.Length();
             targetPos += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION) {
+        } else if (op.Type() == Data::CigarOperationType::INSERTION) {
             // Sanity check.
             if ((queryPos + op.Length()) > queryLen) {
                 std::ostringstream oss;
@@ -555,7 +552,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
 
             // Move down.
             queryPos += op.Length();
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::DELETION) {
+        } else if (op.Type() == Data::CigarOperationType::DELETION) {
             // Sanity check.
             if ((targetPos + op.Length()) > targetLen) {
                 std::ostringstream oss;
@@ -636,7 +633,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
             // Move down.
             targetPos += op.Length();
 
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::SOFT_CLIP) {
+        } else if (op.Type() == Data::CigarOperationType::SOFT_CLIP) {
             // Sanity check.
             if ((queryPos + op.Length()) > queryLen) {
                 std::ostringstream oss;
@@ -652,7 +649,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
             // Move down.
             queryPos += op.Length();
 
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::REFERENCE_SKIP) {
+        } else if (op.Type() == Data::CigarOperationType::REFERENCE_SKIP) {
             // Sanity check.
             if ((targetPos + op.Length()) > targetLen) {
                 std::ostringstream oss;
@@ -668,7 +665,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
             // Move down.
             targetPos += op.Length();
 
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::HARD_CLIP) {
+        } else if (op.Type() == Data::CigarOperationType::HARD_CLIP) {
             // Do nothing.
 
         } else {
@@ -685,8 +682,7 @@ void ExtractVariantString(const std::string_view query, const std::string_view t
     std::swap(retDiffsPerEvent, diffsPerEvent);
 }
 
-DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar,
-                                   const std::string_view queryVariants,
+DiffCounts ComputeMaskedDiffCounts(const Data::Cigar& cigar, const std::string_view queryVariants,
                                    const std::string_view targetVariants,
                                    const bool throwOnPartiallyMaskedIndels)
 {
@@ -701,11 +697,11 @@ DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar,
     for (const auto& op : cigar) {
         const int32_t opLen = op.Length();
 
-        if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
+        if (op.Type() == Data::CigarOperationType::SEQUENCE_MATCH) {
             // Move down.
             diffs.numEq += opLen;
 
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH) {
+        } else if (op.Type() == Data::CigarOperationType::SEQUENCE_MISMATCH) {
             if ((aVarPos + opLen) > aVarLen || (bVarPos + opLen) > bVarLen) {
                 std::ostringstream oss;
                 oss << "Variant position out of bounds. CIGAR op: " << op.Length()
@@ -735,7 +731,7 @@ DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar,
                 ++bVarPos;
             }
 
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION) {
+        } else if (op.Type() == Data::CigarOperationType::INSERTION) {
             if ((aVarPos + opLen) > aVarLen) {
                 std::ostringstream oss;
                 oss << "Variant position out of bounds. CIGAR op: " << op.Length()
@@ -763,7 +759,7 @@ DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar,
             diffs.numI += (opLen - numMasked);
             aVarPos += opLen;
 
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::DELETION) {
+        } else if (op.Type() == Data::CigarOperationType::DELETION) {
             if ((bVarPos + opLen) > bVarLen) {
                 std::ostringstream oss;
                 oss << "Variant position out of bounds. CIGAR op: " << op.Length()
@@ -791,11 +787,11 @@ DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar,
             diffs.numD += (opLen - numMasked);
             bVarPos += opLen;
 
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::SOFT_CLIP) {
+        } else if (op.Type() == Data::CigarOperationType::SOFT_CLIP) {
             // Do nothing.
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::REFERENCE_SKIP) {
+        } else if (op.Type() == Data::CigarOperationType::REFERENCE_SKIP) {
             // Do nothing.
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::HARD_CLIP) {
+        } else if (op.Type() == Data::CigarOperationType::HARD_CLIP) {
             // Do nothing.
 
         } else {
@@ -809,7 +805,7 @@ DiffCounts ComputeMaskedDiffCounts(const PacBio::BAM::Cigar& cigar,
     return diffs;
 }
 
-int32_t FindTargetPosFromCigar(const BAM::Cigar& cigar, const int32_t queryPos)
+int32_t FindTargetPosFromCigar(const Data::Cigar& cigar, const int32_t queryPos)
 {
     if (cigar.empty()) {
         throw std::runtime_error("Empty CIGAR given to FindTargetPosFromCigar!");
@@ -824,22 +820,22 @@ int32_t FindTargetPosFromCigar(const BAM::Cigar& cigar, const int32_t queryPos)
     int32_t currTargetPos = 0;
     for (const auto& op : cigar) {
         int32_t opLen = op.Length();
-        if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH ||
-            op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH ||
-            op.Type() == PacBio::BAM::CigarOperationType::ALIGNMENT_MATCH) {
+        if (op.Type() == Data::CigarOperationType::SEQUENCE_MATCH ||
+            op.Type() == Data::CigarOperationType::SEQUENCE_MISMATCH ||
+            op.Type() == Data::CigarOperationType::ALIGNMENT_MATCH) {
             if (queryPos < (currQueryPos + opLen)) {
                 const int32_t diff = queryPos - currQueryPos;
                 return currTargetPos + diff;
             }
             currQueryPos += opLen;
             currTargetPos += opLen;
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION) {
+        } else if (op.Type() == Data::CigarOperationType::INSERTION) {
             if (queryPos < (currQueryPos + opLen)) {
                 // By convention, insertions come after an actual base.
                 return currTargetPos - 1;
             }
             currQueryPos += opLen;
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::SOFT_CLIP) {
+        } else if (op.Type() == Data::CigarOperationType::SOFT_CLIP) {
             if (queryPos < (currQueryPos + opLen)) {
                 std::ostringstream oss;
                 oss << "Given query position is located in a soft clipped region! queryPos = "
@@ -847,8 +843,8 @@ int32_t FindTargetPosFromCigar(const BAM::Cigar& cigar, const int32_t queryPos)
                 throw std::runtime_error(oss.str());
             }
             currQueryPos += opLen;
-        } else if (op.Type() == PacBio::BAM::CigarOperationType::DELETION ||
-                   op.Type() == PacBio::BAM::CigarOperationType::REFERENCE_SKIP) {
+        } else if (op.Type() == Data::CigarOperationType::DELETION ||
+                   op.Type() == Data::CigarOperationType::REFERENCE_SKIP) {
             // if (queryPos < (currQueryPos + op.Length())) {
             //     return currTargetPos;
             // }
@@ -1008,16 +1004,16 @@ Data::Cigar ConvertM5ToCigar(const std::string_view queryAln, const std::string_
     const char* targetAlnC = targetAln.data();
 
     for (size_t alnPos = 0; alnPos < queryAln.size(); ++alnPos) {
-        PacBio::BAM::CigarOperationType newOp;
+        Data::CigarOperationType newOp;
         if (queryAlnC[alnPos] == targetAlnC[alnPos] && queryAlnC[alnPos] != '-') {
-            newOp = PacBio::BAM::CigarOperationType::SEQUENCE_MATCH;
+            newOp = Data::CigarOperationType::SEQUENCE_MATCH;
         } else if (queryAlnC[alnPos] != targetAlnC[alnPos] && queryAlnC[alnPos] != '-' &&
                    targetAlnC[alnPos] != '-') {
-            newOp = PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH;
+            newOp = Data::CigarOperationType::SEQUENCE_MISMATCH;
         } else if (queryAlnC[alnPos] == '-' && targetAlnC[alnPos] != '-') {
-            newOp = PacBio::BAM::CigarOperationType::DELETION;
+            newOp = Data::CigarOperationType::DELETION;
         } else if (queryAlnC[alnPos] != '-' && targetAlnC[alnPos] == '-') {
-            newOp = PacBio::BAM::CigarOperationType::INSERTION;
+            newOp = Data::CigarOperationType::INSERTION;
         } else {
             // Both are '-'.
             continue;
@@ -1041,9 +1037,8 @@ Data::Cigar NormalizeCigar(const std::string_view query, const std::string_view 
     return PacBio::Pancake::ConvertM5ToCigar(queryAln, targetAln);
 }
 
-bool TrimCigar(const PacBio::BAM::Cigar& cigar, const int32_t windowSize, const int32_t minMatches,
-               const bool clipOnFirstMatch, PacBio::BAM::Cigar& retTrimmedCigar,
-               TrimmingInfo& retTrimming)
+bool TrimCigar(const Data::Cigar& cigar, const int32_t windowSize, const int32_t minMatches,
+               const bool clipOnFirstMatch, Data::Cigar& retTrimmedCigar, TrimmingInfo& retTrimming)
 {
     // Hardcode the max window size so that we can allocate on stack.
     static const int32_t MAX_WINDOW_SIZE = 512;
@@ -1064,7 +1059,7 @@ bool TrimCigar(const PacBio::BAM::Cigar& cigar, const int32_t windowSize, const 
     TrimmingInfo trimInfo;
 
     const auto ProcessCigarOp =
-        [](const PacBio::BAM::Cigar& _cigar, const int32_t opId, const int32_t _windowSize,
+        [](const Data::Cigar& _cigar, const int32_t opId, const int32_t _windowSize,
            const int32_t _minMatches, const bool _clipOnFirstMatch,
            std::array<std::pair<int32_t, int32_t>, 512>& buff, int32_t& buffStart, int32_t& buffEnd,
            int32_t& matchCount, int32_t& foundOpId, int32_t& foundOpInternalId, int32_t& posQuery,
@@ -1099,24 +1094,24 @@ bool TrimCigar(const PacBio::BAM::Cigar& cigar, const int32_t windowSize, const 
                 if (matchCount >= _minMatches &&
                     (_clipOnFirstMatch == false ||
                      (_clipOnFirstMatch &&
-                      startOpType == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH))) {
+                      startOpType == Data::CigarOperationType::SEQUENCE_MATCH))) {
                     foundOpId = startOpId;
                     foundOpInternalId = startOpInternalId;
                     return true;
                 }
 
                 // Move window down and maintain the match count.
-                if (startOpType == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
+                if (startOpType == Data::CigarOperationType::SEQUENCE_MATCH) {
                     // If the start operation was a match, reduce the count as it leaves the window.
                     matchCount = std::max(matchCount - 1, 0);
                     ++posQuery;
                     ++posTarget;
-                } else if (startOpType == PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH) {
+                } else if (startOpType == Data::CigarOperationType::SEQUENCE_MISMATCH) {
                     ++posQuery;
                     ++posTarget;
-                } else if (startOpType == PacBio::BAM::CigarOperationType::INSERTION) {
+                } else if (startOpType == Data::CigarOperationType::INSERTION) {
                     ++posQuery;
-                } else if (startOpType == PacBio::BAM::CigarOperationType::DELETION) {
+                } else if (startOpType == Data::CigarOperationType::DELETION) {
                     ++posTarget;
                 } else {
                     throw std::runtime_error(
@@ -1129,7 +1124,7 @@ bool TrimCigar(const PacBio::BAM::Cigar& cigar, const int32_t windowSize, const 
             buff[buffEnd].first = opId;
             buff[buffEnd].second = i;
             buffEnd = (buffEnd + 1) % buffSize;
-            if (op.Type() == PacBio::BAM::CigarOperationType::SEQUENCE_MATCH) {
+            if (op.Type() == Data::CigarOperationType::SEQUENCE_MATCH) {
                 ++matchCount;
             }
         }
@@ -1255,26 +1250,26 @@ bool TrimCigar(const PacBio::BAM::Cigar& cigar, const int32_t windowSize, const 
     return true;
 }
 
-int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, const int32_t match,
-                            const int32_t mismatch, const int32_t gapOpen, const int32_t gapExt)
+int32_t ScoreCigarAlignment(const Data::Cigar& cigar, const int32_t match, const int32_t mismatch,
+                            const int32_t gapOpen, const int32_t gapExt)
 {
     int64_t score = 0;
     for (const auto& op : cigar) {
         const int32_t count = op.Length();
         switch (op.Type()) {
-            case PacBio::BAM::CigarOperationType::SEQUENCE_MATCH:
+            case Data::CigarOperationType::SEQUENCE_MATCH:
                 // Scores are positive.
                 score += match * count;
                 break;
-            case PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH:
+            case Data::CigarOperationType::SEQUENCE_MISMATCH:
                 // Penalties are positive.
                 score -= mismatch * count;
                 break;
-            case PacBio::BAM::CigarOperationType::INSERTION:
+            case Data::CigarOperationType::INSERTION:
                 // Penalties are positive.
                 score -= (gapOpen + gapExt * (count - 1));
                 break;
-            case PacBio::BAM::CigarOperationType::DELETION:
+            case Data::CigarOperationType::DELETION:
                 // Penalties are positive.
                 score -= (gapOpen + gapExt * (count - 1));
                 break;
@@ -1286,8 +1281,8 @@ int32_t ScoreCigarAlignment(const PacBio::BAM::Cigar& cigar, const int32_t match
 }
 
 std::pair<int32_t, PacBio::Pancake::DiffCounts> ScoreCigarAlignment(
-    const PacBio::BAM::Cigar& cigar, const int32_t match, const int32_t mismatch,
-    const int32_t gapOpen1, const int32_t gapExt1, const int32_t gapOpen2, const int32_t gapExt2)
+    const Data::Cigar& cigar, const int32_t match, const int32_t mismatch, const int32_t gapOpen1,
+    const int32_t gapExt1, const int32_t gapOpen2, const int32_t gapExt2)
 {
     DiffCounts diffs;
     int64_t score = 0;
@@ -1298,23 +1293,23 @@ std::pair<int32_t, PacBio::Pancake::DiffCounts> ScoreCigarAlignment(
     for (const auto& op : cigar) {
         const int32_t count = op.Length();
         switch (op.Type()) {
-            case PacBio::BAM::CigarOperationType::SEQUENCE_MATCH:
+            case Data::CigarOperationType::SEQUENCE_MATCH:
                 // Scores are positive.
                 score += match * count;
                 diffs.numEq += count;
                 break;
-            case PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH:
+            case Data::CigarOperationType::SEQUENCE_MISMATCH:
                 // Penalties are positive.
                 score -= mismatch * count;
                 diffs.numX += count;
                 break;
-            case PacBio::BAM::CigarOperationType::INSERTION:
+            case Data::CigarOperationType::INSERTION:
                 // Penalties are positive.
                 score -= (count < longThreshold) ? (gapOpen1 + gapExt1 * (count - 1))
                                                  : (gapOpen2 + gapExt2 * (count - 1));
                 diffs.numI += count;
                 break;
-            case PacBio::BAM::CigarOperationType::DELETION:
+            case Data::CigarOperationType::DELETION:
                 // Penalties are positive.
                 score -= (count < longThreshold) ? (gapOpen1 + gapExt1 * (count - 1))
                                                  : (gapOpen2 + gapExt2 * (count - 1));

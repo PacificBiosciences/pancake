@@ -1553,7 +1553,7 @@ OverlapPtr CreateMockedAlignment(const OverlapPtr& ovl, const int32_t matchScore
         ovl->Aid, ovl->Bid, score, identity, false, 0, ovl->Alen, ovl->Alen, false, 0, ovl->Blen,
         ovl->Blen, editDist, numSeeds, OverlapType::Unknown, OverlapType::Unknown,
         // OverlapType::Contains, OverlapType::Contains,
-        PacBio::BAM::Cigar(std::to_string(ovl->Alen) + "="), "", "", false, false, false);
+        Data::Cigar(std::to_string(ovl->Alen) + "="), "", "", false, false, false);
     return newOvl;
 }
 

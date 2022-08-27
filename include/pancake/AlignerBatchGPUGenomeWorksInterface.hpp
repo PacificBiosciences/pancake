@@ -13,7 +13,7 @@
 #define PANCAKE_ALIGNER_BATCH_GPU_GENOME_WORKS_INTERFACE_HPP
 
 #include <cuda_runtime_api.h>
-#include <pbcopper/data/Cigar.h>
+#include <pbcopper/data/CigarOperation.h>
 #include <claraparabricks/genomeworks/cudaaligner/aligner.hpp>
 
 #include <cstdint>

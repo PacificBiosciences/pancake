@@ -18,11 +18,11 @@ namespace AlignmentToolsTests {
 TEST(Test_AlignmentTools_EdlibAlignmentToCigar, EmptyInput)
 {
     std::vector<unsigned char> input = {};
-    PacBio::BAM::Cigar expected;
+    PacBio::Data::Cigar expected;
     PacBio::Pancake::DiffCounts expectedDiffs;
 
     PacBio::Pancake::DiffCounts diffs;
-    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input, diffs);
+    PacBio::Data::Cigar result = EdlibAlignmentToCigar(input, diffs);
     EXPECT_EQ(expected, result);
     EXPECT_EQ(expectedDiffs, diffs);
 }
@@ -31,11 +31,11 @@ TEST(Test_AlignmentTools_EdlibAlignmentToCigar, SingleOp)
 {
     // Edlib move codes: 0: '=', 1: 'I', 2: 'D', 3: 'X'
     std::vector<unsigned char> input = {EDLIB_EDOP_MISMATCH};
-    PacBio::BAM::Cigar expected("1X");
+    PacBio::Data::Cigar expected("1X");
     PacBio::Pancake::DiffCounts expectedDiffs(0, 1, 0, 0);
 
     PacBio::Pancake::DiffCounts diffs;
-    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input, diffs);
+    PacBio::Data::Cigar result = EdlibAlignmentToCigar(input, diffs);
     EXPECT_EQ(expected, result);
     EXPECT_EQ(expectedDiffs, diffs);
 }
@@ -46,11 +46,11 @@ TEST(Test_AlignmentTools_EdlibAlignmentToCigar, SimpleTest)
     std::vector<unsigned char> input = {EDLIB_EDOP_MATCH,    EDLIB_EDOP_MATCH,  EDLIB_EDOP_MATCH,
                                         EDLIB_EDOP_MISMATCH, EDLIB_EDOP_INSERT, EDLIB_EDOP_DELETE,
                                         EDLIB_EDOP_DELETE,   EDLIB_EDOP_INSERT};
-    PacBio::BAM::Cigar expected("3=1X1I2D1I");
+    PacBio::Data::Cigar expected("3=1X1I2D1I");
     PacBio::Pancake::DiffCounts expectedDiffs(3, 1, 2, 2);
 
     PacBio::Pancake::DiffCounts diffs;
-    PacBio::BAM::Cigar result = EdlibAlignmentToCigar(input, diffs);
+    PacBio::Data::Cigar result = EdlibAlignmentToCigar(input, diffs);
     EXPECT_EQ(expected, result);
     EXPECT_EQ(expectedDiffs, diffs);
 }
@@ -83,7 +83,7 @@ TEST(Test_AlignmentTools_ValidateCigar, ArrayOfTests)
         const std::string testName = std::get<0>(data);
         const std::string& query = std::get<1>(data);
         const std::string& target = std::get<2>(data);
-        PacBio::BAM::Cigar cigar(std::get<3>(data));
+        PacBio::Data::Cigar cigar(std::get<3>(data));
         bool shouldThrow = std::get<4>(data);
 
         // Name the test.
@@ -462,7 +462,7 @@ TEST(Test_AlignmentTools_ExtractVariantString, ArrayOfTests)
     for (const auto& data : testData) {
         // Name the test.
         SCOPED_TRACE("ExtractVariantString-" + data.testName);
-        PacBio::BAM::Cigar cigar(data.cigar);
+        PacBio::Data::Cigar cigar(data.cigar);
         std::string resultQueryVariants;
         std::string resultTargetVariants;
         PacBio::Pancake::DiffCounts resultDiffsPerBase;
@@ -507,7 +507,7 @@ TEST(Test_AlignmentTools_FindTargetPosFromCigar, ArrayOfTests)
     for (const auto& data : testData) {
         // Get the data.
         const std::string testName = std::get<0>(data);
-        PacBio::BAM::Cigar cigar(std::get<1>(data));
+        PacBio::Data::Cigar cigar(std::get<1>(data));
         int32_t queryPos = std::get<2>(data);
         int32_t expected = std::get<3>(data);
         bool shouldThrow = std::get<4>(data);
@@ -551,7 +551,7 @@ TEST(Test_AlignmentTools_ComputeDiffCounts, ArrayOfTests)
     for (const auto& data : testData) {
         // Inputs.
         const std::string testName = std::get<0>(data);
-        PacBio::BAM::Cigar cigar(std::get<1>(data));
+        PacBio::Data::Cigar cigar(std::get<1>(data));
         const std::string& queryVariants = std::get<2>(data);
         const std::string& targetVariants = std::get<3>(data);
         const PacBio::Pancake::DiffCounts& expected = std::get<4>(data);
@@ -698,7 +698,7 @@ TEST(Test_AlignmentTools_ConvertCigarToM5, ArrayOfTests)
         const std::string testName = std::get<0>(data);
         const std::string& query = std::get<1>(data);
         const std::string& target = std::get<2>(data);
-        const PacBio::BAM::Cigar cigar(std::get<3>(data));
+        const PacBio::Data::Cigar cigar(std::get<3>(data));
         const std::string& expectedQueryAln = std::get<4>(data);
         const std::string& expectedTargetAln = std::get<5>(data);
         const bool shouldThrow = std::get<6>(data);
@@ -754,7 +754,7 @@ TEST(Test_AlignmentTools_ConvertM5ToCigar, ArrayOfTests_RoundTrip)
         const std::string testName = std::get<0>(data);
         const std::string& query = std::get<1>(data);
         const std::string& target = std::get<2>(data);
-        const PacBio::BAM::Cigar cigar(std::get<3>(data));
+        const PacBio::Data::Cigar cigar(std::get<3>(data));
         const bool shouldThrow = std::get<4>(data);
 
         // Name the test.
@@ -768,13 +768,14 @@ TEST(Test_AlignmentTools_ConvertM5ToCigar, ArrayOfTests_RoundTrip)
             EXPECT_THROW(
                 {
                     PacBio::Pancake::ConvertCigarToM5(query, target, cigar, queryAln, targetAln);
-                    PacBio::BAM::Cigar resultCigar =
+                    PacBio::Data::Cigar resultCigar =
                         PacBio::Pancake::ConvertM5ToCigar(queryAln, targetAln);
                 },
                 std::runtime_error);
         } else {
             PacBio::Pancake::ConvertCigarToM5(query, target, cigar, queryAln, targetAln);
-            PacBio::BAM::Cigar resultCigar = PacBio::Pancake::ConvertM5ToCigar(queryAln, targetAln);
+            PacBio::Data::Cigar resultCigar =
+                PacBio::Pancake::ConvertM5ToCigar(queryAln, targetAln);
             EXPECT_EQ(cigar, resultCigar);
         }
     }
@@ -883,8 +884,8 @@ TEST(Test_AlignmentTools_NormalizeCigar, ArrayOfTests)
         const std::string testName = std::get<0>(data);
         const std::string& query = std::get<1>(data);
         const std::string& target = std::get<2>(data);
-        const PacBio::BAM::Cigar inputCigar(std::get<3>(data));
-        const PacBio::BAM::Cigar expectedCigar(std::get<4>(data));
+        const PacBio::Data::Cigar inputCigar(std::get<3>(data));
+        const PacBio::Data::Cigar expectedCigar(std::get<4>(data));
         const bool shouldThrow = std::get<5>(data);
 
         // Name the test.
@@ -894,12 +895,12 @@ TEST(Test_AlignmentTools_NormalizeCigar, ArrayOfTests)
         if (shouldThrow) {
             EXPECT_THROW(
                 {
-                    const PacBio::BAM::Cigar result =
+                    const PacBio::Data::Cigar result =
                         PacBio::Pancake::NormalizeCigar(query, target, inputCigar);
                 },
                 std::runtime_error);
         } else {
-            const PacBio::BAM::Cigar result =
+            const PacBio::Data::Cigar result =
                 PacBio::Pancake::NormalizeCigar(query, target, inputCigar);
             // Evaluate.
             EXPECT_EQ(expectedCigar, result);
@@ -1042,7 +1043,7 @@ TEST(Test_AlignmentTools_TrimCigar, ArrayOfTests)
     for (const auto& data : testData) {
         // Inputs.
         const std::string testName = std::get<0>(data);
-        const PacBio::BAM::Cigar cigar(std::get<1>(data));
+        const PacBio::Data::Cigar cigar(std::get<1>(data));
         const int32_t windowSize = std::get<2>(data);
         const int32_t minMatches = std::get<3>(data);
         const bool clipOnFirstMatch = std::get<4>(data);
@@ -1053,7 +1054,7 @@ TEST(Test_AlignmentTools_TrimCigar, ArrayOfTests)
         // Name the test.
         SCOPED_TRACE("TrimCigar-" + testName);
 
-        PacBio::BAM::Cigar resultsCigar;
+        PacBio::Data::Cigar resultsCigar;
         TrimmingInfo resultsTrimming;
 
         PacBio::Pancake::TrimCigar(cigar, windowSize, minMatches, clipOnFirstMatch, resultsCigar,
@@ -1075,7 +1076,7 @@ TEST(Test_AlignmentTools_TrimCigar, ArrayOfTests_ShouldThrow)
     for (const auto& data : testData) {
         // Inputs.
         const std::string testName = std::get<0>(data);
-        const PacBio::BAM::Cigar cigar(std::get<1>(data));
+        const PacBio::Data::Cigar cigar(std::get<1>(data));
         const int32_t windowSize = std::get<2>(data);
         const int32_t minMatches = std::get<3>(data);
         const bool clipOnFirstMatch = std::get<4>(data);
@@ -1087,7 +1088,7 @@ TEST(Test_AlignmentTools_TrimCigar, ArrayOfTests_ShouldThrow)
         // Name the test.
         SCOPED_TRACE("TrimCigar-" + testName);
 
-        PacBio::BAM::Cigar resultsCigar;
+        PacBio::Data::Cigar resultsCigar;
         TrimmingInfo resultsTrimming;
 
         if (exptectedThrow) {
@@ -1131,7 +1132,7 @@ TEST(Test_AlignmentTools_ScoreCigarAlignment, ArrayOfTests)
 
     for (const auto& data : testData) {
         // Inputs.
-        const PacBio::BAM::Cigar cigar(data.cigar);
+        const PacBio::Data::Cigar cigar(data.cigar);
 
         // Name the test.
         SCOPED_TRACE("ScoreCigarAlignment-" + data.name);
@@ -1162,8 +1163,8 @@ TEST(Test_AlignmentTools_MergeCigars, ArrayOfTests)
 
     for (const auto& data : testData) {
         // Inputs.
-        PacBio::BAM::Cigar destCigar(data.destCigar);
-        const PacBio::BAM::Cigar sourceCigar(data.sourceCigar);
+        PacBio::Data::Cigar destCigar(data.destCigar);
+        const PacBio::Data::Cigar sourceCigar(data.sourceCigar);
 
         // Name the test.
         SCOPED_TRACE("MergeCigars-" + data.name);
@@ -1342,7 +1343,7 @@ TEST(Test_AlignmentTools_CheckAlignmentOutOfBand, ArrayOfTests)
 
     for (const auto& data : testData) {
         // Inputs.
-        const PacBio::BAM::Cigar cigar(data.cigar);
+        const PacBio::Data::Cigar cigar(data.cigar);
 
         // Name the test.
         SCOPED_TRACE("CheckAlignmentOutOfBand-" + data.name);

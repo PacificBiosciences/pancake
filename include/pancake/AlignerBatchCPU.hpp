@@ -8,7 +8,6 @@
 #include <pancake/AlignerFactory.hpp>
 #include <pancake/Range.hpp>
 
-#include <pbbam/Cigar.h>
 #include <pbcopper/parallel/FireAndForget.h>
 
 #include <array>

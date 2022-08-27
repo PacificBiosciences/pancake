@@ -6,6 +6,8 @@
 #include <pancake/SesOptions.hpp>
 #include <pancake/SesResults.hpp>
 
+#include <pbcopper/data/Cigar.h>
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -327,10 +329,10 @@ SesResults SES2AlignBanded(std::string_view query, std::string_view target, cons
         std::cerr << "\n";
 #endif
 
-        auto AppendToCigar = [](PacBio::BAM::Cigar& cigar, PacBio::BAM::CigarOperationType newOp, int32_t newLen)
+        auto AppendToCigar = [](Data::Cigar& cigar, Data::CigarOperationType newOp, int32_t newLen)
         {
             if (cigar.empty() || newOp != cigar.back().Type()) {
-                cigar.emplace_back(PacBio::BAM::CigarOperation(newOp, newLen));
+                cigar.emplace_back(Data::CigarOperation(newOp, newLen));
             } else {
                 cigar.back().Length(cigar.back().Length() + newLen);
             }
@@ -357,25 +359,25 @@ SesResults SES2AlignBanded(std::string_view query, std::string_view target, cons
             if (currK > trPrevK) {
                 int32_t matches = std::min(x2 - prevX2, y2 - prevY2);
                 if (matches > 0) {
-                    AppendToCigar(ret.cigar, PacBio::BAM::CigarOperationType::SEQUENCE_MATCH, matches);
+                    AppendToCigar(ret.cigar, Data::CigarOperationType::SEQUENCE_MATCH, matches);
                 }
-                AppendToCigar(ret.cigar, PacBio::BAM::CigarOperationType::INSERTION, 1);
+                AppendToCigar(ret.cigar, Data::CigarOperationType::INSERTION, 1);
                 ret.diffCounts.numEq += matches;
                 ++ret.diffCounts.numI;
             } else if (currK < trPrevK) {
                 int32_t matches = std::min(x2 - prevX2, y2 - prevY2);
                 if (matches > 0) {
-                    AppendToCigar(ret.cigar, PacBio::BAM::CigarOperationType::SEQUENCE_MATCH, matches);
+                    AppendToCigar(ret.cigar, Data::CigarOperationType::SEQUENCE_MATCH, matches);
                 }
-                AppendToCigar(ret.cigar, PacBio::BAM::CigarOperationType::DELETION, 1);
+                AppendToCigar(ret.cigar, Data::CigarOperationType::DELETION, 1);
                 ret.diffCounts.numEq += matches;
                 ++ret.diffCounts.numD;
             } else {
                 int32_t matches = std::min(x2 - prevX2, y2 - prevY2) - 1;
                 if (matches > 0) {
-                    AppendToCigar(ret.cigar, PacBio::BAM::CigarOperationType::SEQUENCE_MATCH, matches);
+                    AppendToCigar(ret.cigar, Data::CigarOperationType::SEQUENCE_MATCH, matches);
                 }
-                AppendToCigar(ret.cigar, PacBio::BAM::CigarOperationType::SEQUENCE_MISMATCH, 1);
+                AppendToCigar(ret.cigar, Data::CigarOperationType::SEQUENCE_MISMATCH, 1);
                 ret.diffCounts.numEq += matches;
                 ++ret.diffCounts.numX;
             }
@@ -393,7 +395,7 @@ SesResults SES2AlignBanded(std::string_view query, std::string_view target, cons
 
             int32_t matches = std::min(x2 - prevX2, y2 - prevY2);
             if (matches > 0) {
-                AppendToCigar(ret.cigar, PacBio::BAM::CigarOperationType::SEQUENCE_MATCH, matches);
+                AppendToCigar(ret.cigar, Data::CigarOperationType::SEQUENCE_MATCH, matches);
             }
             ret.diffCounts.numEq += matches;
         }

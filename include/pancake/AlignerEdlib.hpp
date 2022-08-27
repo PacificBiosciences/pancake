@@ -6,8 +6,6 @@
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignmentParameters.hpp>
 
-#include <pbbam/Cigar.h>
-
 #include <array>
 #include <cstdint>
 #include <memory>

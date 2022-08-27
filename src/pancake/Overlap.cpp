@@ -11,9 +11,9 @@ Overlap::Overlap(const int32_t _Aid, const int32_t _Bid, const float _Score, con
                  const bool _Arev, const int32_t _Astart, const int32_t _Aend, const int32_t _Alen,
                  const bool _Brev, const int32_t _Bstart, const int32_t _Bend, const int32_t _Blen,
                  const int32_t _EditDistance, const int32_t _NumSeeds, const OverlapType _Atype,
-                 const OverlapType _Btype, const PacBio::BAM::Cigar& _Cigar,
-                 const std::string_view _Avars, const std::string_view _Bvars, bool _IsFlipped,
-                 const bool _IsSupplementary, const bool _IsSecondary)
+                 const OverlapType _Btype, const Data::Cigar& _Cigar, const std::string_view _Avars,
+                 const std::string_view _Bvars, bool _IsFlipped, const bool _IsSupplementary,
+                 const bool _IsSecondary)
     : Aid(_Aid)
     , Arev(_Arev)
     , Astart(_Astart)
@@ -79,10 +79,10 @@ void Overlap::Flip()
     // be updated.
     if (Cigar.size() > 0) {
         for (auto& op : Cigar) {
-            if (op.Type() == PacBio::BAM::CigarOperationType::INSERTION) {
-                op.Type(PacBio::BAM::CigarOperationType::DELETION);
-            } else if (op.Type() == PacBio::BAM::CigarOperationType::DELETION) {
-                op.Type(PacBio::BAM::CigarOperationType::INSERTION);
+            if (op.Type() == Data::CigarOperationType::INSERTION) {
+                op.Type(Data::CigarOperationType::DELETION);
+            } else if (op.Type() == Data::CigarOperationType::DELETION) {
+                op.Type(Data::CigarOperationType::INSERTION);
             }
         }
     }
@@ -154,13 +154,15 @@ bool Overlap::operator==(const Overlap& rhs) const
 
 std::unique_ptr<Overlap> CreateOverlap() { return std::unique_ptr<Overlap>(new Overlap()); }
 
-std::unique_ptr<Overlap> CreateOverlap(
-    const int32_t Aid, const int32_t Bid, const float score, const float identity, const bool Arev,
-    const int32_t Astart, const int32_t Aend, const int32_t Alen, const bool Brev,
-    const int32_t Bstart, const int32_t Bend, const int32_t Blen, const int32_t EditDistance,
-    const int32_t NumSeeds, const OverlapType Atype, const OverlapType Btype,
-    const PacBio::BAM::Cigar& Cigar, const std::string_view Avars, const std::string_view Bvars,
-    const bool IsFlipped, const bool IsSupplementary, const bool IsSecondary)
+std::unique_ptr<Overlap> CreateOverlap(const int32_t Aid, const int32_t Bid, const float score,
+                                       const float identity, const bool Arev, const int32_t Astart,
+                                       const int32_t Aend, const int32_t Alen, const bool Brev,
+                                       const int32_t Bstart, const int32_t Bend, const int32_t Blen,
+                                       const int32_t EditDistance, const int32_t NumSeeds,
+                                       const OverlapType Atype, const OverlapType Btype,
+                                       const Data::Cigar& Cigar, const std::string_view Avars,
+                                       const std::string_view Bvars, const bool IsFlipped,
+                                       const bool IsSupplementary, const bool IsSecondary)
 {
     return std::unique_ptr<Overlap>(new Overlap(
         Aid, Bid, score, identity, Arev, Astart, Aend, Alen, Brev, Bstart, Bend, Blen, EditDistance,
