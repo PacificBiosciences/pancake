@@ -6,7 +6,7 @@
 #include <pancake/AlignerBatchBase.hpp>
 #include <pancake/AlignerFactory.hpp>
 
-#include <pbbam/Cigar.h>
+#include <pbcopper/data/Cigar.h>
 #include <pbcopper/parallel/FireAndForget.h>
 #include <pbedelweiss/Align.hpp>
 
