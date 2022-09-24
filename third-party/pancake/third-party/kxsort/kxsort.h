@@ -22,8 +22,8 @@
    SOFTWARE.
 */
 
-#ifndef KXSORT_H__
-#define KXSORT_H__
+#ifndef KXSORT_H
+#define KXSORT_H
 
 #include <algorithm>
 #include <iterator>
