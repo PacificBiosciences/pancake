@@ -7,52 +7,52 @@
 namespace PacBio {
 namespace Pancake {
 
-Overlap::Overlap(const int32_t _Aid, const int32_t _Bid, const float _Score, const float _Identity,
-                 const bool _Arev, const int32_t _Astart, const int32_t _Aend, const int32_t _Alen,
-                 const bool _Brev, const int32_t _Bstart, const int32_t _Bend, const int32_t _Blen,
-                 const int32_t _EditDistance, const int32_t _NumSeeds, const OverlapType _Atype,
-                 const OverlapType _Btype, const Data::Cigar& _Cigar, const std::string_view _Avars,
-                 const std::string_view _Bvars, bool _IsFlipped, const bool _IsSupplementary,
-                 const bool _IsSecondary)
-    : Aid(_Aid)
-    , Arev(_Arev)
-    , Astart(_Astart)
-    , Aend(_Aend)
-    , Alen(_Alen)
-    , Bid(_Bid)
-    , Brev(_Brev)
-    , Bstart(_Bstart)
-    , Bend(_Bend)
-    , Blen(_Blen)
-    , Score(_Score)
-    , Identity(_Identity)
-    , EditDistance(_EditDistance)
-    , NumSeeds(_NumSeeds)
-    , Atype(_Atype)
-    , Btype(_Btype)
-    , Cigar(_Cigar)
-    , Avars(_Avars)
-    , Bvars(_Bvars)
-    , IsFlipped(_IsFlipped)
-    , IsSupplementary(_IsSupplementary)
-    , IsSecondary(_IsSecondary)
+Overlap::Overlap(const int32_t aid, const int32_t bid, const float score, const float identity,
+                 const bool arev, const int32_t astart, const int32_t aend, const int32_t alen,
+                 const bool brev, const int32_t bstart, const int32_t bend, const int32_t blen,
+                 const int32_t editDistance, const int32_t numSeeds, const OverlapType atype,
+                 const OverlapType btype, const Data::Cigar& cigar, const std::string_view avars,
+                 const std::string_view bvars, bool isFlipped, const bool isSupplementary,
+                 const bool isSecondary)
+    : Aid(aid)
+    , Arev(arev)
+    , Astart(astart)
+    , Aend(aend)
+    , Alen(alen)
+    , Bid(bid)
+    , Brev(brev)
+    , Bstart(bstart)
+    , Bend(bend)
+    , Blen(blen)
+    , Score(score)
+    , Identity(identity)
+    , EditDistance(editDistance)
+    , NumSeeds(numSeeds)
+    , Atype(atype)
+    , Btype(btype)
+    , Cigar(cigar)
+    , Avars(avars)
+    , Bvars(bvars)
+    , IsFlipped(isFlipped)
+    , IsSupplementary(isSupplementary)
+    , IsSecondary(isSecondary)
 {}
 
-Overlap::Overlap(const int32_t _Aid, const int32_t _Bid, const float _Score, const float _Identity,
-                 const bool _Arev, const int32_t _Astart, const int32_t _Aend, const int32_t _Alen,
-                 const bool _Brev, const int32_t _Bstart, const int32_t _Bend, const int32_t _Blen)
-    : Aid(_Aid)
-    , Arev(_Arev)
-    , Astart(_Astart)
-    , Aend(_Aend)
-    , Alen(_Alen)
-    , Bid(_Bid)
-    , Brev(_Brev)
-    , Bstart(_Bstart)
-    , Bend(_Bend)
-    , Blen(_Blen)
-    , Score(_Score)
-    , Identity(_Identity)
+Overlap::Overlap(const int32_t aid, const int32_t bid, const float score, const float identity,
+                 const bool arev, const int32_t astart, const int32_t aend, const int32_t alen,
+                 const bool brev, const int32_t bstart, const int32_t bend, const int32_t blen)
+    : Aid(aid)
+    , Arev(arev)
+    , Astart(astart)
+    , Aend(aend)
+    , Alen(alen)
+    , Bid(bid)
+    , Brev(brev)
+    , Bstart(bstart)
+    , Bend(bend)
+    , Blen(blen)
+    , Score(score)
+    , Identity(identity)
     , EditDistance(0)
     , NumSeeds(0)
     , Atype(OverlapType::Unknown)
