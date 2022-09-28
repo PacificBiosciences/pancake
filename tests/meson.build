@@ -108,9 +108,6 @@ test(
   pancake_test,
   args : [
     '--gtest_output=xml:' + join_paths(meson.project_build_root(), 'pancake-gtest-unittests.xml')],
-  env : [
-    'ARGS=-V',
-    'VERBOSE=1'],
   timeout: 120)
 
 foreach t : pancake_cram_tests
