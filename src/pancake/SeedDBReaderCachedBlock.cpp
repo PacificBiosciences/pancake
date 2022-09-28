@@ -83,8 +83,9 @@ void SeedDBReaderCachedBlock::LoadBlock(const std::vector<int32_t>& blockIds)
         // Open the file and position to the correct offset.
         const auto& fl = indexCache_->GetFileLine(part.fileId);
         const std::string actualPath = JoinPath(indexCache_->indexParentFolder, fl.filename);
-        std::unique_ptr<FILE, FileDeleter> fp = PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
-        const int32_t rv = fseek(fp.get(), part.startOffset, SEEK_SET);
+        std::unique_ptr<std::FILE, FileDeleter> fp =
+            PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
+        const int32_t rv = std::fseek(fp.get(), part.startOffset, SEEK_SET);
         if (rv) {
             throw std::runtime_error("Could not fseek to position: " +
                                      std::to_string(part.startOffset));
@@ -92,8 +93,8 @@ void SeedDBReaderCachedBlock::LoadBlock(const std::vector<int32_t>& blockIds)
 
         // Load the bytes.
         const int64_t itemsToRead = (part.endOffset - part.startOffset) / 16;
-        const int64_t numItemsRead =
-            fread(&data_[currDataPos], sizeof(PacBio::Pancake::Int128t), itemsToRead, fp.get());
+        const int64_t numItemsRead = std::fread(
+            &data_[currDataPos], sizeof(PacBio::Pancake::Int128t), itemsToRead, fp.get());
         if (itemsToRead != numItemsRead) {
             std::ostringstream oss;
             oss << "(SeedDBReaderCachedBlock) Could not read data for the following part: "

@@ -5,30 +5,31 @@
 namespace PacBio {
 namespace Pancake {
 
-OverlapWriterSAM::OverlapWriterSAM(FILE* fpOut, bool writeIds, bool writeCigar)
+OverlapWriterSAM::OverlapWriterSAM(std::FILE* fpOut, bool writeIds, bool writeCigar)
     : outFile_(""), fpOut_(fpOut), shouldClose_(false), writeIds_(writeIds), writeCigar_(writeCigar)
 {}
 
 OverlapWriterSAM::~OverlapWriterSAM()
 {
     if (shouldClose_) {
-        fclose(fpOut_);
+        std::fclose(fpOut_);
     }
 }
 
 void OverlapWriterSAM::WriteHeader(const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs)
 {
-    fprintf(fpOut_, "@HD\tVN:1.5\n");
+    std::fprintf(fpOut_, "@HD\tVN:1.5\n");
     if (writeIds_) {
         char buff[100];
         for (const auto& targetSeq : targetSeqs.records()) {
-            sprintf(buff, "%09d", targetSeq.Id());
-            fprintf(fpOut_, "@SQ\tSN:%s\tLN:%d\n", buff, static_cast<int32_t>(targetSeq.Size()));
+            std::sprintf(buff, "%09d", targetSeq.Id());
+            std::fprintf(fpOut_, "@SQ\tSN:%s\tLN:%d\n", buff,
+                         static_cast<int32_t>(targetSeq.Size()));
         }
     } else {
         for (const auto& targetSeq : targetSeqs.records()) {
-            fprintf(fpOut_, "@SQ\tSN:%s\tLN:%d\n", targetSeq.Name().c_str(),
-                    static_cast<int32_t>(targetSeq.Size()));
+            std::fprintf(fpOut_, "@SQ\tSN:%s\tLN:%d\n", targetSeq.Name().c_str(),
+                         static_cast<int32_t>(targetSeq.Size()));
         }
     }
 }

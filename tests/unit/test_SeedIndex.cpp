@@ -751,7 +751,7 @@ B	0	0	2	992
         ofs << targetSeedDBString;
     }
 
-    FILE* fpIn = fopen(seedDBFn.c_str(), "r");
+    std::FILE* fpIn = std::fopen(seedDBFn.c_str(), "r");
     std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> targetSeedDBCache =
         PacBio::Pancake::LoadSeedDBIndexCache(fpIn, "test.seeddb");
 
@@ -800,7 +800,7 @@ B	0	0	2	992
         ofs << targetSeedDBString;
     }
 
-    FILE* fpIn = fopen(seedDBFn.c_str(), "r");
+    std::FILE* fpIn = std::fopen(seedDBFn.c_str(), "r");
     EXPECT_THROW(
         {
             std::shared_ptr<PacBio::Pancake::SeedDBIndexCache> targetSeedDBCache =

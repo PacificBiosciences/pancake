@@ -186,7 +186,7 @@ bool SeqDBWriter::WriteSequences()
 
     // Write the actual sequences.
     const size_t num =
-        fwrite(seqBuffer_.data(), sizeof(int8_t), seqBuffer_.size(), fpOutSeqs_.get());
+        std::fwrite(seqBuffer_.data(), sizeof(int8_t), seqBuffer_.size(), fpOutSeqs_.get());
     return num == seqBuffer_.size();
 }
 

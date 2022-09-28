@@ -234,7 +234,7 @@ void SeqDBReader::AccessLocation_(OpenFileHandler& fileHandler,
         fileHandler.pos = 0;
     }
     if (offset != fileHandler.pos) {
-        int32_t rv = fseek(fileHandler.fp.get(), offset, SEEK_SET);
+        int32_t rv = std::fseek(fileHandler.fp.get(), offset, SEEK_SET);
         if (rv) throw std::runtime_error("Could not fseek to position: " + std::to_string(offset));
         fileHandler.pos = offset;
     }
@@ -255,14 +255,14 @@ void SeqDBReader::LoadAndUnpackSequence_(
     if (isCompressed) {
         // Load and decompress the sequence.
         std::vector<uint8_t> data(sl.numBytes);
-        int32_t n = fread(data.data(), sizeof(uint8_t), sl.numBytes, fileHandler.fp.get());
+        int32_t n = std::fread(data.data(), sizeof(uint8_t), sl.numBytes, fileHandler.fp.get());
         fileHandler.pos += n;
         if (n != sl.numBytes) {
             std::ostringstream oss;
             oss << "Could not read sequence of '" << sl.header << "'. Num bytes read: " << n
                 << ", expected: " << sl.numBytes;
             oss << ", file_id = " << sl.fileId << ", file_offset = " << sl.fileOffset
-                << ", ftell = " << ftell(fileHandler.fp.get());
+                << ", ftell = " << std::ftell(fileHandler.fp.get());
             throw std::runtime_error(oss.str());
         }
         std::string bases;
@@ -273,7 +273,7 @@ void SeqDBReader::LoadAndUnpackSequence_(
 
     } else {
         std::string bases(sl.numBytes, '\0');
-        int32_t n = fread(bases.data(), sizeof(char), sl.numBytes, fileHandler.fp.get());
+        int32_t n = std::fread(bases.data(), sizeof(char), sl.numBytes, fileHandler.fp.get());
         fileHandler.pos += n;
         if (n != sl.numBytes) {
             std::ostringstream oss;

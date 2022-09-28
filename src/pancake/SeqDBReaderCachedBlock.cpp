@@ -89,8 +89,9 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
         // Open the file and position to the correct offset.
         const auto& fl = seqDBIndexCache_->GetFileLine(part.fileId);
         const std::string actualPath = JoinPath(seqDBIndexCache_->indexParentFolder, fl.filename);
-        std::unique_ptr<FILE, FileDeleter> fp = PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
-        const int32_t rv = fseek(fp.get(), part.startOffset, SEEK_SET);
+        std::unique_ptr<std::FILE, FileDeleter> fp =
+            PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
+        const int32_t rv = std::fseek(fp.get(), part.startOffset, SEEK_SET);
         if (rv) {
             throw std::runtime_error("Could not fseek to position: " +
                                      std::to_string(part.startOffset));
@@ -100,7 +101,8 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
         const int64_t itemsToRead = (part.endOffset - part.startOffset);
         std::vector<uint8_t> tempData;
         tempData.resize(itemsToRead);
-        const int64_t numItemsRead = fread(tempData.data(), sizeof(uint8_t), itemsToRead, fp.get());
+        const int64_t numItemsRead =
+            std::fread(tempData.data(), sizeof(uint8_t), itemsToRead, fp.get());
         if (itemsToRead != numItemsRead) {
             std::ostringstream oss;
             oss << "(SeqDBReaderCachedBlock) Could not read data for the following part: "
@@ -154,8 +156,9 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
         // Open the file and position to the correct offset.
         const auto& fl = seqDBIndexCache_->GetFileLine(part.fileId);
         const std::string actualPath = JoinPath(seqDBIndexCache_->indexParentFolder, fl.filename);
-        std::unique_ptr<FILE, FileDeleter> fp = PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
-        const int32_t rv = fseek(fp.get(), part.startOffset, SEEK_SET);
+        std::unique_ptr<std::FILE, FileDeleter> fp =
+            PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
+        const int32_t rv = std::fseek(fp.get(), part.startOffset, SEEK_SET);
         if (rv) {
             throw std::runtime_error("Could not fseek to position: " +
                                      std::to_string(part.startOffset));
@@ -164,7 +167,7 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
         // Load the bytes.
         const int64_t itemsToRead = (part.endOffset - part.startOffset);
         const int64_t numItemsRead =
-            fread(&data_[currDataPos], sizeof(uint8_t), itemsToRead, fp.get());
+            std::fread(&data_[currDataPos], sizeof(uint8_t), itemsToRead, fp.get());
         if (itemsToRead != numItemsRead) {
             std::ostringstream oss;
             oss << "(SeqDBReaderCachedBlock) Could not read data for the following part: "

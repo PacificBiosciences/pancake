@@ -91,10 +91,10 @@ void SeedDBWriter::WriteSeeds(const std::string& seqName, int32_t seqId, int32_t
     ++fileLines_.back().numSequences;
 
     // Write the actual sequences.
-    const int64_t numWritten = seeds.empty()
-                                   ? 0
-                                   : fwrite(reinterpret_cast<const uint8_t*>(seeds.data()),
-                                            sizeof(uint8_t), seeds.size() * 16, fpOutSeeds_.get());
+    const int64_t numWritten =
+        seeds.empty() ? 0
+                      : std::fwrite(reinterpret_cast<const uint8_t*>(seeds.data()), sizeof(uint8_t),
+                                    seeds.size() * 16, fpOutSeeds_.get());
 
     // Sanity check.
     if (numWritten != numBytes) {
@@ -157,30 +157,30 @@ void SeedDBWriter::WriteIndex()
     }
 
     // Write the version and compression information.
-    fprintf(fpOutIndex_.get(), "V\t%s\n", version_.c_str());
+    std::fprintf(fpOutIndex_.get(), "V\t%s\n", version_.c_str());
 
     // Write the parameters used to compute the seeds.
-    fprintf(fpOutIndex_.get(), "P\tk=%d,w=%d,s=%d,hpc=%d,rc=%d\n", params_.KmerSize,
-            params_.MinimizerWindow, params_.Spacing, params_.UseHPC, params_.UseRC);
+    std::fprintf(fpOutIndex_.get(), "P\tk=%d,w=%d,s=%d,hpc=%d,rc=%d\n", params_.KmerSize,
+                 params_.MinimizerWindow, params_.Spacing, params_.UseHPC, params_.UseRC);
 
     // Write all the files and their sizes.
     for (const auto& f : fileLines_) {
-        fprintf(fpOutIndex_.get(), "F\t%d\t%s\t%d\t%" PRIi64 "\n", f.fileId, f.filename.c_str(),
-                f.numSequences, f.numBytes);
+        std::fprintf(fpOutIndex_.get(), "F\t%d\t%s\t%d\t%" PRIi64 "\n", f.fileId,
+                     f.filename.c_str(), f.numSequences, f.numBytes);
     }
 
     // Write the indexes of all sequences.
     for (size_t i = 0; i < seedsLines_.size(); ++i) {
-        fprintf(fpOutIndex_.get(), "S\t%d\t%s\t%d\t%" PRIi64 "\t%" PRIi64 "\t%d\t%d\n",
-                seedsLines_[i].seqId, seedsLines_[i].header.c_str(), seedsLines_[i].fileId,
-                seedsLines_[i].fileOffset, seedsLines_[i].numBytes, seedsLines_[i].numBases,
-                seedsLines_[i].numSeeds);
+        std::fprintf(fpOutIndex_.get(), "S\t%d\t%s\t%d\t%" PRIi64 "\t%" PRIi64 "\t%d\t%d\n",
+                     seedsLines_[i].seqId, seedsLines_[i].header.c_str(), seedsLines_[i].fileId,
+                     seedsLines_[i].fileOffset, seedsLines_[i].numBytes, seedsLines_[i].numBases,
+                     seedsLines_[i].numSeeds);
     }
 
     // Write the blocks of all sequences.
     for (size_t i = 0; i < blockLines_.size(); ++i) {
-        fprintf(fpOutIndex_.get(), "B\t%d\t%d\t%d\t%" PRIi64 "\n", blockLines_[i].blockId,
-                blockLines_[i].startSeqId, blockLines_[i].endSeqId, blockLines_[i].numBytes);
+        std::fprintf(fpOutIndex_.get(), "B\t%d\t%d\t%d\t%" PRIi64 "\n", blockLines_[i].blockId,
+                     blockLines_[i].startSeqId, blockLines_[i].endSeqId, blockLines_[i].numBytes);
     }
 }
 

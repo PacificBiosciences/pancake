@@ -9,6 +9,7 @@
 #include <pancake/util/Util.hpp>
 
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <string>
 
@@ -67,9 +68,9 @@ private:
     int64_t totalOutBytes_ = 0;
     int32_t totalOutSeqs_ = 0;
     // Output file handlers.
-    std::unique_ptr<FILE, FileDeleter> fpOutIndex_{nullptr};
+    std::unique_ptr<std::FILE, FileDeleter> fpOutIndex_{nullptr};
     std::string outIndexFilename_;
-    std::unique_ptr<FILE, FileDeleter> fpOutSeqs_{nullptr};
+    std::unique_ptr<std::FILE, FileDeleter> fpOutSeqs_{nullptr};
 };
 
 std::unique_ptr<SeqDBWriter> CreateSeqDBWriter(const std::string& filenamePrefix,

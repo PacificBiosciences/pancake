@@ -10,6 +10,7 @@
 #include <pancake/util/CommonTypes.hpp>
 
 #include <cstdint>
+#include <cstdio>
 #include <fstream>
 #include <memory>
 #include <string>
@@ -100,7 +101,7 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
     std::istream& is, const std::string& indexFilename);
 
 std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
-    FILE* fpIn, const std::string& indexFilename);
+    std::FILE* fpIn, const std::string& indexFilename);
 
 std::vector<ContiguousFilePart> GetSeedDBContiguousParts(
     const std::shared_ptr<PacBio::Pancake::SeedDBIndexCache>& seedDBIndexCache, int32_t blockId);

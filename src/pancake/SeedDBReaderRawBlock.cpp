@@ -63,7 +63,7 @@ std::vector<SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) const
         }
         // Jump to a different offset in the file if required.
         if (part.startOffset != fh.pos) {
-            const int32_t rv = fseek(fh.fp.get(), part.startOffset, SEEK_SET);
+            const int32_t rv = std::fseek(fh.fp.get(), part.startOffset, SEEK_SET);
             if (rv)
                 throw std::runtime_error("(SeedDBReaderRawBlock) Could not fseek to position: " +
                                          std::to_string(part.startOffset));
@@ -72,7 +72,7 @@ std::vector<SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) const
 
         // Load the bytes.
         const int64_t itemsToRead = (part.endOffset - part.startOffset) / 16;
-        const int64_t n = fread(&ret[readItems], sizeof(SeedRaw), itemsToRead, fh.fp.get());
+        const int64_t n = std::fread(&ret[readItems], sizeof(SeedRaw), itemsToRead, fh.fp.get());
         readItems += n;
 
         // Sanity check.

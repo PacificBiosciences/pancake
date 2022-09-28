@@ -17,14 +17,14 @@ namespace Pancake {
 std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
     const std::string& indexFilename)
 {
-    FILE* fpIn = fopen(indexFilename.c_str(), "r");
+    std::FILE* fpIn = std::fopen(indexFilename.c_str(), "r");
     if (fpIn == NULL) {
         std::ostringstream oss;
         oss << "Could not open file '" << indexFilename << "' for reading!";
         throw std::runtime_error(oss.str());
     }
     auto result = LoadSeedDBIndexCache(fpIn, indexFilename);
-    fclose(fpIn);
+    std::fclose(fpIn);
     return result;
 }
 
@@ -58,7 +58,7 @@ PacBio::Pancake::SeedDBParameters ParseSeedDBParams(const std::string& paramsStr
 }
 
 std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
-    FILE* fpIn, const std::string& indexFilename)
+    std::FILE* fpIn, const std::string& indexFilename)
 {
     auto cache = std::make_unique<PacBio::Pancake::SeedDBIndexCache>();
 
@@ -93,7 +93,7 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
         const char token = line[0];
         switch (token) {
             case 'V':
-                numReadItems = sscanf(&line[1], "%s", buff);
+                numReadItems = std::sscanf(&line[1], "%s", buff);
                 cache->version = buff;
                 if (numReadItems != 1) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
@@ -107,8 +107,8 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedParams = ParseSeedDBParams(std::string(line + offset));
                 break;
             case 'F':
-                numReadItems = sscanf(&line[1], "%d %s %d %" SCNd64, &(fl.fileId), buff,
-                                      &(fl.numSequences), &(fl.numBytes));
+                numReadItems = std::sscanf(&line[1], "%d %s %d %" SCNd64, &(fl.fileId), buff,
+                                           &(fl.numSequences), &(fl.numBytes));
                 if (numReadItems != 4) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
@@ -118,9 +118,9 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedLines.reserve(totalNumSeqs);
                 break;
             case 'S':
-                numReadItems = sscanf(&line[1], "%d %s %d %" SCNd64 " %" SCNd64 " %d %d",
-                                      &(sl.seqId), buff, &(sl.fileId), &(sl.fileOffset),
-                                      &(sl.numBytes), &(sl.numBases), &(sl.numSeeds));
+                numReadItems = std::sscanf(&line[1], "%d %s %d %" SCNd64 " %" SCNd64 " %d %d",
+                                           &(sl.seqId), buff, &(sl.fileId), &(sl.fileOffset),
+                                           &(sl.numBytes), &(sl.numBases), &(sl.numSeeds));
                 if (numReadItems != 7) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
@@ -135,8 +135,8 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
                 cache->seedLines.emplace_back(sl);
                 break;
             case 'B':
-                numReadItems = sscanf(&line[1], "%d %d %d %" SCNd64, &(bl.blockId),
-                                      &(bl.startSeqId), &(bl.endSeqId), &(bl.numBytes));
+                numReadItems = std::sscanf(&line[1], "%d %d %d %" SCNd64, &(bl.blockId),
+                                           &(bl.startSeqId), &(bl.endSeqId), &(bl.numBytes));
                 if (numReadItems != 4) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }

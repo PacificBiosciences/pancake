@@ -10,6 +10,7 @@
 #include <pancake/util/Conversion.hpp>
 
 #include <cstdint>
+#include <cstdio>
 #include <fstream>
 #include <memory>
 #include <random>
@@ -108,7 +109,7 @@ const SeqDBSequenceLine& GetSeqLine(const SeqDBIndexCache& indexCache,
 void ValidateSeqDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& indexCache);
 
 /// \brief Writes the .seqdb file to disk.
-void WriteSeqDBIndexCache(FILE* fpOut, const SeqDBIndexCache& cache);
+void WriteSeqDBIndexCache(std::FILE* fpOut, const SeqDBIndexCache& cache);
 
 void ComputeSeqDBIndexHeaderLookup(const PacBio::Pancake::SeqDBIndexCache& dbCache,
                                    HeaderLookupType& headerToOrdinalId);
@@ -142,7 +143,7 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
     std::istream& is, const std::string& indexFilename);
 
 std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
-    FILE* fpIn, const std::string& indexFilename);
+    std::FILE* fpIn, const std::string& indexFilename);
 
 std::vector<ContiguousFilePart> GetSeqDBContiguousParts(
     const std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& seqDBIndexCache, int32_t blockId);

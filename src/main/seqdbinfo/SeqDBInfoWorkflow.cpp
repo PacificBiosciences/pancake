@@ -46,9 +46,9 @@ int SeqDBInfoWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     // Write the output.
     if (settings.HumanReadableOutput) {
         // clang-format off
-        fprintf(stdout, "input\tunit\ttotal\tnum\tmin\tmax\tavg\tmedian\tAUC\tN10\tN10_n\tN25\tN25_n\tN50\tN50_n\tN75\tN75_n\tN90\tN90_n\tN100\tN100_n\n");
+        std::fprintf(stdout, "input\tunit\ttotal\tnum\tmin\tmax\tavg\tmedian\tAUC\tN10\tN10_n\tN25\tN25_n\tN50\tN50_n\tN75\tN75_n\tN90\tN90_n\tN100\tN100_n\n");
 
-        fprintf(stdout, "%s\t%s\t%.2lf\t%d\t%.2lf\t%.2lf\t%.2lf\t%.2lf\t%.2lf"
+        std::fprintf(stdout, "%s\t%s\t%.2lf\t%d\t%.2lf\t%.2lf\t%.2lf\t%.2lf\t%.2lf"
                         "\t%.2lf\t%d\t%.2lf\t%d\t%.2lf\t%d\t%.2lf\t%d\t%.2lf\t%d\t%.2lf\t%d\n",
                         settings.InputSeqDB.c_str(),
                         GenomicUnitToString(stats.unit).c_str(),

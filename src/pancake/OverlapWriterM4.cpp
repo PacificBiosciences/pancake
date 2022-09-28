@@ -5,14 +5,14 @@
 namespace PacBio {
 namespace Pancake {
 
-OverlapWriterM4::OverlapWriterM4(FILE* fpOut, bool writeIds, bool writeCigar)
+OverlapWriterM4::OverlapWriterM4(std::FILE* fpOut, bool writeIds, bool writeCigar)
     : outFile_(""), fpOut_(fpOut), shouldClose_(false), writeIds_(writeIds), writeCigar_(writeCigar)
 {}
 
 OverlapWriterM4::~OverlapWriterM4()
 {
     if (shouldClose_) {
-        fclose(fpOut_);
+        std::fclose(fpOut_);
     }
 }
 

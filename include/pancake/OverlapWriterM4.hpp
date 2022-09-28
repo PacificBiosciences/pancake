@@ -11,6 +11,7 @@
 #include <pancake/util/Util.hpp>
 
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -21,7 +22,7 @@ namespace Pancake {
 class OverlapWriterM4 : public OverlapWriterBase
 {
 public:
-    OverlapWriterM4(FILE* fpOut, bool writeIds, bool writeCigar);
+    OverlapWriterM4(std::FILE* fpOut, bool writeIds, bool writeCigar);
 
     ~OverlapWriterM4();
 
@@ -32,7 +33,7 @@ public:
 
 private:
     std::string outFile_;
-    FILE* fpOut_ = NULL;
+    std::FILE* fpOut_ = NULL;
     bool shouldClose_ = false;
     bool writeIds_ = false;
     bool writeCigar_ = false;

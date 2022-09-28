@@ -8,6 +8,7 @@
 #include <pancake/util/CommonTypes.hpp>
 #include <pancake/util/Util.hpp>
 
+#include <cstdio>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -32,7 +33,7 @@ public:
     bool JumpTo(const std::string& seqName);
 
 private:
-    using FilePtr = std::unique_ptr<FILE, FileDeleter>;
+    using FilePtr = std::unique_ptr<std::FILE, FileDeleter>;
     class OpenFileHandler
     {
     public:

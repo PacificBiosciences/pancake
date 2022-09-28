@@ -7,13 +7,15 @@
 #include <pancake/OverlapWriterFormat.hpp>
 #include <pancake/OverlapWriterIPAOvl.hpp>
 
+#include <cstdio>
 #include <memory>
 
 namespace PacBio {
 namespace Pancake {
 
-std::unique_ptr<OverlapWriterBase> OverlapWriterFactory(OverlapWriterFormat writerType, FILE* fpOut,
-                                                        bool writeIds, bool writeCigar);
+std::unique_ptr<OverlapWriterBase> OverlapWriterFactory(OverlapWriterFormat writerType,
+                                                        std::FILE* fpOut, bool writeIds,
+                                                        bool writeCigar);
 }
 }  // namespace PacBio
 

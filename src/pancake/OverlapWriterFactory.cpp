@@ -9,8 +9,9 @@
 namespace PacBio {
 namespace Pancake {
 
-std::unique_ptr<OverlapWriterBase> OverlapWriterFactory(OverlapWriterFormat writerType, FILE* fpOut,
-                                                        bool writeIds, bool writeCigar)
+std::unique_ptr<OverlapWriterBase> OverlapWriterFactory(OverlapWriterFormat writerType,
+                                                        std::FILE* fpOut, bool writeIds,
+                                                        bool writeCigar)
 {
     if (writerType == OverlapWriterFormat::IPAOvl) {
         return std::unique_ptr<OverlapWriterBase>(

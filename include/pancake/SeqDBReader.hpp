@@ -8,6 +8,7 @@
 #include <pancake/SeqDBWriterBase.hpp>
 #include <pancake/util/Util.hpp>
 
+#include <cstdio>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -34,7 +35,7 @@ public:
     const SeqDBSequenceLine& GetSequenceInfo(const std::string& seqName) const;
 
 private:
-    using FilePtr = std::unique_ptr<FILE, FileDeleter>;
+    using FilePtr = std::unique_ptr<std::FILE, FileDeleter>;
     class OpenFileHandler
     {
     public:

@@ -427,9 +427,10 @@ std::vector<ChainedHits> ChainHitsSisd(
                                                          minNumSeeds, minCovBases, minDPScore);
 
 #ifdef DEBUG_DP_VERBOSE_
-    printf("The DP:\n");
+    std::printf("The DP:\n");
     for (int32_t i = 0; i < dp.size(); i++) {
-        printf("[%d] dp[i] = %d, pred[i] = %d, chainId[i] = %d\n", i, dp[i], pred[i], chainId[i]);
+        std::printf("[%d] dp[i] = %d, pred[i] = %d, chainId[i] = %d\n", i, dp[i], pred[i],
+                    chainId[i]);
     }
 #endif
 

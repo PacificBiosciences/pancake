@@ -174,7 +174,7 @@ void FetchFromSeqDB(std::shared_ptr<std::ostream>& osPtr, std::shared_ptr<std::o
         foundSeqs.emplace_back(seqName);
         if (writeIds) {
             char buff[50];
-            sprintf(buff, "%09" PRIi64, record.Id());
+            std::sprintf(buff, "%09" PRIi64, record.Id());
             WriteSeqAndRLE(osPtr, osRlePtr, std::string(buff), record.Bases(), std::string(),
                            dummyQV, false, outFormat, useHPC, useRLE);
         } else {

@@ -12,6 +12,7 @@
 #include <pbcopper/data/CigarOperation.h>
 
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -30,15 +31,15 @@ public:
 
     virtual void WriteHeader(const PacBio::Pancake::FastaSequenceCachedStore& targetSeqs) = 0;
 
-    static void PrintOverlapAsIPAOvl(FILE* fpOut, const Overlap& ovl, const std::string& Aname,
+    static void PrintOverlapAsIPAOvl(std::FILE* fpOut, const Overlap& ovl, const std::string& Aname,
                                      const std::string& Bname, bool writeIds, bool writeCigar);
-    static void PrintOverlapAsM4(FILE* fpOut, const Overlap& ovl, const std::string& Aname,
+    static void PrintOverlapAsM4(std::FILE* fpOut, const Overlap& ovl, const std::string& Aname,
                                  const std::string& Bname, bool writeIds, bool writeCigar);
-    static void PrintOverlapAsPAF(FILE* fpOut, const Overlap& ovl, const std::string& Aname,
+    static void PrintOverlapAsPAF(std::FILE* fpOut, const Overlap& ovl, const std::string& Aname,
                                   const std::string& Bname, bool writeIds, bool writeCigar);
-    static void PrintOverlapAsSAM(FILE* fpOut, const Overlap& ovl, const char* seq, int64_t seqLen,
-                                  const std::string& Aname, const std::string& Bname, bool writeIds,
-                                  bool writeCigar);
+    static void PrintOverlapAsSAM(std::FILE* fpOut, const Overlap& ovl, const char* seq,
+                                  int64_t seqLen, const std::string& Aname,
+                                  const std::string& Bname, bool writeIds, bool writeCigar);
     static std::string PrintOverlapAsM4(const Overlap& ovl, const std::string& Aname,
                                         const std::string& Bname, bool writeIds, bool writeCigar);
     static std::string PrintOverlapAsM4(const Overlap& ovl, bool writeCigar = false);

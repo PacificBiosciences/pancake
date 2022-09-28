@@ -212,7 +212,7 @@ void SeedDBReader::AccessLocation_(OpenFileHandler& fileHandler,
         fileHandler.pos = 0;
     }
     if (offset != fileHandler.pos) {
-        const int32_t rv = fseek(fileHandler.fp.get(), offset, SEEK_SET);
+        const int32_t rv = std::fseek(fileHandler.fp.get(), offset, SEEK_SET);
         if (rv)
             throw std::runtime_error("Could not fseek to position (SeedDBReader): " +
                                      std::to_string(offset));
@@ -232,8 +232,8 @@ void SeedDBReader::LoadSeedsForSequence_(
                     sl.fileOffset);
 
     std::vector<PacBio::Pancake::Int128t> seeds(sl.numSeeds);
-    const int64_t n =
-        fread(seeds.data(), sizeof(PacBio::Pancake::Int128t), sl.numSeeds, fileHandler.fp.get());
+    const int64_t n = std::fread(seeds.data(), sizeof(PacBio::Pancake::Int128t), sl.numSeeds,
+                                 fileHandler.fp.get());
     if (n != sl.numSeeds || n * 16 != sl.numBytes) {
         std::ostringstream oss;
         oss << "Could not read seeds for sequence '" << sl.header

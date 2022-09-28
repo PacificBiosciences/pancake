@@ -18,19 +18,19 @@ namespace Pancake {
 std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
     const std::string& indexFilename)
 {
-    FILE* fpIn = fopen(indexFilename.c_str(), "r");
+    std::FILE* fpIn = std::fopen(indexFilename.c_str(), "r");
     if (fpIn == NULL) {
         std::ostringstream oss;
         oss << "Could not open file '" << indexFilename << "' for reading!";
         throw std::runtime_error(oss.str());
     }
     auto result = LoadSeqDBIndexCache(fpIn, indexFilename);
-    fclose(fpIn);
+    std::fclose(fpIn);
     return result;
 }
 
 std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
-    FILE* fpIn, const std::string& indexFilename)
+    std::FILE* fpIn, const std::string& indexFilename)
 {
     auto cache = std::make_unique<PacBio::Pancake::SeqDBIndexCache>();
 
@@ -71,21 +71,22 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
         const char token = line[0];
         switch (token) {
             case 'V':
-                numReadItems = sscanf(&line[1], "%s", buff);
+                numReadItems = std::sscanf(&line[1], "%s", buff);
                 cache->version = buff;
                 if (numReadItems != 1) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
                 break;
             case 'C':
-                numReadItems = sscanf(&line[1], "%d", &(cache->compressionLevel));
+                numReadItems = std::sscanf(&line[1], "%d", &(cache->compressionLevel));
                 if (numReadItems != 1) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
                 break;
             case 'F':
-                numReadItems = sscanf(&line[1], "%d %s %d %" SCNd64 " %" SCNd64, &(fl.fileId), buff,
-                                      &(fl.numSequences), &(fl.numBytes), &(fl.numCompressedBases));
+                numReadItems =
+                    std::sscanf(&line[1], "%d %s %d %" SCNd64 " %" SCNd64, &(fl.fileId), buff,
+                                &(fl.numSequences), &(fl.numBytes), &(fl.numCompressedBases));
                 if (numReadItems != 5) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
@@ -95,9 +96,9 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
                 cache->seqLines.reserve(totalNumSeqs);
                 break;
             case 'S':
-                numReadItems = sscanf(&line[1], "%d %s %d %" SCNd64 " %d %d %d%n", &(sl.seqId),
-                                      buff, &(sl.fileId), &(sl.fileOffset), &(sl.numBytes),
-                                      &(sl.numBases), &(numRanges), &readOffset);
+                numReadItems = std::sscanf(&line[1], "%d %s %d %" SCNd64 " %d %d %d%n", &(sl.seqId),
+                                           buff, &(sl.fileId), &(sl.fileOffset), &(sl.numBytes),
+                                           &(sl.numBases), &(numRanges), &readOffset);
                 if (numReadItems != 7) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
@@ -113,7 +114,8 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
                 offset = readOffset + 1;
                 for (int32_t i = 0; i < numRanges; ++i) {
                     Range r;
-                    numReadItems = sscanf(&line[offset], "%d %d%n", &r.start, &r.end, &readOffset);
+                    numReadItems =
+                        std::sscanf(&line[offset], "%d %d%n", &r.start, &r.end, &readOffset);
                     if (numReadItems != 2) {
                         throw std::runtime_error("Problem parsing line: '" + std::string(line) +
                                                  "'.");
@@ -125,8 +127,8 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
                 break;
             case 'B':
                 numReadItems =
-                    sscanf(&line[1], "%d %d %d %" SCNd64 " %" SCNd64, &(bl.blockId),
-                           &(bl.startSeqId), &(bl.endSeqId), &(bl.numBytes), &(bl.numBases));
+                    std::sscanf(&line[1], "%d %d %d %" SCNd64 " %" SCNd64, &(bl.blockId),
+                                &(bl.startSeqId), &(bl.endSeqId), &(bl.numBytes), &(bl.numBases));
                 if (numReadItems != 5) {
                     throw std::runtime_error("Problem parsing line: '" + std::string(line) + "'.");
                 }
@@ -210,7 +212,7 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
     return cache;
 }
 
-void WriteSeqDBIndexCache(FILE* fpOut, const SeqDBIndexCache& cache)
+void WriteSeqDBIndexCache(std::FILE* fpOut, const SeqDBIndexCache& cache)
 {
     // An output index file should be open at all times, starting from construction.
     if (fpOut == nullptr) {
@@ -218,34 +220,35 @@ void WriteSeqDBIndexCache(FILE* fpOut, const SeqDBIndexCache& cache)
     }
 
     // Write the version and compression information.
-    fprintf(fpOut, "V\t%s\n", cache.version.c_str());
-    fprintf(fpOut, "C\t%d\n",
-            static_cast<int32_t>(cache.compressionLevel));  // Compression is turned on.
+    std::fprintf(fpOut, "V\t%s\n", cache.version.c_str());
+    std::fprintf(fpOut, "C\t%d\n",
+                 static_cast<int32_t>(cache.compressionLevel));  // Compression is turned on.
 
     // Write all the files and their sizes.
     for (const auto& f : cache.fileLines) {
-        fprintf(fpOut, "F\t%d\t%s\t%d\t%" PRIi64 "\t%" PRIi64 "\n", f.fileId, f.filename.c_str(),
-                f.numSequences, f.numBytes, f.numCompressedBases);
+        std::fprintf(fpOut, "F\t%d\t%s\t%d\t%" PRIi64 "\t%" PRIi64 "\n", f.fileId,
+                     f.filename.c_str(), f.numSequences, f.numBytes, f.numCompressedBases);
     }
 
     // Write the indexes of all sequences.
     for (size_t i = 0; i < cache.seqLines.size(); ++i) {
-        fprintf(fpOut, "S\t%d\t%s\t%d\t%" PRIi64 "\t%d\t%d", cache.seqLines[i].seqId,
-                cache.seqLines[i].header.c_str(), cache.seqLines[i].fileId,
-                cache.seqLines[i].fileOffset, cache.seqLines[i].numBytes,
-                cache.seqLines[i].numBases);
-        fprintf(fpOut, "\t%lu", cache.seqLines[i].ranges.size());
+        std::fprintf(fpOut, "S\t%d\t%s\t%d\t%" PRIi64 "\t%d\t%d", cache.seqLines[i].seqId,
+                     cache.seqLines[i].header.c_str(), cache.seqLines[i].fileId,
+                     cache.seqLines[i].fileOffset, cache.seqLines[i].numBytes,
+                     cache.seqLines[i].numBases);
+        std::fprintf(fpOut, "\t%lu", cache.seqLines[i].ranges.size());
         for (const auto& r : cache.seqLines[i].ranges) {
-            fprintf(fpOut, "\t%d\t%d", r.start, r.end);
+            std::fprintf(fpOut, "\t%d\t%d", r.start, r.end);
         }
-        fprintf(fpOut, "\n");
+        std::fprintf(fpOut, "\n");
     }
 
     // Write the blocks of all sequences.
     for (size_t i = 0; i < cache.blockLines.size(); ++i) {
-        fprintf(fpOut, "B\t%d\t%d\t%d\t%" PRIi64 "\t%" PRIi64 "\n", cache.blockLines[i].blockId,
-                cache.blockLines[i].startSeqId, cache.blockLines[i].endSeqId,
-                cache.blockLines[i].numBytes, cache.blockLines[i].numBases);
+        std::fprintf(fpOut, "B\t%d\t%d\t%d\t%" PRIi64 "\t%" PRIi64 "\n",
+                     cache.blockLines[i].blockId, cache.blockLines[i].startSeqId,
+                     cache.blockLines[i].endSeqId, cache.blockLines[i].numBytes,
+                     cache.blockLines[i].numBases);
     }
 }
 

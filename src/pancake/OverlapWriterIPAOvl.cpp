@@ -5,14 +5,14 @@
 namespace PacBio {
 namespace Pancake {
 
-OverlapWriterIPAOvl::OverlapWriterIPAOvl(FILE* fpOut, bool writeIds, bool writeCigar)
+OverlapWriterIPAOvl::OverlapWriterIPAOvl(std::FILE* fpOut, bool writeIds, bool writeCigar)
     : outFile_(""), fpOut_(fpOut), shouldClose_(false), writeIds_(writeIds), writeCigar_(writeCigar)
 {}
 
 OverlapWriterIPAOvl::~OverlapWriterIPAOvl()
 {
     if (shouldClose_) {
-        fclose(fpOut_);
+        std::fclose(fpOut_);
     }
 }
 

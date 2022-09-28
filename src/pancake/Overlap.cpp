@@ -314,14 +314,14 @@ OverlapPtr ParseM4OverlapFromString(const std::string_view line)
     char type[500];
     int32_t Arev = 0;
     int32_t Brev = 0;
-    int32_t n =
-        sscanf(line.data(),
-               "%d %d %f %f "
-               "%d %d %d %d "
-               "%d %d %d %d "
-               "%s",
-               &(ovl->Aid), &(ovl->Bid), &(ovl->Score), &(ovl->Identity), &Arev, &(ovl->Astart),
-               &(ovl->Aend), &(ovl->Alen), &Brev, &(ovl->Bstart), &(ovl->Bend), &(ovl->Blen), type);
+    int32_t n = std::sscanf(line.data(),
+                            "%d %d %f %f "
+                            "%d %d %d %d "
+                            "%d %d %d %d "
+                            "%s",
+                            &(ovl->Aid), &(ovl->Bid), &(ovl->Score), &(ovl->Identity), &Arev,
+                            &(ovl->Astart), &(ovl->Aend), &(ovl->Alen), &Brev, &(ovl->Bstart),
+                            &(ovl->Bend), &(ovl->Blen), type);
 
     ovl->Arev = Arev;
     ovl->Brev = Brev;

@@ -11,6 +11,7 @@
 #include <pancake/util/Util.hpp>
 
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <string>
 #include <vector>
@@ -70,9 +71,9 @@ private:
     SeedDBBlockLine currentBlock_;
     bool openNewSeedsFileUponNextWrite_;
     // Output file handlers.
-    std::unique_ptr<FILE, FileDeleter> fpOutIndex_{nullptr};
+    std::unique_ptr<std::FILE, FileDeleter> fpOutIndex_{nullptr};
     std::string outIndexFilename_;
-    std::unique_ptr<FILE, FileDeleter> fpOutSeeds_{nullptr};
+    std::unique_ptr<std::FILE, FileDeleter> fpOutSeeds_{nullptr};
 };
 
 std::unique_ptr<SeedDBWriter> CreateSeedDBWriter(const std::string& filenamePrefix,

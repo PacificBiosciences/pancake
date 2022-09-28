@@ -382,7 +382,7 @@ StatusAddSequencePair AlignerBatchGPU::AddSequencePairForGlobalAlignment(
             "StatusType::exceeded_max_length.\n");
 
     } else if (s != claraparabricks::genomeworks::cudaaligner::StatusType::success) {
-        // fprintf(stderr, "Unknown error in cuda aligner!\n");
+        // std::fprintf(stderr, "Unknown error in cuda aligner!\n");
         throw std::runtime_error("Unknown error in cuda aligner!\n");
 
     } else {
