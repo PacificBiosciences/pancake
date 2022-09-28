@@ -14,7 +14,7 @@
 #include <pancake/AlignerBatchBase.hpp>
 #include <pancake/AlignerFactory.hpp>
 
-#include <pbbam/Cigar.h>
+#include <pbcopper/data/Cigar.h>
 #include <claraparabricks/genomeworks/cudaaligner/aligner.hpp>
 #include <claraparabricks/genomeworks/cudaaligner/alignment.hpp>
 #include <claraparabricks/genomeworks/cudaaligner/cudaaligner.hpp>
