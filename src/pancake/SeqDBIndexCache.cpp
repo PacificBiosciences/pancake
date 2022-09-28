@@ -570,8 +570,6 @@ void PerformSeqDBSequenceLineSampling(std::vector<SeqDBSequenceLine>& outSeqLine
                                       const std::unordered_set<std::string>& filterList,
                                       const FilterListType filterType)
 {
-    outSeqLines.size();
-
     auto CheckFilterShouldKeep = [&](const std::string& header) {
         if (filterType == FilterListType::Blacklist &&
             filterList.find(header) != filterList.end()) {
