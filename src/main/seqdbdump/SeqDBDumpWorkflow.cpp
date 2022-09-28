@@ -11,6 +11,8 @@
 #include <pancake/util/FileIO.hpp>
 
 #include <algorithm>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -20,14 +22,14 @@ namespace Pancake {
 
 namespace SeqDBDumpCLI {
 
-void WriteSeq(FILE* fp, const char* name, const size_t nameLen, const char* seq,
+void WriteSeq(std::FILE* fp, const char* name, const size_t nameLen, const char* seq,
               const size_t seqLen)
 {
-    fprintf(fp, ">");
-    fwrite(name, sizeof(char), nameLen, fp);
-    fprintf(fp, "\n");
-    fwrite(seq, sizeof(char), seqLen, fp);
-    fprintf(fp, "\n");
+    std::fprintf(fp, ">");
+    std::fwrite(name, sizeof(char), nameLen, fp);
+    std::fprintf(fp, "\n");
+    std::fwrite(seq, sizeof(char), seqLen, fp);
+    std::fprintf(fp, "\n");
 }
 
 }  // namespace SeqDBDumpCLI
@@ -37,9 +39,9 @@ int SeqDBDumpWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     SeqDBDumpSettings settings{options};
 
     // Output file/stdout.
-    FILE* fpOut = stdout;
+    std::FILE* fpOut = stdout;
     if (settings.OutputFile.size() > 0 && settings.OutputFile != "-") {
-        fpOut = fopen(settings.OutputFile.c_str(), "w");
+        fpOut = std::fopen(settings.OutputFile.c_str(), "w");
         if (fpOut == NULL) {
             throw std::runtime_error("Could not open file '" + settings.OutputFile +
                                      "' for writing!");
@@ -75,9 +77,9 @@ int SeqDBDumpWorkflow::Runner(const PacBio::CLI_v2::Results& options)
 
         for (const auto& record : records) {
             if (settings.WriteIds) {
-                sprintf(nameIdBuffer, "%09d", record.Id());
-                SeqDBDumpCLI::WriteSeq(fpOut, nameIdBuffer, strlen(nameIdBuffer), record.c_str(),
-                                       record.size());
+                std::sprintf(nameIdBuffer, "%09d", record.Id());
+                SeqDBDumpCLI::WriteSeq(fpOut, nameIdBuffer, std::strlen(nameIdBuffer),
+                                       record.c_str(), record.size());
             } else {
                 SeqDBDumpCLI::WriteSeq(fpOut, record.Name().c_str(), record.Name().size(),
                                        record.c_str(), record.size());
@@ -86,7 +88,7 @@ int SeqDBDumpWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     }
 
     if (fpOut && fpOut != stdout) {
-        fclose(fpOut);
+        std::fclose(fpOut);
     }
 
     PBLOG_INFO << "Done!";
