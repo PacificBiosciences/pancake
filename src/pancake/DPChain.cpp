@@ -195,7 +195,6 @@ int32_t ChainHitsForwardFastSisd(const std::span<const SeedHit> hits, const int3
         int32_t newDpVal = hi.querySpan;
         int32_t newDpPred = -1;
         int32_t numSkippedPredecessors = 0;
-        int32_t numProcessed = 0;
 
         // Move the furthest allowed predecessor.
         while ((minJ < i) && (hits[i].targetId != hits[minJ].targetId ||
@@ -255,8 +254,6 @@ int32_t ChainHitsForwardFastSisd(const std::span<const SeedHit> hits, const int3
                       << ", logPart = " << logPart << ", linPart = " << linPart
                       << ", matchScore = " << matchScore << "\n";
 #endif
-
-            ++numProcessed;
         }
         // clang-format on
 

@@ -84,7 +84,6 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
 
     // Position of a current record in the data_ vector.
     int64_t seqStart = 0;
-    int64_t currRecord = 0;
     for (const auto& part : parts) {
         // Open the file and position to the correct offset.
         const auto& fl = seqDBIndexCache_->GetFileLine(part.fileId);
@@ -125,7 +124,6 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
             recordStore_.AddRecord(
                 FastaSequenceCached{sl.header, &data_[seqStart], sl.numBases, sl.seqId});
             seqStart += sl.numBases;
-            ++currRecord;
         }
     }
 
@@ -150,7 +148,6 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
     recordStore_.Clear();
 
     int64_t currDataPos = 0;
-    int64_t currRecord = 0;
     for (const auto& part : parts) {
         // Open the file and position to the correct offset.
         const auto& fl = seqDBIndexCache_->GetFileLine(part.fileId);
@@ -183,7 +180,6 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
             recordStore_.AddRecord(
                 FastaSequenceCached{sl.header, &data_[seqStart], sl.numBases, sl.seqId});
             seqStart += sl.numBases;
-            ++currRecord;
         }
 
         // Increment the storage location for the next part.

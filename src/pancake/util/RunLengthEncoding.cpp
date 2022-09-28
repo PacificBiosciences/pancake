@@ -78,15 +78,12 @@ int64_t RunLengthEncoding(char* seq, int64_t seqLen, std::vector<int32_t>& seqTo
     seqToHPCCoords.resize(seqLen, 0);
     hpcToSeqCoords.resize(seqLen, 0);
     int64_t prev = 0;
-    int64_t count = 0;
 
     for (int64_t i = 0; i < seqLen; ++i) {
         if (seq[prev] != seq[i]) {
             ++prev;
-            count = 0;
             seq[prev] = seq[i];
         }
-        ++count;
         seqToHPCCoords[i] = prev;
         hpcToSeqCoords[prev] = i;
     }
@@ -119,16 +116,13 @@ int64_t RunLengthEncoding(const char* seq, int64_t seqLen, std::vector<char>& de
     }
 
     int64_t prev = 0;
-    int64_t count = 0;
     char* destRaw = destHPC.data();
 
     for (int64_t i = 0; i < seqLen; ++i) {
         if (destRaw[prev] != seq[i]) {
             ++prev;
-            count = 0;
             destRaw[prev] = seq[i];
         }
-        ++count;
         seqToHPCCoords[i] = prev;
         hpcToSeqCoords[prev] = i;
     }
