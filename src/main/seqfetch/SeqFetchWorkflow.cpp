@@ -102,7 +102,9 @@ void FetchFromFasta(std::shared_ptr<std::ostream>& osPtr, std::shared_ptr<std::o
         throw std::runtime_error("Index does not exist for file '" + inFile + "'!");
     }
     for (const auto& seqName : remainingToFind) {
-        if (!reader.HasSequence(seqName)) continue;
+        if (!reader.HasSequence(seqName)) {
+            continue;
+        }
         std::string seq = reader.Subsequence(seqName.c_str());
         std::string qual;
         WriteSeqAndRLE(osPtr, osRlePtr, seqName, seq, qual, dummyQV, false, outFormat, useHPC,
@@ -122,7 +124,9 @@ void FetchFromFastq(std::shared_ptr<std::ostream>& osPtr, std::shared_ptr<std::o
         throw std::runtime_error("Index does not exist for file '" + inFile + "'!");
     }
     for (const auto& seqName : remainingToFind) {
-        if (!reader.HasSequence(seqName)) continue;
+        if (!reader.HasSequence(seqName)) {
+            continue;
+        }
         int32_t seqLen = reader.SequenceLength(seqName);
         std::pair<std::string, Data::QualityValues> seqQualPair =
             reader.Subsequence(seqName, 0, seqLen);

@@ -111,11 +111,14 @@ SeqFetchSettings::SeqFetchSettings(const PacBio::CLI_v2::Results& options)
 {
     // Allow multiple positional input arguments.
     const auto& files = options.PositionalArguments();
-    if (files.size() < 3) throw std::runtime_error{"Not enough positional arguments specified."};
+    if (files.size() < 3) {
+        throw std::runtime_error{"Not enough positional arguments specified."};
+    }
     OutputFile = files[0];
     InputFiles.clear();
-    for (size_t i = 2; i < files.size(); ++i)
+    for (size_t i = 2; i < files.size(); ++i) {
         InputFiles.push_back(files[i]);
+    }
 
     OutputFormat = ParseSeqFetchOutFormat(options[SeqFetchOptionNames::OutputFormat]);
 

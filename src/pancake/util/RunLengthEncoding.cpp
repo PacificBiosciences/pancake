@@ -16,7 +16,9 @@ void RunLengthEncoding(const char* seq, int64_t seqLen, std::string& encodedSeq,
 {
     encodedSeq = std::string(seq, seqLen);
     runLengths.clear();
-    if (seq == NULL || seqLen == 0) return;
+    if (seq == NULL || seqLen == 0) {
+        return;
+    }
 
     int64_t outSeqLen = RunLengthEncoding(encodedSeq.data(), seqLen, runLengths);
     encodedSeq[outSeqLen] = '\n';
@@ -26,7 +28,9 @@ void RunLengthEncoding(const char* seq, int64_t seqLen, std::string& encodedSeq,
 int64_t RunLengthEncoding(char* seq, int64_t seqLen, std::vector<int32_t>& runLengths)
 {
     runLengths.clear();
-    if (seq == NULL || seqLen == 0) return 0;
+    if (seq == NULL || seqLen == 0) {
+        return 0;
+    }
 
     runLengths.resize(seqLen);
     int64_t prev = 0;
@@ -60,7 +64,9 @@ void RunLengthEncoding(const char* seq, int64_t seqLen, std::string& encodedSeq,
     encodedSeq = std::string(seq, seqLen);
     seqToHPCCoords.clear();
     hpcToSeqCoords.clear();
-    if (seq == NULL || seqLen == 0) return;
+    if (seq == NULL || seqLen == 0) {
+        return;
+    }
 
     int64_t outSeqLen =
         RunLengthEncoding(encodedSeq.data(), seqLen, seqToHPCCoords, hpcToSeqCoords);
@@ -73,7 +79,9 @@ int64_t RunLengthEncoding(char* seq, int64_t seqLen, std::vector<int32_t>& seqTo
 {
     seqToHPCCoords.clear();
     hpcToSeqCoords.clear();
-    if (seq == NULL || seqLen == 0) return 0;
+    if (seq == NULL || seqLen == 0) {
+        return 0;
+    }
 
     seqToHPCCoords.resize(seqLen, 0);
     hpcToSeqCoords.resize(seqLen, 0);
@@ -98,7 +106,9 @@ int64_t RunLengthEncoding(const char* seq, int64_t seqLen, std::vector<char>& de
                           int32_t& hpcLen, std::vector<int32_t>& seqToHPCCoords,
                           std::vector<int32_t>& hpcToSeqCoords)
 {
-    if (seq == NULL || seqLen == 0) return 0;
+    if (seq == NULL || seqLen == 0) {
+        return 0;
+    }
 
     // All buffers should have the same length for speed.
     // If not, clear them so that the below if can only compare one of them.

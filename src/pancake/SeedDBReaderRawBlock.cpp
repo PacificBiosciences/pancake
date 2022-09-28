@@ -51,9 +51,10 @@ std::vector<SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) const
         // Open a new file if required.
         if (part.fileId != fh.fileId) {
             if (part.fileId < 0 ||
-                part.fileId >= static_cast<int32_t>(seedDBIndexCache_->fileLines.size()))
+                part.fileId >= static_cast<int32_t>(seedDBIndexCache_->fileLines.size())) {
                 throw std::runtime_error("(SeedDBReaderRawBlock) Invalid fileId value: " +
                                          std::to_string(part.fileId));
+            }
             const auto& fl = seedDBIndexCache_->fileLines[part.fileId];
             const std::string actualPath =
                 JoinPath(seedDBIndexCache_->indexParentFolder, fl.filename);
@@ -64,9 +65,10 @@ std::vector<SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) const
         // Jump to a different offset in the file if required.
         if (part.startOffset != fh.pos) {
             const int32_t rv = std::fseek(fh.fp.get(), part.startOffset, SEEK_SET);
-            if (rv)
+            if (rv) {
                 throw std::runtime_error("(SeedDBReaderRawBlock) Could not fseek to position: " +
                                          std::to_string(part.startOffset));
+            }
             fh.pos = part.startOffset;
         }
 

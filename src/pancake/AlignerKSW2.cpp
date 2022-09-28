@@ -22,7 +22,9 @@ mm_tbuf_t* mm_tbuf_init(void)
 
 void mm_tbuf_destroy(mm_tbuf_t* b)
 {
-    if (b == 0) return;
+    if (b == 0) {
+        return;
+    }
     km_destroy(b->km);
     free(b);
 }
@@ -272,11 +274,12 @@ void AlignerKSW2::AlignPair_(void* km, int qlen, const uint8_t* qseq, int tlen, 
                              const int8_t* mat, int w, int endBonus, int zdrop, int flag,
                              ksw_extz_t* ez, int q, int e, int q2, int e2)
 {
-    if (q == q2 && e == e2)
+    if (q == q2 && e == e2) {
         ksw_extz2_simde(km, qlen, qseq, tlen, tseq, 5, mat, q, e, w, zdrop, endBonus, flag, ez);
-    else
+    } else {
         ksw_extd2_simde(km, qlen, qseq, tlen, tseq, 5, mat, q, e, q2, e2, w, zdrop, endBonus, flag,
                         ez);
+    }
 }
 
 void AlignerKSW2::GenerateSimpleMatrix_(int m, int8_t* mat, int8_t a, int8_t b, int8_t scAmbi)
@@ -286,12 +289,14 @@ void AlignerKSW2::GenerateSimpleMatrix_(int m, int8_t* mat, int8_t a, int8_t b, 
     b = b > 0 ? -b : b;
     scAmbi = scAmbi > 0 ? -scAmbi : scAmbi;
     for (i = 0; i < m - 1; ++i) {
-        for (j = 0; j < m - 1; ++j)
+        for (j = 0; j < m - 1; ++j) {
             mat[i * m + j] = i == j ? a : b;
+        }
         mat[i * m + m - 1] = scAmbi;
     }
-    for (j = 0; j < m; ++j)
+    for (j = 0; j < m; ++j) {
         mat[(m - 1) * m + j] = scAmbi;
+    }
 }
 
 }  // namespace Pancake

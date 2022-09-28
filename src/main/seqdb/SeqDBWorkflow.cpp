@@ -49,8 +49,9 @@ int SeqDBWorkflow::Runner(const PacBio::CLI_v2::Results& options)
             }
         } else if (inFmt == SequenceFormat::Bam) {
             BAM::BamReader inputBamReader{inFile};
-            for (const auto& bam : inputBamReader)
+            for (const auto& bam : inputBamReader) {
                 writer->AddSequence(bam.FullName(), bam.Sequence());
+            }
         } else if (inFmt == SequenceFormat::Xml) {
             BAM::DataSet dataset{inFile};
             const PacBio::BAM::PbiIndexCache pbiCache = PacBio::BAM::MakePbiIndexCache(dataset);

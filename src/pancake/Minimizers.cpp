@@ -490,9 +490,10 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
         std::vector<PacBio::Pancake::Int128t> newSeeds;
         int rv = GenerateMinimizers(newSeeds, seq, 0, seqId, kmerSize, winSize, spacing,
                                     useReverseComplement, useHPC);
-        if (rv)
+        if (rv) {
             throw std::runtime_error("Generating minimizers failed for the target sequence, id = " +
                                      std::to_string(recordId));
+        }
         retSeeds.insert(retSeeds.end(), newSeeds.begin(), newSeeds.end());
     }
 }
@@ -509,9 +510,10 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
         std::vector<PacBio::Pancake::Int128t> newSeeds;
         int rv = GenerateMinimizers(newSeeds, seq, 0, seqId, kmerSize, winSize, spacing,
                                     useReverseComplement, useHPC);
-        if (rv)
+        if (rv) {
             throw std::runtime_error("Generating minimizers failed for the target sequence, id = " +
                                      std::to_string(seqId));
+        }
         retSeeds.insert(retSeeds.end(), newSeeds.begin(), newSeeds.end());
     }
 }
@@ -534,9 +536,10 @@ void GenerateMinimizers(std::vector<PacBio::Pancake::Int128t>& retSeeds,
         std::vector<PacBio::Pancake::Int128t> newSeeds;
         int rv = GenerateMinimizers(newSeeds, seq, 0, seqId, kmerSize, winSize, spacing,
                                     useReverseComplement, useHPC);
-        if (rv)
+        if (rv) {
             throw std::runtime_error("Generating minimizers failed for the target sequence, id = " +
                                      std::to_string(recordId));
+        }
         retSeeds.insert(retSeeds.end(), newSeeds.begin(), newSeeds.end());
     }
 }

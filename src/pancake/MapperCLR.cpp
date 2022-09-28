@@ -258,9 +258,10 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
                                     settings.map.seedParams.MinimizerWindow,
                                     settings.map.seedParams.Spacing, settings.map.seedParams.UseRC,
                                     settings.map.seedParams.UseHPCForSeedsOnly);
-        if (rv)
+        if (rv) {
             throw std::runtime_error("Generating minimizers failed for the query sequence i = " +
                                      std::to_string(i) + ", id = " + std::to_string(queryId));
+        }
 
         // Prepare the view of the seeds.
         const PacBio::Pancake::SequenceSeedsCached querySeedsCached(query.Name(), querySeeds.data(),
@@ -276,10 +277,11 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
                 settings.map.seedParamsFallback.MinimizerWindow,
                 settings.map.seedParamsFallback.Spacing, settings.map.seedParamsFallback.UseRC,
                 settings.map.seedParamsFallback.UseHPCForSeedsOnly);
-            if (rv)
+            if (rv) {
                 throw std::runtime_error(
                     "Generating minimizers failed for the query sequence, id = " +
                     std::to_string(queryId));
+            }
 
             // Prepare the view of the fallback seeds.
             const PacBio::Pancake::SequenceSeedsCached querySeedsCachedFallback(

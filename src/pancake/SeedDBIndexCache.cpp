@@ -34,7 +34,9 @@ PacBio::Pancake::SeedDBParameters ParseSeedDBParams(const std::string& paramsStr
 
     const auto params = PacBio::Utility::Split(paramsStr, ',');
     for (const auto& param : params) {
-        if (param.empty()) continue;
+        if (param.empty()) {
+            continue;
+        }
         const auto values = PacBio::Utility::Split(param, '=');
         if (values.size() != 2) {
             std::ostringstream oss;
@@ -163,7 +165,9 @@ std::unique_ptr<PacBio::Pancake::SeedDBIndexCache> LoadSeedDBIndexCache(
     std::string line;
     std::string tokenStr;
     while (std::getline(is, line)) {
-        if (line.empty()) continue;
+        if (line.empty()) {
+            continue;
+        }
 
         std::istringstream iss(line);
         iss >> tokenStr;
@@ -373,7 +377,9 @@ void SeedDBIndexCache::Validate() const
 void ValidateSeedDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeedDBIndexCache>& indexCache)
 {
     // Sanity checks.
-    if (indexCache == nullptr) throw std::runtime_error("Provided seedDBCache == nullptr!");
+    if (indexCache == nullptr) {
+        throw std::runtime_error("Provided seedDBCache == nullptr!");
+    }
     indexCache->Validate();
 }
 

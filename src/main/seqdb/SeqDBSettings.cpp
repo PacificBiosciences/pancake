@@ -87,19 +87,23 @@ SeqDBSettings::SeqDBSettings(const PacBio::CLI_v2::Results& options)
 
     OutputPrefix = files[0];
     InputFiles.clear();
-    for (size_t i = 1; i < files.size(); ++i)
+    for (size_t i = 1; i < files.size(); ++i) {
         InputFiles.push_back(files[i]);
+    }
 
     // Convert block and buffer sizes from MB to bytes.
     BlockSize *= (1000 * 1000);
     BufferSize *= (1024 * 1024);
 
     // Negative block size indicates that everything should be in one block.
-    if (BlockSize < 0.0f)
+    if (BlockSize < 0.0f) {
         BlockSize = static_cast<float>(std::numeric_limits<int64_t>::max()) / (1024.0f * 1024.0f);
+    }
 
     // Buffer size can be zero, but not negative.
-    if (BufferSize < 0.0f) throw std::runtime_error("Buffer size cannot be a negative value.");
+    if (BufferSize < 0.0f) {
+        throw std::runtime_error("Buffer size cannot be a negative value.");
+    }
 }
 
 PacBio::CLI_v2::Interface SeqDBSettings::CreateCLI()

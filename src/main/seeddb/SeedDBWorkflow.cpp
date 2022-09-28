@@ -30,10 +30,11 @@ void Worker(const std::vector<FastaSequenceCached>& records, const SeedDBSetting
         const std::string_view seq(record.c_str(), record.size());
         int rv = GenerateMinimizers(seeds[i], seq, 0, record.Id(), sp.KmerSize, sp.MinimizerWindow,
                                     sp.Spacing, sp.UseRC, sp.UseHPCForSeedsOnly);
-        if (rv)
+        if (rv) {
             throw std::runtime_error(
                 "Generating minimizers failed, startAbs = " + std::to_string(startAbs) +
                 ", return code = " + std::to_string(rv));
+        }
     }
 }
 }  // namespace SeedDBCLI

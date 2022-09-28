@@ -47,9 +47,10 @@ bool SeedDBReader::GetSeedsForSequence(SequenceSeeds& record, const std::string&
 
     // Find the sequence.
     auto it = headerToOrdinalId_.find(seqName);
-    if (it == headerToOrdinalId_.end())
+    if (it == headerToOrdinalId_.end()) {
         throw std::runtime_error(
             "Invalid sequence name, it does not exist in the SeedDB. seqName = " + seqName);
+    }
 
     const int32_t ordinalId = it->second;
 
@@ -71,11 +72,14 @@ bool SeedDBReader::GetNext(SequenceSeeds& record)
     record.Id(-1);
 
     // Sanity check for the sequence ID.
-    if (fileHandler_.nextOrdinalId < 0) throw std::runtime_error("Invalid nextSeqId < 0.");
+    if (fileHandler_.nextOrdinalId < 0) {
+        throw std::runtime_error("Invalid nextSeqId < 0.");
+    }
 
     // Can't go to the next sequence, we loaded all of them.
-    if (fileHandler_.nextOrdinalId >= static_cast<int32_t>(seedDBIndexCache_->seedLines.size()))
+    if (fileHandler_.nextOrdinalId >= static_cast<int32_t>(seedDBIndexCache_->seedLines.size())) {
         return false;
+    }
 
     // Access the SeedsLine object.
     const auto& sl = seedDBIndexCache_->seedLines[fileHandler_.nextOrdinalId];
@@ -92,8 +96,9 @@ bool SeedDBReader::GetNextBatch(std::vector<SequenceSeeds>& records, int64_t bat
     records.clear();
 
     // Sanity check for the sequence ID.
-    if (fileHandler_.nextOrdinalId < 0)
+    if (fileHandler_.nextOrdinalId < 0) {
         throw std::runtime_error("Invalid nextSeqId < 0 (SeedDBReader).");
+    }
 
     // Batch size < 0 loads everything as one batch.
     batchSize = (batchSize < 0) ? std::numeric_limits<int64_t>::max() : batchSize;
@@ -115,10 +120,14 @@ bool SeedDBReader::GetNextBatch(std::vector<SequenceSeeds>& records, int64_t bat
         records.emplace_back(record);
         loadedBytes += static_cast<int64_t>(record.Seeds().size() * 16);
 
-        if (loadedBytes >= batchSize) break;
+        if (loadedBytes >= batchSize) {
+            break;
+        }
     }
 
-    if (records.empty()) return false;
+    if (records.empty()) {
+        return false;
+    }
 
     return true;
 }
@@ -155,7 +164,9 @@ bool SeedDBReader::GetBlock(std::vector<SequenceSeeds>& records, int32_t blockId
         records.emplace_back(std::move(record));
     }
 
-    if (records.empty()) return false;
+    if (records.empty()) {
+        return false;
+    }
 
     return true;
 }
@@ -177,9 +188,10 @@ bool SeedDBReader::JumpTo(const std::string& seqName)
 {
     // Find the sequence.
     const auto it = headerToOrdinalId_.find(seqName);
-    if (it == headerToOrdinalId_.end())
+    if (it == headerToOrdinalId_.end()) {
         throw std::runtime_error(
             "Invalid sequence name, it does not exist in the SeedDB. seqName = " + seqName);
+    }
     const int32_t ordinalId = it->second;
 
     // Access the SeedsLine object.
@@ -197,11 +209,13 @@ void SeedDBReader::AccessLocation_(OpenFileHandler& fileHandler,
                                    const std::string& indexParentFolder, int32_t fileId,
                                    int32_t nextOrdinalId, int64_t offset) const
 {
-    if (fileId < 0 || fileId >= static_cast<int32_t>(fileLines.size()))
+    if (fileId < 0 || fileId >= static_cast<int32_t>(fileLines.size())) {
         throw std::runtime_error("Invalid fileId value (SeedDBReader): " + std::to_string(fileId));
-    if (offset < 0)
+    }
+    if (offset < 0) {
         throw std::runtime_error("Invalid file offset value (SeedDBReader): " +
                                  std::to_string(offset));
+    }
 
     const auto& fl = fileLines[fileId];
 
@@ -213,9 +227,10 @@ void SeedDBReader::AccessLocation_(OpenFileHandler& fileHandler,
     }
     if (offset != fileHandler.pos) {
         const int32_t rv = std::fseek(fileHandler.fp.get(), offset, SEEK_SET);
-        if (rv)
+        if (rv) {
             throw std::runtime_error("Could not fseek to position (SeedDBReader): " +
                                      std::to_string(offset));
+        }
         fileHandler.pos = offset;
     }
     fileHandler.nextOrdinalId = nextOrdinalId;

@@ -155,7 +155,9 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
     std::string line;
     char token;
     while (std::getline(is, line)) {
-        if (line.empty()) continue;
+        if (line.empty()) {
+            continue;
+        }
 
         std::istringstream iss(line);
         iss >> token;
@@ -171,9 +173,10 @@ std::unique_ptr<PacBio::Pancake::SeqDBIndexCache> LoadSeqDBIndexCache(
                 break;
             case 'C':
                 iss >> cache->compressionLevel;
-                if (cache->compressionLevel < 0)
+                if (cache->compressionLevel < 0) {
                     throw std::runtime_error("Unsupported compression level: " +
                                              std::to_string(cache->compressionLevel));
+                }
                 break;
             case 'F':
                 iss >> fl.fileId >> fl.filename >> fl.numSequences >> fl.numBytes >>
@@ -355,7 +358,9 @@ void SeqDBIndexCache::Validate() const
 void ValidateSeqDBIndexCache(const std::shared_ptr<PacBio::Pancake::SeqDBIndexCache>& indexCache)
 {
     // Sanity checks.
-    if (indexCache == nullptr) throw std::runtime_error("Provided seqDBCache == nullptr!");
+    if (indexCache == nullptr) {
+        throw std::runtime_error("Provided seqDBCache == nullptr!");
+    }
     indexCache->Validate();
 }
 

@@ -495,7 +495,9 @@ TEST(SeqDBReader, MalformedBytes)
                 ASSERT_TRUE(false);
             } catch (const std::runtime_error& e) {
             }
-            if (!rv) break;
+            if (!rv) {
+                break;
+            }
         }
     }
 }

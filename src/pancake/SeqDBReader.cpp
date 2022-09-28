@@ -64,7 +64,9 @@ bool SeqDBReader::GetSequence(Pancake::FastaSequenceId& record, const std::strin
 
     // Find the sequence.
     auto it = headerToOrdinalId_.find(seqName);
-    if (it == headerToOrdinalId_.end()) return false;
+    if (it == headerToOrdinalId_.end()) {
+        return false;
+    }
     int32_t ordinalId = it->second;
 
     // Access the SequenceLine object.
@@ -95,9 +97,10 @@ bool SeqDBReader::JumpTo(const std::string& seqName)
 {
     // Find the sequence.
     auto it = headerToOrdinalId_.find(seqName);
-    if (it == headerToOrdinalId_.end())
+    if (it == headerToOrdinalId_.end()) {
         throw std::runtime_error(
             "Invalid sequence name, it does not exist in the SeqDB. seqName = " + seqName);
+    }
     int32_t ordinalId = it->second;
 
     // Access the SequenceLine object.
@@ -117,11 +120,14 @@ bool SeqDBReader::GetNext(Pancake::FastaSequenceId& record)
     record.Name("");
 
     // Sanity check for the sequence ID.
-    if (fileHandler_.nextOrdinalId < 0) throw std::runtime_error("Invalid nextSeqId < 0.");
+    if (fileHandler_.nextOrdinalId < 0) {
+        throw std::runtime_error("Invalid nextSeqId < 0.");
+    }
 
     // Can't go to the next sequence, we loaded all of them.
-    if (fileHandler_.nextOrdinalId >= static_cast<int32_t>(seqDBIndexCache_->seqLines.size()))
+    if (fileHandler_.nextOrdinalId >= static_cast<int32_t>(seqDBIndexCache_->seqLines.size())) {
         return false;
+    }
 
     // Access the SequenceLine object.
     const auto& sl = seqDBIndexCache_->seqLines[fileHandler_.nextOrdinalId];
@@ -139,7 +145,9 @@ bool SeqDBReader::GetNextBatch(std::vector<Pancake::FastaSequenceId>& records, i
     records.clear();
 
     // Sanity check for the sequence ID.
-    if (fileHandler_.nextOrdinalId < 0) throw std::runtime_error("Invalid nextSeqId < 0.");
+    if (fileHandler_.nextOrdinalId < 0) {
+        throw std::runtime_error("Invalid nextSeqId < 0.");
+    }
 
     // Batch size < 0 loads everything as one batch.
     batchSize = (batchSize < 0) ? std::numeric_limits<int64_t>::max() : batchSize;
@@ -161,10 +169,14 @@ bool SeqDBReader::GetNextBatch(std::vector<Pancake::FastaSequenceId>& records, i
         records.emplace_back(record);
         loadedBases += static_cast<int64_t>(record.Bases().size());
 
-        if (loadedBases >= batchSize) break;
+        if (loadedBases >= batchSize) {
+            break;
+        }
     }
 
-    if (records.empty()) return false;
+    if (records.empty()) {
+        return false;
+    }
 
     return true;
 }
@@ -210,7 +222,9 @@ bool SeqDBReader::GetBlock(std::vector<Pancake::FastaSequenceId>& records, int32
         records.emplace_back(record);
     }
 
-    if (records.empty()) return false;
+    if (records.empty()) {
+        return false;
+    }
 
     return true;
 }
@@ -220,10 +234,12 @@ void SeqDBReader::AccessLocation_(OpenFileHandler& fileHandler,
                                   const std::string& indexParentFolder, int32_t fileId,
                                   int32_t nextOrdinalId, int64_t offset) const
 {
-    if (fileId < 0 || fileId >= static_cast<int32_t>(fileLines.size()))
+    if (fileId < 0 || fileId >= static_cast<int32_t>(fileLines.size())) {
         throw std::runtime_error("Invalid fileId value: " + std::to_string(fileId));
-    if (offset < 0)
+    }
+    if (offset < 0) {
         throw std::runtime_error("Invalid file offset value: " + std::to_string(offset));
+    }
 
     const auto& fl = fileLines[fileId];
 
@@ -235,7 +251,9 @@ void SeqDBReader::AccessLocation_(OpenFileHandler& fileHandler,
     }
     if (offset != fileHandler.pos) {
         int32_t rv = std::fseek(fileHandler.fp.get(), offset, SEEK_SET);
-        if (rv) throw std::runtime_error("Could not fseek to position: " + std::to_string(offset));
+        if (rv) {
+            throw std::runtime_error("Could not fseek to position: " + std::to_string(offset));
+        }
         fileHandler.pos = offset;
     }
     fileHandler.nextOrdinalId = nextOrdinalId;
