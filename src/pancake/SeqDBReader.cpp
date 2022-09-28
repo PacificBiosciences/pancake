@@ -229,7 +229,7 @@ void SeqDBReader::AccessLocation_(OpenFileHandler& fileHandler,
 
     if (fileHandler.fileId != fileId) {
         std::string actualPath = JoinPath(indexParentFolder, fl.filename);
-        fileHandler.fp = PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
+        fileHandler.fp = PacBio::Pancake::OpenFile(actualPath, "rb");
         fileHandler.fileId = fileId;
         fileHandler.pos = 0;
     }

@@ -89,8 +89,7 @@ void SeqDBReaderCachedBlock::LoadBlockCompressed_(const std::vector<ContiguousFi
         // Open the file and position to the correct offset.
         const auto& fl = seqDBIndexCache_->GetFileLine(part.fileId);
         const std::string actualPath = JoinPath(seqDBIndexCache_->indexParentFolder, fl.filename);
-        std::unique_ptr<std::FILE, FileDeleter> fp =
-            PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
+        std::unique_ptr<std::FILE, FileDeleter> fp = PacBio::Pancake::OpenFile(actualPath, "rb");
         const int32_t rv = std::fseek(fp.get(), part.startOffset, SEEK_SET);
         if (rv) {
             throw std::runtime_error("Could not fseek to position: " +
@@ -156,8 +155,7 @@ void SeqDBReaderCachedBlock::LoadBlockUncompressed_(const std::vector<Contiguous
         // Open the file and position to the correct offset.
         const auto& fl = seqDBIndexCache_->GetFileLine(part.fileId);
         const std::string actualPath = JoinPath(seqDBIndexCache_->indexParentFolder, fl.filename);
-        std::unique_ptr<std::FILE, FileDeleter> fp =
-            PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
+        std::unique_ptr<std::FILE, FileDeleter> fp = PacBio::Pancake::OpenFile(actualPath, "rb");
         const int32_t rv = std::fseek(fp.get(), part.startOffset, SEEK_SET);
         if (rv) {
             throw std::runtime_error("Could not fseek to position: " +

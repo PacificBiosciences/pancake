@@ -83,8 +83,7 @@ void SeedDBReaderCachedBlock::LoadBlock(const std::vector<int32_t>& blockIds)
         // Open the file and position to the correct offset.
         const auto& fl = indexCache_->GetFileLine(part.fileId);
         const std::string actualPath = JoinPath(indexCache_->indexParentFolder, fl.filename);
-        std::unique_ptr<std::FILE, FileDeleter> fp =
-            PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
+        std::unique_ptr<std::FILE, FileDeleter> fp = PacBio::Pancake::OpenFile(actualPath, "rb");
         const int32_t rv = std::fseek(fp.get(), part.startOffset, SEEK_SET);
         if (rv) {
             throw std::runtime_error("Could not fseek to position: " +

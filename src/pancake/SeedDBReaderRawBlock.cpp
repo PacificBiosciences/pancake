@@ -57,7 +57,7 @@ std::vector<SeedRaw> SeedDBReaderRawBlock::GetBlock(int32_t blockId) const
             const auto& fl = seedDBIndexCache_->fileLines[part.fileId];
             const std::string actualPath =
                 JoinPath(seedDBIndexCache_->indexParentFolder, fl.filename);
-            fh.fp = PacBio::Pancake::OpenFile(actualPath.c_str(), "rb");
+            fh.fp = PacBio::Pancake::OpenFile(actualPath, "rb");
             fh.fileId = part.fileId;
             fh.pos = 0;
         }

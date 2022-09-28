@@ -42,7 +42,7 @@ SeedDBWriter::~SeedDBWriter()
 void SeedDBWriter::OpenNewIndexFile_()
 {
     outIndexFilename_ = filenamePrefix_ + ".seeddb";
-    fpOutIndex_ = PacBio::Pancake::OpenFile(outIndexFilename_.c_str(), "w");
+    fpOutIndex_ = PacBio::Pancake::OpenFile(outIndexFilename_, "w");
 }
 
 void SeedDBWriter::OpenNewSeedsFile_()
@@ -54,8 +54,7 @@ void SeedDBWriter::OpenNewSeedsFile_()
     fileLines_.emplace_back(fileLine);
 
     // Open the new file and return the pointer.
-    fpOutSeeds_ =
-        PacBio::Pancake::OpenFile(JoinPath(parentFolder_, fileLine.filename).c_str(), "wb");
+    fpOutSeeds_ = PacBio::Pancake::OpenFile(JoinPath(parentFolder_, fileLine.filename), "wb");
 }
 
 void SeedDBWriter::WriteSeeds(const std::string& seqName, int32_t seqId, int32_t seqLen,

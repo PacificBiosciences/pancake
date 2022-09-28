@@ -101,7 +101,7 @@ int DBFilterWorkflow::Runner(const PacBio::CLI_v2::Results& options)
     } else {
         NormalizeSeqDBIndexCache(*filteredSeqDBCache, settings.BlockSize);
         std::unique_ptr<std::FILE, FileDeleter> fpOutSeqDBCache =
-            PacBio::Pancake::OpenFile(outSeqDBFile.c_str(), "w");
+            PacBio::Pancake::OpenFile(outSeqDBFile, "w");
         WriteSeqDBIndexCache(fpOutSeqDBCache.get(), *filteredSeqDBCache);
     }
 

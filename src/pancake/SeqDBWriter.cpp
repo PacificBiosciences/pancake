@@ -154,7 +154,7 @@ void SeqDBWriter::AddSequence(const std::string& header, const std::string& seq)
 void SeqDBWriter::OpenNewIndexFile_()
 {
     outIndexFilename_ = filenamePrefix_ + ".seqdb";
-    fpOutIndex_ = PacBio::Pancake::OpenFile(outIndexFilename_.c_str(), "w");
+    fpOutIndex_ = PacBio::Pancake::OpenFile(outIndexFilename_, "w");
 }
 
 void SeqDBWriter::OpenNewSequenceFile_()
@@ -167,8 +167,7 @@ void SeqDBWriter::OpenNewSequenceFile_()
     cache_.fileLines.emplace_back(fileLine);
 
     // Open the new file and return the pointer.
-    fpOutSeqs_ =
-        PacBio::Pancake::OpenFile(JoinPath(parentFolder_, fileLine.filename).c_str(), "wb");
+    fpOutSeqs_ = PacBio::Pancake::OpenFile(JoinPath(parentFolder_, fileLine.filename), "wb");
 }
 
 void SeqDBWriter::FlushSequenceBuffer()
