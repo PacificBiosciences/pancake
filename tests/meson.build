@@ -53,20 +53,20 @@ if opt_sse41
     ])
 endif
 
-pancake_test_cram_sources = files([
-  'cram/test_bugfixes.t',
-  'cram/test_hifi_ovl.t',
-  'cram/test_hifi_ovl_mapping.t',
-  'cram/test_hifi_ovl_multiple_hits_per_target.t',
-  'cram/test_map_clr.t',
-  'cram/test_robustness.t',
-  'cram/test_seqdb_dump.t',
-  'cram/test_seqdb_info.t',
-  'cram/test_seqdb_filter.t',
-  'cram/test_seqdb_writer.t',
-  'cram/test_seeddb_writer.t',
-  'cram/test_seqfetch.t',
-])
+pancake_cram_tests = [
+  'bugfixes',
+  'hifi_ovl',
+  'hifi_ovl_mapping',
+  'hifi_ovl_multiple_hits_per_target',
+  'map_clr',
+  'robustness',
+  'seqdb_dump',
+  'seqdb_info',
+  'seqdb_filter',
+  'seqdb_writer',
+  'seeddb_writer',
+  'seqfetch',
+]
 
 # find GoogleTest
 pancake_gtest_dep = dependency('gtest_main', fallback : ['gtest', 'gtest_main_dep'])
@@ -113,16 +113,18 @@ test(
     'VERBOSE=1'],
   timeout: 120)
 
-test(
-  'pancake cram test',
-  pancake_cram_script,
-  args : [
-    '--xunit-file=' + join_paths(meson.project_build_root(), 'pancake-cram-ccs.xml'),
-    '--keep-tmpdir',
-    '--verbose'] +
-    pancake_test_cram_sources,
-  env : [
-    'BIN_DIR=' + join_paths(meson.project_build_root(), 'src'),
-    'PROJECT_DIR=' + join_paths([meson.current_source_dir(), '..']),
-    'TEST_DATA_DIR=' + join_paths([meson.current_source_dir(), 'data'])],
-  timeout : 36000) # with '-O0 -g' tests can be *very* slow
+foreach t : pancake_cram_tests
+  test(
+    'pancake cram test - ' + t,
+    pancake_cram_script,
+    args : [
+      '--xunit-file=' + join_paths(meson.project_build_root(), 'pancake-cram-' + t.underscorify() + '-test.xml'),
+      '--keep-tmpdir',
+      '--verbose'] + files('cram/' + t + '.t'),
+    env : {
+      'BIN_DIR' : join_paths(meson.project_build_root(), 'src'),
+      'PROJECT_DIR' : join_paths([meson.current_source_dir(), '..']),
+      'TEST_DATA_DIR' : join_paths([meson.current_source_dir(), 'data']),
+    },
+    timeout : 36000) # with '-O0 -g' tests can be *very* slow
+endforeach
