@@ -34,6 +34,7 @@ if not meson.is_subproject()
       'pancake/MapperBatchCPU.hpp',
       'pancake/MapperBatchUtility.hpp',
       'pancake/MapperCLR.hpp',
+      'pancake/MapperCLRSettings.hpp',
       'pancake/MapperHiFi.hpp',
       'pancake/MapperUtility.hpp',
       'pancake/Minimizers.hpp',

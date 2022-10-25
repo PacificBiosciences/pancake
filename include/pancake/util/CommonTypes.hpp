@@ -3,6 +3,7 @@
 #ifndef PANCAKE_UTIL_COMMON_TYPES_HPP
 #define PANCAKE_UTIL_COMMON_TYPES_HPP
 
+#include <pancake/third-party/intervaltree/IntervalTree.h>
 #include <pancake/third-party/flat_hash_map/flat_hash_map.hpp>
 
 #include <cstdint>
@@ -33,6 +34,12 @@ enum class FilterListType
     None,
     Unknown
 };
+
+using IntervalTreeInt32 =
+    interval_tree::IntervalTree<int32_t,
+                                int32_t>;  // First: interval scalar type, Second: value type.
+using IntervalVectorInt32 = IntervalTreeInt32::interval_vector;
+using IntervalInt32 = IntervalTreeInt32::interval;
 
 }  // namespace Pancake
 }  // namespace PacBio
