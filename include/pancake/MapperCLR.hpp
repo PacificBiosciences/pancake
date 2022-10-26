@@ -33,6 +33,8 @@ namespace Pancake {
 class MapperCLR : public MapperBase
 {
 public:
+    using MapperBase::MapAndAlign;
+
     MapperCLR(const MapperCLRSettings& settings);
     ~MapperCLR() override;
 
@@ -41,26 +43,6 @@ public:
      * object was already constructed.
     */
     void UpdateSettings(const MapperCLRSettings& settings);
-
-    /*
-     * \brief Runs mapping and alignment of one or more query sequences to one or more target sequences.
-     * This is the basic interface for the most simple usage.
-     * This interface does not require the SeedIndex or minimizers, because it will compute them internally.
-     * The std::string objects are first converted to FastaSequenceCached, and then the MapAndAlign overload
-     * is called on these inputs.
-    */
-    std::vector<MapperBaseResult> MapAndAlign(const std::vector<std::string>& targetSeqs,
-                                              const std::vector<std::string>& querySeqs) override;
-
-    /*
-     * \brief Runs mapping and alignment of one or more query sequences to one or more target sequences.
-     * This interface does not require the SeedIndex or minimizers, because it will compute them internally.
-     * This function constructs the FastaSequenceCachedStore from the given FastaSequenceCached objects,
-     * and calls the related overload of MapAndAlign with these inputs.
-    */
-    std::vector<MapperBaseResult> MapAndAlign(
-        const std::vector<FastaSequenceCached>& targetSeqs,
-        const std::vector<FastaSequenceCached>& querySeqs) override;
 
     /*
      * \brief Runs mapping and alignment of one or more query sequences to one or more target sequences.

@@ -69,6 +69,7 @@ pancake_cpp_sources = files([
     'pancake/CompressedSequence.cpp',
     'pancake/DPChain.cpp',
     'pancake/FastaSequenceId.cpp',
+    'pancake/MapperBase.cpp',
     'pancake/MapperBatchBase.cpp',
     'pancake/MapperBatchCPU.cpp',
     'pancake/MapperBatchUtility.cpp',
