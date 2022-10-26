@@ -3,6 +3,7 @@
 #include <pancake/MapperBatchUtility.hpp>
 
 #include <pancake/AlignmentTools.hpp>
+#include <pancake/MapperUtility.hpp>
 #include <pancake/OverlapWriterBase.hpp>
 
 #include <pbcopper/logging/Logging.h>

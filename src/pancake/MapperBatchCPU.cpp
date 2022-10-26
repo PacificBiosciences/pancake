@@ -5,6 +5,7 @@
 #include <pancake/AlignerBase.hpp>
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/MapperBatchUtility.hpp>
+#include <pancake/MapperUtility.hpp>
 #include <pancake/OverlapWriterFactory.hpp>
 #include <pancake/util/TicToc.hpp>
 

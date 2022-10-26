@@ -3,8 +3,10 @@
 #include <PancakeTestData.h>
 #include "TestHelperUtils.hpp"
 
-#include <gtest/gtest.h>
+#include <pancake/MapperUtility.hpp>
 #include <pancake/OverlapWriterBase.hpp>
+
+#include <gtest/gtest.h>
 
 #include <iostream>
 #include <memory>
@@ -250,7 +252,7 @@ TEST(MapperCLR, CheckMappingAndSeedHits)
             //     "000000000 000000000 -183 73.89 0 29527 29753 43446 0 11747 11966 46238 *"
             // },
             /////
-            ///// This is what the seed hits and mappings look like after the LongMergeChains_ strictly
+            ///// This is what the seed hits and mappings look like after the LongMergeChains strictly
             ///// disallowed the overlap, even at the same position.
             // Expected seed hits.
             {

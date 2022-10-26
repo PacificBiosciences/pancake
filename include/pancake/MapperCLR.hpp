@@ -180,14 +180,6 @@ private:
                                    AlignerBasePtr& alignerExt);
 
     /*
-     * \brief Filters symmetric and self seed hits, based on sequence IDs.
-     * Be careful when using this function in case when the query and target DBs are not the same.
-    */
-    static std::vector<SeedHit> FilterSymmetricAndSelfHits_(const std::vector<SeedHit>& hits,
-                                                            int32_t queryId, bool skipSelfHits,
-                                                            bool skipSymmetricOverlaps);
-
-    /*
      * \brief Performs LIS and DP chaining, then constructs the overlaps from those resulting chains.
     */
     static std::vector<std::unique_ptr<ChainedRegion>> ChainAndMakeOverlap_(
@@ -210,43 +202,7 @@ private:
         int32_t chainBandwidth, int32_t minNumSeeds, int32_t minCoveredBases, int32_t minDPScore,
         std::shared_ptr<ChainingScratchSpace> ssChain,
         std::unordered_map<std::string, double>& retTimings);
-
-    /*
-     * \brief Merges the neighboring chains if they are not overlaping in neither the query nor
-     * target coordinates.
-     * The right of the two merged chained regions is set to nullptr.
-    */
-    static void LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& chainedRegions,
-                                 int32_t maxBandwidth);
-
-    static std::vector<AlignmentRegion> CollectAlignmentRegions_(const ChainedRegion& singleMapping,
-                                                                 int32_t minAlignmentSpan,
-                                                                 int32_t maxFlankExtensionDist,
-                                                                 double flankExtensionFactor);
-
-    /*
-     * \brif A helper function which creates a mocked self-mapping based on the query and target
-     * IDs and lengths. The result is an unaligned mapping which spans full length of the
-     * query and target.
-     * Throws if the query and target lengths are different.
-     * This function also does not initialize the Atype and Btype labels (it sets them to Unknown).
-    */
-    static std::unique_ptr<ChainedRegion> CreateMockedMapping_(int32_t queryId, int32_t queryLen,
-                                                               int32_t targetId, int32_t targetLen);
 };
-
-/*
-    * \brief Wraps the labelling of secondary and supplementary chained regions.
-*/
-void WrapFlagSecondaryAndSupplementary(
-    std::vector<std::unique_ptr<ChainedRegion>>& allChainedRegions,
-    double secondaryAllowedOverlapFractionQuery, double secondaryAllowedOverlapFractionTarget,
-    double secondaryMinScoreFraction);
-
-int32_t CondenseMappings(std::vector<std::unique_ptr<ChainedRegion>>& mappings,
-                         int32_t bestNSecondary);
-
-OverlapPtr CreateMockedAlignment(const OverlapPtr& ovl, int32_t matchScore);
 
 }  // namespace Pancake
 }  // namespace PacBio

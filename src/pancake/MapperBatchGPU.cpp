@@ -15,6 +15,7 @@
 #include <pancake/AlignmentSeeded.hpp>
 #include <pancake/AlignmentTools.hpp>
 #include <pancake/MapperBatchGPUUtility.hpp>
+#include <pancake/MapperUtility.hpp>
 #include <pancake/OverlapWriterFactory.hpp>
 #include <pancake/util/TicToc.hpp>
 
