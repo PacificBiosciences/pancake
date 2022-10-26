@@ -6,7 +6,7 @@
 namespace PacBio {
 namespace Pancake {
 
-constexpr std::string_view RELEASE_VERSION("@PANCAKE_VERSION@");
+constexpr std::string_view RELEASE_VERSION{"@PANCAKE_VERSION@"};
 
 }  // namespace Pancake
 }  // namespace PacBio
