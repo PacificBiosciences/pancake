@@ -2,7 +2,7 @@
 
 #include "MapCLRSettings.hpp"
 
-#include <pancake/Version.hpp>
+#include <pancake/LibraryInfo.hpp>
 
 namespace PacBio {
 namespace Pancake {

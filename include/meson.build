@@ -27,6 +27,7 @@ if not meson.is_subproject()
       'pancake/FastaSequenceCached.hpp',
       'pancake/FastaSequenceCachedStore.hpp',
       'pancake/FastaSequenceId.hpp',
+      'pancake/LibraryInfo.hpp',
       'pancake/Lookups.hpp',
       'pancake/MapperBase.hpp',
       'pancake/MapperBatchBase.hpp',

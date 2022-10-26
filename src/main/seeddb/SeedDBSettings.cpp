@@ -2,7 +2,7 @@
 
 #include "SeedDBSettings.hpp"
 
-#include <pancake/Version.hpp>
+#include <pancake/LibraryInfo.hpp>
 
 #include <limits>
 

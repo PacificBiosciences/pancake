@@ -22,20 +22,23 @@ pancake_config.set('PANCAKE_VERSION_PATCH', pancake_patch_version)
 
 pancake_version_sources = [
   vcs_tag(
-    input : 'PancakeGitHash.cpp.in',
-    output : 'PancakeGitHash.cpp',
+    input : 'LibraryGitHash.hpp.in',
+    output : 'LibraryGitHash.hpp',
     command : ['git', 'describe', '--always', '--dirty=*'],
     replace_string : '@PANCAKE_GIT_SHA1@'),
   configure_file(
-    input : 'PancakeVersion.cpp.in',
-    output : 'PancakeVersion.cpp',
-    configuration : pancake_config)]
+    input : 'LibraryVersion.hpp.in',
+    output : 'LibraryVersion.hpp',
+    configuration : pancake_config),
+
+]
 
 ###########
 # library #
 ###########
 
 pancake_cpp_sources = files([
+    'LibraryInfo.cpp',
     'main/dbfilter/DBFilterSettings.cpp',
     'main/dbfilter/DBFilterWorkflow.cpp',
     'main/mapclr/MapCLRWorkflow.cpp',

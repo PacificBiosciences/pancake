@@ -2,8 +2,8 @@
 
 #include <pancake/OverlapHifiSettings.hpp>
 
+#include <pancake/LibraryInfo.hpp>
 #include <pancake/OverlapWriterFormat.hpp>
-#include <pancake/Version.hpp>
 
 namespace PacBio {
 namespace Pancake {

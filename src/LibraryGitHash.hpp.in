@@ -1,0 +1,14 @@
+#ifndef PANCAKE_LIBRARYGITHASH_HPP
+#define PANCAKE_LIBRARYGITHASH_HPP
+
+#include <string_view>
+
+namespace PacBio {
+namespace Pancake {
+
+constexpr std::string_view LIBRARY_GIT_SHA1("@PANCAKE_GIT_SHA1@");
+
+}  // namespace Pancake
+}  // namespace PacBio
+
+#endif  // PANCAKE_LIBRARYGITHASH_HPP

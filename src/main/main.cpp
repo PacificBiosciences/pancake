@@ -1,7 +1,7 @@
 // Author: Ivan Sovic
 
+#include <pancake/LibraryInfo.hpp>
 #include <pancake/OverlapHifiSettings.hpp>
-#include <pancake/Version.hpp>
 #include "dbfilter/DBFilterSettings.hpp"
 #include "dbfilter/DBFilterWorkflow.hpp"
 #include "mapclr/MapCLRSettings.hpp"
