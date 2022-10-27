@@ -69,8 +69,22 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlign(
     const std::vector<MapperBatchChunk>& batchData)
 {
     assert(aligner_);
-    return MapAndAlignImpl_(batchData, alignSettings_, maxAllowedGapForGpu_, alignRemainingOnCpu_,
-                            gpuStartBandwidth_, gpuMaxBandwidth_, *aligner_, faf_);
+
+    try {
+        return MapAndAlignImpl_(batchData, alignSettings_, maxAllowedGapForGpu_,
+                                alignRemainingOnCpu_, gpuStartBandwidth_, gpuMaxBandwidth_,
+                                *aligner_, faf_);
+    } catch (const std::exception& e) {
+        // Log, but do not fail. Important for clients of this class.
+        // Return a vector of the size of the input, but with empty results for each query.
+        PBLOG_DEBUG << "MapperBatchGPUEdelweiss generated an exception in "
+                    << std::string(__FUNCTION__) << ". Message: " << e.what();
+        std::vector<std::vector<MapperBaseResult>> results(batchData.size());
+        for (size_t i = 0; i < batchData.size(); ++i) {
+            results[i].resize(batchData[i].querySeqs.Size());
+        }
+        return results;
+    }
 }
 
 std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignImpl_(

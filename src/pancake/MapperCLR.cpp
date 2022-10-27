@@ -75,35 +75,60 @@ void MapperCLR::UpdateSettings(const MapperCLRSettings& settings)
 std::vector<MapperBaseResult> MapperCLR::MapAndAlign(const std::vector<std::string>& targetSeqs,
                                                      const std::vector<std::string>& querySeqs)
 {
-    std::vector<FastaSequenceCached> targetSeqsCached;
-    for (int32_t i = 0; i < static_cast<int32_t>(targetSeqs.size()); ++i) {
-        targetSeqsCached.emplace_back(
-            FastaSequenceCached(std::to_string(i), targetSeqs[i].c_str(), targetSeqs[i].size(), i));
-    }
+    try {
+        std::vector<FastaSequenceCached> targetSeqsCached;
+        for (int32_t i = 0; i < static_cast<int32_t>(targetSeqs.size()); ++i) {
+            targetSeqsCached.emplace_back(FastaSequenceCached(
+                std::to_string(i), targetSeqs[i].c_str(), targetSeqs[i].size(), i));
+        }
 
-    std::vector<FastaSequenceCached> querySeqsCached;
-    for (int32_t i = 0; i < static_cast<int32_t>(querySeqs.size()); ++i) {
-        querySeqsCached.emplace_back(
-            FastaSequenceCached(std::to_string(i), querySeqs[i].c_str(), querySeqs[i].size(), i));
-    }
+        std::vector<FastaSequenceCached> querySeqsCached;
+        for (int32_t i = 0; i < static_cast<int32_t>(querySeqs.size()); ++i) {
+            querySeqsCached.emplace_back(FastaSequenceCached(
+                std::to_string(i), querySeqs[i].c_str(), querySeqs[i].size(), i));
+        }
 
-    return MapAndAlign(targetSeqsCached, querySeqsCached);
+        return MapAndAlign(targetSeqsCached, querySeqsCached);
+    } catch (const std::exception& e) {
+        // Log, but do not fail. Important for clients of this class.
+        // Return a vector of the size of the input, but with empty results for each query.
+        PBLOG_DEBUG << "MapperCLR generated an exception in " << std::string(__FUNCTION__)
+                    << ". Message: " << e.what();
+        return std::vector<MapperBaseResult>(querySeqs.size());
+    }
 }
 
 std::vector<MapperBaseResult> MapperCLR::MapAndAlign(
     const std::vector<FastaSequenceCached>& targetSeqs,
     const std::vector<FastaSequenceCached>& querySeqs)
 {
-    PacBio::Pancake::FastaSequenceCachedStore targetSeqsStore(targetSeqs);
-    PacBio::Pancake::FastaSequenceCachedStore querySeqsStore(querySeqs);
-    return MapAndAlign(targetSeqsStore, querySeqsStore);
+    try {
+        PacBio::Pancake::FastaSequenceCachedStore targetSeqsStore(targetSeqs);
+        PacBio::Pancake::FastaSequenceCachedStore querySeqsStore(querySeqs);
+
+        return MapAndAlign(targetSeqsStore, querySeqsStore);
+    } catch (const std::exception& e) {
+        // Log, but do not fail. Important for clients of this class.
+        // Return a vector of the size of the input, but with empty results for each query.
+        PBLOG_DEBUG << "MapperCLR generated an exception in " << std::string(__FUNCTION__)
+                    << ". Message: " << e.what();
+        return std::vector<MapperBaseResult>(querySeqs.size());
+    }
 }
 
 std::vector<MapperBaseResult> MapperCLR::MapAndAlign(const FastaSequenceCachedStore& targetSeqs,
                                                      const FastaSequenceCachedStore& querySeqs)
 {
-    return WrapBuildIndexMapAndAlignWithFallback_(targetSeqs, querySeqs, settings_, ssChain_,
-                                                  ssSeedHits_, alignerGlobal_, alignerExt_);
+    try {
+        return WrapBuildIndexMapAndAlignWithFallback_(targetSeqs, querySeqs, settings_, ssChain_,
+                                                      ssSeedHits_, alignerGlobal_, alignerExt_);
+    } catch (const std::exception& e) {
+        // Log, but do not fail. Important for clients of this class.
+        // Return a vector of the size of the input, but with empty results for each query.
+        PBLOG_DEBUG << "MapperCLR generated an exception in " << std::string(__FUNCTION__)
+                    << ". Message: " << e.what();
+        return std::vector<MapperBaseResult>(querySeqs.Size());
+    }
 }
 
 MapperBaseResult MapperCLR::MapAndAlignSingleQuery(const FastaSequenceCachedStore& targetSeqs,
@@ -112,8 +137,16 @@ MapperBaseResult MapperCLR::MapAndAlignSingleQuery(const FastaSequenceCachedStor
                                                    const SequenceSeedsCached& querySeeds,
                                                    const int32_t queryId, int64_t freqCutoff)
 {
-    return WrapMapAndAlign_(targetSeqs, index, querySeq, querySeeds, queryId, freqCutoff, settings_,
-                            ssChain_, ssSeedHits_, alignerGlobal_, alignerExt_);
+    try {
+        return WrapMapAndAlign_(targetSeqs, index, querySeq, querySeeds, queryId, freqCutoff,
+                                settings_, ssChain_, ssSeedHits_, alignerGlobal_, alignerExt_);
+    } catch (const std::exception& e) {
+        // Log, but do not fail. Important for clients of this class.
+        // Return a vector of the size of the input, but with empty results for each query.
+        PBLOG_DEBUG << "MapperCLR generated an exception in " << std::string(__FUNCTION__)
+                    << ". Message: " << e.what();
+        return {};
+    }
 }
 
 MapperBaseResult MapperCLR::Map(const FastaSequenceCachedStore& targetSeqs,
@@ -122,15 +155,31 @@ MapperBaseResult MapperCLR::Map(const FastaSequenceCachedStore& targetSeqs,
                                 const SequenceSeedsCached& querySeeds, const int32_t queryLen,
                                 const int32_t queryId, int64_t freqCutoff)
 {
-    return Map_(targetSeqs, index, querySeq, querySeeds, queryLen, queryId, settings_, freqCutoff,
-                ssChain_, ssSeedHits_);
+    try {
+        return Map_(targetSeqs, index, querySeq, querySeeds, queryLen, queryId, settings_,
+                    freqCutoff, ssChain_, ssSeedHits_);
+    } catch (const std::exception& e) {
+        // Log, but do not fail. Important for clients of this class.
+        // Return a vector of the size of the input, but with empty results for each query.
+        PBLOG_DEBUG << "MapperCLR generated an exception in " << std::string(__FUNCTION__)
+                    << ". Message: " << e.what();
+        return {};
+    }
 }
 
 MapperBaseResult MapperCLR::Align(const FastaSequenceCachedStore& targetSeqs,
                                   const FastaSequenceCached& querySeq,
                                   const MapperBaseResult& mappingResult)
 {
-    return Align_(targetSeqs, querySeq, mappingResult, settings_, alignerGlobal_, alignerExt_);
+    try {
+        return Align_(targetSeqs, querySeq, mappingResult, settings_, alignerGlobal_, alignerExt_);
+    } catch (const std::exception& e) {
+        // Log, but do not fail. Important for clients of this class.
+        // Return a vector of the size of the input, but with empty results for each query.
+        PBLOG_DEBUG << "MapperCLR generated an exception in " << std::string(__FUNCTION__)
+                    << ". Message: " << e.what();
+        return {};
+    }
 }
 
 void DebugWriteSeedHits([[maybe_unused]] const std::vector<SeedHit>& hits,
