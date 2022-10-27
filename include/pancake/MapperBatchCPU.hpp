@@ -36,12 +36,9 @@ private:
     Parallel::FireAndForget* faf_;
     std::unique_ptr<Parallel::FireAndForget> fafFallback_;
 
-    static std::vector<std::vector<MapperBaseResult>> MapAndAlignImpl_(
+    std::vector<std::vector<MapperBaseResult>> MapAndAlignImpl_(
         const std::vector<MapperBatchChunk>& batchChunks,
-        const MapperCLRAlignSettings& alignSettings, Parallel::FireAndForget* faf);
-
-    static void WorkerMapper_(const std::vector<MapperBatchChunk>& batchChunks, int32_t startId,
-                              int32_t endId, std::vector<std::vector<MapperBaseResult>>& results);
+        const MapperCLRAlignSettings& alignSettings, Parallel::FireAndForget* faf) const;
 };
 
 void UpdateSecondaryAndFilter(std::vector<std::vector<MapperBaseResult>>& mappingResults,

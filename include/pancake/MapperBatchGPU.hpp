@@ -47,14 +47,11 @@ private:
     std::unique_ptr<Parallel::FireAndForget> fafFallback_;
     std::unique_ptr<AlignerBatchGPU> aligner_;
 
-    static std::vector<std::vector<MapperBaseResult>> MapAndAlignImpl_(
+    std::vector<std::vector<MapperBaseResult>> MapAndAlignImpl_(
         const std::vector<MapperBatchChunk>& batchChunks,
         const MapperCLRAlignSettings& alignSettings, int32_t maxAllowedGapForGpu,
         bool alignRemainingOnCpu, int32_t gpuStartBandwidth, int32_t gpuMaxBandwidth,
-        AlignerBatchGPU& aligner, Parallel::FireAndForget* faf);
-
-    static void WorkerMapper_(const std::vector<MapperBatchChunk>& batchChunks, int32_t startId,
-                              int32_t endId, std::vector<std::vector<MapperBaseResult>>& results);
+        AlignerBatchGPU& aligner, Parallel::FireAndForget* faf) const;
 };
 
 }  // namespace Pancake

@@ -77,7 +77,7 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
     const std::vector<MapperBatchChunk>& batchChunks, const MapperCLRAlignSettings& alignSettings,
     const int32_t maxAllowedGapForGpu, const bool alignRemainingOnCpu,
     const int32_t gpuStartBandwidth, const int32_t gpuMaxBandwidth,
-    AlignerBatchGPUEdelweiss& aligner, Parallel::FireAndForget* faf)
+    AlignerBatchGPUEdelweiss& aligner, Parallel::FireAndForget* faf) const
 {
     const int32_t numThreads = faf ? faf->NumThreads() : 1;
     // Determine how many records should land in each thread, spread roughly evenly.
@@ -88,10 +88,10 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
     // Run the mapping in parallel.
     std::vector<std::vector<MapperBaseResult>> results(batchChunks.size());
 
-    const auto Submit = [&batchChunks, &jobsPerThread, &results](int32_t idx) {
+    const auto Submit = [&batchChunks, &jobsPerThread, &results, this](int32_t idx) {
         const int32_t jobStart = jobsPerThread[idx].first;
         const int32_t jobEnd = jobsPerThread[idx].second;
-        WorkerMapper_(batchChunks, jobStart, jobEnd, results);
+        this->WorkerMapper_(batchChunks, jobStart, jobEnd, results);
     };
     Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
 
@@ -196,25 +196,6 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchGPUEdelweiss::MapAndAlignI
     }
 
     return results;
-}
-
-void MapperBatchGPUEdelweiss::WorkerMapper_(const std::vector<MapperBatchChunk>& batchChunks,
-                                            int32_t startId, int32_t endId,
-                                            std::vector<std::vector<MapperBaseResult>>& results)
-{
-    for (int32_t i = startId; i < endId; ++i) {
-        const auto& chunk = batchChunks[i];
-
-        // Create a copy of the settings so that we can turn off the alignment.
-        MapperCLRSettings settingsCopy;
-        settingsCopy.map = chunk.mapSettings;
-        settingsCopy.align.align = false;
-
-        // Create the mapper.
-        MapperCLR mapper(settingsCopy);
-
-        results[i] = mapper.MapAndAlign(chunk.targetSeqs, chunk.querySeqs);
-    }
 }
 
 }  // namespace Pancake
