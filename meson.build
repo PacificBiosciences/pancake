@@ -1,7 +1,7 @@
 project(
   'pancake',
   ['cpp', 'c'],
-  version : '1.9.0',
+  version : '1.9.99',
   default_options : [
     'buildtype=release',
     'warning_level=3',
