@@ -23,6 +23,7 @@
 #include <pancake/third-party/pdqsort/pdqsort.h>
 #include <pbcopper/logging/Logging.h>
 #include <pbcopper/third-party/edlib.h>
+#include <pbcopper/utility/Ssize.h>
 
 #include <algorithm>
 #include <array>
@@ -77,13 +78,15 @@ std::vector<MapperBaseResult> MapperCLR::MapAndAlign(const std::vector<std::stri
 {
     try {
         std::vector<FastaSequenceCached> targetSeqsCached;
-        for (int32_t i = 0; i < static_cast<int32_t>(targetSeqs.size()); ++i) {
+        targetSeqsCached.reserve(targetSeqs.size());
+        for (int32_t i = 0; i < Utility::Ssize(targetSeqs); ++i) {
             targetSeqsCached.emplace_back(FastaSequenceCached(
                 std::to_string(i), targetSeqs[i].c_str(), targetSeqs[i].size(), i));
         }
 
         std::vector<FastaSequenceCached> querySeqsCached;
-        for (int32_t i = 0; i < static_cast<int32_t>(querySeqs.size()); ++i) {
+        querySeqsCached.reserve(querySeqs.size());
+        for (int32_t i = 0; i < Utility::Ssize(querySeqs); ++i) {
             querySeqsCached.emplace_back(FastaSequenceCached(
                 std::to_string(i), querySeqs[i].c_str(), querySeqs[i].size(), i));
         }
@@ -292,7 +295,7 @@ std::vector<MapperBaseResult> MapperCLR::WrapBuildIndexMapAndAlignWithFallback_(
 
     // Run mapping for each query.
     std::vector<MapperBaseResult> results;
-    for (int32_t i = 0; i < static_cast<int32_t>(querySeqs.records().size()); ++i) {
+    for (int32_t i = 0; i < Utility::Ssize(querySeqs.records()); ++i) {
         const auto& query = querySeqs.records()[i];
         int32_t queryId = query.Id();
 
@@ -1398,7 +1401,7 @@ void MapperCLR::LongMergeChains_(std::vector<std::unique_ptr<ChainedRegion>>& ch
     std::unordered_set<int32_t> doSort;
 
     int32_t lastId = candidates.at(0);
-    for (int32_t i = 1; i < static_cast<int32_t>(candidates.size()); ++i) {
+    for (int32_t i = 1; i < Utility::Ssize(candidates); ++i) {
         const int32_t currId = candidates[i];
         auto& last = chainedRegions[lastId];
         const auto& curr = chainedRegions[currId];
