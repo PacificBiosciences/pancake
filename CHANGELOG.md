@@ -3,6 +3,21 @@
 ## Active version in development
 ### Changes
 
+### v1.9.0
+- Refactoring and making all batch mappers use the identical implementation of WorkerMapper_.
+- All Pancake CLR public mapping interfaces now catch exceptions, log them, and return empty if an exception happened.
+
+### v1.8.0
+- Refactoring.
+- Edelweiss integration.
+- CLI tool `map-clr`.
+- Numerical precision bugfix.
+- `seqdb` subtool now converts all sequences to uppercase by default. There is a CLI parameter to control it.
+- Control of seed hit refinement.
+- Feature: reseeding of long alignment regions.
+- C++ style fixups.
+- LibraryInfo feature to get version and SHA.
+
 ### v1.7.0
 - Reorganized code and files, no functional changes. Version bump because it will break compatibility of library client code.
 
