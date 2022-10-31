@@ -3,8 +3,14 @@
 #ifndef PANCAKE_ALIGNMENT_REGION_HPP
 #define PANCAKE_ALIGNMENT_REGION_HPP
 
+#include <pbcopper/logging/Logging.h>
+#include <boost/assign.hpp>
+#include <boost/bimap.hpp>
+
 #include <cstdint>
 #include <ostream>
+#include <string>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -18,17 +24,13 @@ enum class RegionType
     GLOBAL,
 };
 
-inline std::string RegionTypeToString(const RegionType type)
-{
-    if (type == RegionType::FRONT) {
-        return "FRONT";
-    } else if (type == RegionType::BACK) {
-        return "BACK";
-    } else if (type == RegionType::GLOBAL) {
-        return "GLOBAL";
-    }
-    return "UNKNOWN";
-}
+// clang-format off
+static const boost::bimap<std::string_view, RegionType> RegionTypeToStringBimap =
+    boost::assign::list_of<boost::bimap<std::string_view, RegionType>::relation>
+        ("FRONT", Pancake::RegionType::FRONT)
+        ("BACK", Pancake::RegionType::BACK)
+        ("GLOBAL", Pancake::RegionType::GLOBAL);
+// clang-format off
 
 class AlignmentRegion
 {
@@ -49,6 +51,27 @@ public:
                         b.maxGap);
     }
 };
+
+inline std::string RegionTypeToString(const RegionType type)
+{
+    const auto it = RegionTypeToStringBimap.right.find(type);
+    if (it != RegionTypeToStringBimap.right.end()) {
+        return std::string(it->second);
+    }
+    PBLOG_DEBUG << "Unknown RegionType given to the RegionTypeToString function.";
+    return "UNKNOWN";
+}
+
+inline RegionType RegionTypeFromString(const std::string_view type)
+{
+    const auto it = RegionTypeToStringBimap.left.find(type);
+    if (it != RegionTypeToStringBimap.left.end()) {
+        return it->second;
+    }
+    throw std::runtime_error("Unknown RegionType: '" + std::string(type) +
+                             "' in RegionTypeFromString.");
+}
+
 inline std::ostream& operator<<(std::ostream& os, const AlignmentRegion& b)
 {
     os << "qStart = " << b.qStart << ", qSpan = " << b.qSpan << ", tStart = " << b.tStart

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <pancake/AlignmentSeeded.hpp>
+#include <pancake/MapperUtility.hpp>
 #include <pancake/Overlap.hpp>
 #include <pancake/OverlapWriterBase.hpp>
 

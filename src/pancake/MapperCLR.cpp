@@ -701,7 +701,7 @@ MapperBaseResult MapperCLR::HitsToMappings_(
             continue;
         }
         result.mappings[i]->regionsForAln =
-            CollectAlignmentRegions(*result.mappings[i], settings.minAlignmentSpan,
+            ExtractAlignmentRegions(*result.mappings[i], settings.minAlignmentSpan,
                                     settings.maxFlankExtensionDist, settings.flankExtensionFactor);
     }
 
