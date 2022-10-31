@@ -71,17 +71,17 @@ std::vector<std::vector<MapperBaseResult>> MapperBatchCPU::MapAndAlignImpl_(
 
     // Run the mapping in parallel.
     std::vector<std::vector<MapperBaseResult>> results(batchChunks.size());
-    const auto Submit = [&jobsPerThread, &batchChunks, &results, this](int32_t i) {
+    const auto submit = [&jobsPerThread, &batchChunks, &results, this](int32_t i) {
         const int32_t jobStart = jobsPerThread[i].first;
         const int32_t jobEnd = jobsPerThread[i].second;
         this->WorkerMapper_(batchChunks, jobStart, jobEnd, results);
     };
 
-    Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
+    Parallel::Dispatch(faf, jobsPerThread.size(), submit);
 
     if (alignSettings.align) {
         // Compute the reverse complements for alignment.
-        std::vector<std::vector<FastaSequenceId>> querySeqsRev =
+        const std::vector<std::vector<FastaSequenceId>> querySeqsRev =
             ComputeQueryReverseComplements(batchChunks, results, true, faf);
         // Convert the reverse sequences to FastaSequenceCachedStore.
         std::vector<FastaSequenceCachedStore> querySeqsRevStore;
@@ -138,23 +138,23 @@ void UpdateSecondaryAndFilter(std::vector<std::vector<MapperBaseResult>>& mappin
         PacBio::Pancake::DistributeJobLoad<int32_t>(numThreads, numEntries);
 
     // Results are a vector for every chunk (one chunk is one ZMW).
-    const auto Submit = [&](int32_t jobId) {
+    const auto submit = [&](const int32_t jobId) {
         const int32_t jobStart = jobsPerThread[jobId].first;
         const int32_t jobEnd = jobsPerThread[jobId].second;
 
         for (int32_t resultId = jobStart; resultId < jobEnd; ++resultId) {
             const auto& settings = batchChunks[resultId].mapSettings;
-            auto& result = mappingResults[resultId];
+            auto& results = mappingResults[resultId];
             // One chunk can have multiple queries (subreads).
-            for (size_t qId = 0; qId < result.size(); ++qId) {
+            for (auto& result : results) {
                 // Secondary/supplementary flagging.
-                WrapFlagSecondaryAndSupplementary(result[qId].mappings,
+                WrapFlagSecondaryAndSupplementary(result.mappings,
                                                   settings.secondaryAllowedOverlapFractionQuery,
                                                   settings.secondaryAllowedOverlapFractionTarget,
                                                   settings.secondaryMinScoreFraction);
 
                 const int32_t numPrimary =
-                    CondenseMappings(result[qId].mappings, settings.bestNSecondary);
+                    CondenseMappings(result.mappings, settings.bestNSecondary);
 
                 // If this occurs, that means that a filtering stage removed the primary alignment for some reason.
                 // This can happen in case self-hits are skipped in the overlapping use case (the self-hit is the
@@ -162,14 +162,14 @@ void UpdateSecondaryAndFilter(std::vector<std::vector<MapperBaseResult>>& mappin
                 // This reruns labeling to produce the next best primary.
                 if (numPrimary == 0) {
                     WrapFlagSecondaryAndSupplementary(
-                        result[qId].mappings, settings.secondaryAllowedOverlapFractionQuery,
+                        result.mappings, settings.secondaryAllowedOverlapFractionQuery,
                         settings.secondaryAllowedOverlapFractionTarget,
                         settings.secondaryMinScoreFraction);
                 }
             }
         }
     };
-    Parallel::Dispatch(faf, jobsPerThread.size(), Submit);
+    Parallel::Dispatch(faf, jobsPerThread.size(), submit);
 }
 
 int32_t AlignPartsOnCpu(const AlignerType alignerTypeGlobal,
