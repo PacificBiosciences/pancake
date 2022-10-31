@@ -3,7 +3,7 @@
 #ifndef PANCAKE_MAPPER_BATCH_UTILITY_HPP
 #define PANCAKE_MAPPER_BATCH_UTILITY_HPP
 
-#include <pancake/AlignmentSeeded.hpp>
+#include <pancake/AlignmentRegion.hpp>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/MapperBase.hpp>
 #include <pancake/MapperCLR.hpp>

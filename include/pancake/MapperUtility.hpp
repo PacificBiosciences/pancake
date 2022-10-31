@@ -3,6 +3,7 @@
 #ifndef PANCAKE_MAPPER_UTILITY_HPP
 #define PANCAKE_MAPPER_UTILITY_HPP
 
+#include <pancake/AlignmentRegion.hpp>
 #include <pancake/FastaSequenceCachedStore.hpp>
 #include <pancake/MapperBase.hpp>
 #include <pancake/Minimizers.hpp>

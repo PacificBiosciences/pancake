@@ -3,8 +3,7 @@
 #ifndef PANCAKE_MAPPER_BASE_HPP
 #define PANCAKE_MAPPER_BASE_HPP
 
-#include <pbcopper/utility/Ssize.h>
-#include <pancake/AlignmentSeeded.hpp>
+#include <pancake/AlignmentRegion.hpp>
 #include <pancake/DPChain.hpp>
 #include <pancake/FastaSequenceCached.hpp>
 #include <pancake/FastaSequenceId.hpp>
@@ -12,6 +11,9 @@
 #include <pancake/OverlapWriterBase.hpp>
 #include <pancake/SeedIndex.hpp>
 #include <pancake/SequenceSeedsCached.hpp>
+
+#include <pbcopper/logging/Logging.h>
+#include <pbcopper/utility/Ssize.h>
 
 #include <cstdint>
 #include <memory>

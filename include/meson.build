@@ -17,6 +17,7 @@ if not meson.is_subproject()
       'pancake/AlignerSES1.hpp',
       'pancake/AlignerSES2.hpp',
       'pancake/AlignmentParameters.hpp',
+      'pancake/AlignmentRegion.hpp',
       'pancake/AlignmentResult.hpp',
       'pancake/AlignmentSeeded.hpp',
       'pancake/CCSAlignmentResult.hpp',
