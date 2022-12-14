@@ -36,6 +36,13 @@ if not meson.is_subproject()
       ]),
       subdir : 'pancake/third-party/kxsort')
 
+  # pdqsort
+  install_headers(
+    files([
+      'pancake/third-party/pdqsort/pdqsort.h',
+      ]),
+      subdir : 'pancake/third-party/pdqsort')
+
   # sparsehash/internal
   install_headers(
     files([
