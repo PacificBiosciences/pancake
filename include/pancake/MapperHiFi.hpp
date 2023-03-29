@@ -282,6 +282,16 @@ std::vector<MapperResult> MapHiFi(const FastaSequenceCachedStore& targetSeqs,
                                   const PacBio::Pancake::SeedDBParameters& seedParams,
                                   const OverlapHifiSettings& settings);
 
+std::unique_ptr<SeedIndex> GenerateIndex(const FastaSequenceCachedStore& targetSeqs,
+                                         const PacBio::Pancake::SeedDBParameters& seedParams,
+                                         double freqPercentile, int64_t& freqCutoff);
+
+std::vector<MapperResult> MapHiFi(const SeedIndex& targetSeedIndex,
+                                  const FastaSequenceCachedStore& targetSeqs,
+                                  const FastaSequenceCachedStore& querySeqs,
+                                  const PacBio::Pancake::SeedDBParameters& seedParams,
+                                  int64_t freqCutoff, const OverlapHifiSettings& settings);
+
 }  // namespace OverlapHiFi
 }  // namespace Pancake
 }  // namespace PacBio
