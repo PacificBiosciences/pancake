@@ -3,6 +3,10 @@
 ## Active version in development
 ### Changes
 
+### v2.1.0
+- Refactoring
+- Allow reuse of SeedIndex for MapHiFi
+
 ### v1.9.0
 - Refactoring and making all batch mappers use the identical implementation of WorkerMapper_.
 - All Pancake CLR public mapping interfaces now catch exceptions, log them, and return empty if an exception happened.
