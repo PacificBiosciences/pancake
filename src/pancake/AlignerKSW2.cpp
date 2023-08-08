@@ -25,7 +25,7 @@ void mm_tbuf_destroy(mm_tbuf_t* b)
     if (b == 0) {
         return;
     }
-    km_destroy(b->km);
+    pbkm_destroy(b->km);
     free(b);
 }
 
@@ -122,7 +122,7 @@ AlignmentResult AlignerKSW2::Global(const std::string_view qseq, const std::stri
         ret.zdropped = ez.zdropped;
 
         // Free KSW2 memory.
-        kfree(buffer_->km, ez.cigar);
+        pbkfree(buffer_->km, ez.cigar);
 
         // Early return if bandwidth lead to an optimal alignment
         if (ret.valid) {
@@ -179,7 +179,7 @@ AlignmentResult AlignerKSW2::Extend(const std::string_view qseq, const std::stri
     ret.score = std::max(ret.maxScore, ez.score);
 
     // Free KSW2 memory.
-    kfree(buffer_->km, ez.cigar);
+    pbkfree(buffer_->km, ez.cigar);
 
     return ret;
 }
